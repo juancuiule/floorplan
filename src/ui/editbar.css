@@ -1,0 +1,130 @@
+/* Floating actions for the selected item. Sits bottom center of the canvas (left of the 320px panel). */
+.editbar {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(calc(-50% - 168px));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 12px;
+  /* Opaque: a backdrop blur over the live canvas would re-blur every frame. */
+  background: #f8f7f4;
+  box-shadow: 0 0 0 1px var(--line), 0 6px 24px rgb(0 0 0 / 0.08);
+  font-size: 12px;
+  color: var(--ink);
+  user-select: none;
+  animation: editbar-in 140ms ease-out;
+}
+
+@keyframes editbar-in {
+  from {
+    opacity: 0;
+    transform: translateX(calc(-50% - 168px)) translateY(4px);
+  }
+}
+
+.editbar-name {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  max-width: 200px;
+  padding: 2px 8px 2px 8px;
+  line-height: 1.3;
+}
+
+.editbar-name strong {
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.editbar-meta {
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.editbar-warn {
+  overflow: hidden;
+  color: #b42318;
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.editbar-warn::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: #e5484d;
+  vertical-align: 1px;
+}
+
+.editbar-group {
+  display: flex;
+  gap: 2px;
+  padding-left: 6px;
+  border-left: 1px solid var(--line);
+}
+
+.editbar button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.editbar button:hover:not(:disabled) {
+  background: rgb(43 41 37 / 0.06);
+}
+
+.editbar button:active:not(:disabled) {
+  background: rgb(43 41 37 / 0.1);
+}
+
+.editbar button:disabled {
+  color: var(--muted);
+  opacity: 0.45;
+  cursor: default;
+}
+
+.editbar button.danger {
+  color: #b42318;
+}
+
+.editbar button:focus-visible {
+  outline: 2px solid #4a7dd8;
+  outline-offset: 1px;
+}
+
+@media (max-width: 800px) {
+  .editbar {
+    transform: translateX(-50%);
+    bottom: calc(45vh + 32px);
+  }
+
+  @keyframes editbar-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editbar {
+    animation: none;
+  }
+}
