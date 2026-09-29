@@ -92,6 +92,23 @@ export function boxIn(item: DecorItem, frame: Frame): Box {
   return { u0: Math.min(...us), u1: Math.max(...us), v0: Math.min(...vs), v1: Math.max(...vs) }
 }
 
+/**
+ * A floor piece standing against a wall (a sofa, a sideboard), seen on that
+ * wall: its width along the wall and its height. Null when it is not within a
+ * few centimeters of the wall. Lets artwork line up with what stands below it.
+ */
+export function backedBox(item: DecorItem, frame: Frame): Box | null {
+  if (frame.kind !== 'wall' || item.kind !== 'furniture' || isWallItem(item) || mountOf(item) !== 'surface') return null
+  const [ex, ez] = planHalf(item)
+  const [nx, nz] = facingVector(frame.facing)
+  const back = item.at[0] * nx + item.at[2] * nz - (Math.abs(nx) * ex + Math.abs(nz) * ez)
+  if (back - frame.d > 0.12 || back - frame.d < -0.05) return null
+  const a = alongWall(frame.facing)
+  const u = dot(a, item.at[0], item.at[2])
+  const half = Math.abs(a[0]) * ex + Math.abs(a[1]) * ez
+  return { u0: u - half, u1: u + half, v0: item.at[1], v1: item.at[1] + item.size[1] }
+}
+
 export function unionBox(boxes: Box[]): Box {
   return {
     u0: Math.min(...boxes.map((b) => b.u0)),

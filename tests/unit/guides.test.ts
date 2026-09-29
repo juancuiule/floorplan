@@ -138,6 +138,17 @@ describe('frames and guideMove', () => {
     expect(world.align[0][2]).toBeCloseTo(0.106, 6)
   })
 
+  it('centers artwork over furniture standing against its wall, not over furniture out in the room', () => {
+    // A sideboard backed onto the art's wall (surface at z = 0.1), centered at x = 3.
+    const against = sideboard('s', 3, 0.304)
+    const lead = art('m', 3.02, 1.5)
+    const g = guideMove(buildGuideCtx([lead, against], new Set(['m'])), lead, [lead])!
+    expect(g.delta[0]).toBeCloseTo(-0.02, 6)
+    const away = sideboard('s', 3, 1.2)
+    const g2 = guideMove(buildGuideCtx([lead, away], new Set(['m'])), lead, [lead])!
+    expect(g2.delta[0]).toBe(0)
+  })
+
   it('moves a whole selection by its combined box', () => {
     const a = art('a', 1.01, 1.5)
     const b = art('b', 1.41, 1.5)

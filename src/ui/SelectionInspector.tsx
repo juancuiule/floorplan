@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { GALLERY_LINE } from '../decor/guides'
-import { arrangeFrame, groupName, hangSelection, matchSelectionSize, selectedGroup, selectionSummary } from '../decor/selection'
+import { arrangeFrame, groupName, hangSelection, matchSelectionSize, pieceBelow, selectedGroup, selectionSummary } from '../decor/selection'
 import { useDecor } from '../decor/store'
+import type { DecorItem } from '../model/decor'
 import { Chips, Field, NumberInput, Section } from './controls'
 import { cm, itemLabel } from './format'
 import { Icon, itemIcon } from './icons'
@@ -75,7 +76,7 @@ export function SelectionInspector() {
         </Section>
       )}
 
-      {gallery && <GallerySection count={sel.length} />}
+      {gallery && <GallerySection count={sel.length} over={belowLabel(sel)} />}
 
       <Section title={`Selected · ${sel.length}`}>
         <ul className="sel-list">
@@ -112,8 +113,13 @@ export function SelectionInspector() {
   )
 }
 
+function belowLabel(sel: DecorItem[]): string | null {
+  const below = pieceBelow(sel)
+  return below ? itemLabel(below.item).toLowerCase() : null
+}
+
 /** Arrange the selected artwork as a neat row or grid on a center line. */
-function GallerySection({ count }: { count: number }) {
+function GallerySection({ count, over }: { count: number; over: string | null }) {
   const [layout, setLayout] = useState<'row' | 'grid'>(count > 3 ? 'grid' : 'row')
   const [gap, setGap] = useState<number>(0.08)
   const [center, setCenter] = useState(Math.round(GALLERY_LINE * 100))
@@ -143,7 +149,7 @@ function GallerySection({ count }: { count: number }) {
           Match size and frame
         </button>
       </div>
-      <p className="note">Centered where they hang now; 145–155 cm is the usual eye level.</p>
+      <p className="note">{over ? `Centered over the ${over}` : 'Centered where they hang now'}; 145–155 cm is the usual eye level.</p>
     </Section>
   )
 }

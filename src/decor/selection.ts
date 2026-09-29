@@ -2,7 +2,7 @@ import type { ArtworkItem, DecorItem } from '../model/decor'
 import type { Vec3 } from '../model/types'
 import { align, distribute, hangGallery, matchSize, selectionFrame, type AlignMode, type GalleryOpts } from './arrange'
 import { screenAxes } from './edit'
-import { isWallItem } from './extent'
+import { backedBox, boxIn, isWallItem, unionBox } from './extent'
 import { alongWall } from './placement'
 import { useDecor } from './store'
 
@@ -38,11 +38,28 @@ export function matchSelectionSize() {
   if (source) s.applyPatches(matchSize(selectedItems(s), source as ArtworkItem))
 }
 
+/** Furniture standing against the selection's wall, under the selection's center (a sofa, a sideboard). */
+export function pieceBelow(items = selectedItems()): { item: DecorItem; center: number } | null {
+  const s = useDecor.getState()
+  const frame = arrangeFrame(items)
+  if (frame?.kind !== 'wall' || !items.length) return null
+  const all = unionBox(items.map((i) => boxIn(i, frame)))
+  const c = (all.u0 + all.u1) / 2
+  for (const i of s.items) {
+    const b = backedBox(i, frame)
+    if (b && b.u0 <= c && c <= b.u1 && b.v1 < all.v0) return { item: i, center: (b.u0 + b.u1) / 2 }
+  }
+  return null
+}
+
+/** Hangs the selection as a gallery, centered over the piece below it if there is one. */
 export function hangSelection(opts: GalleryOpts) {
   const s = useDecor.getState()
   const items = selectedItems(s)
   const frame = arrangeFrame(items)
-  if (frame?.kind === 'wall') s.applyPatches(hangGallery(items, frame, opts))
+  if (frame?.kind !== 'wall') return
+  const below = pieceBelow(items)
+  s.applyPatches(hangGallery(items, frame, { centerU: below?.center, ...opts }))
 }
 
 /** Arrow-key offset for one item: wall pieces slide along their wall (as seen on screen) or up; floor pieces follow the screen. */

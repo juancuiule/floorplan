@@ -76,6 +76,7 @@ With the dev server running:
 ```sh
 CHROME_PATH=/path/to/chrome node scripts/shoot.mjs shots http://localhost:5173 iso-balcony:dollhouse:evening
 CHROME_PATH=/path/to/chrome node scripts/e2e-decor.mjs shots   # clicks through the panel
+CHROME_PATH=/path/to/chrome node scripts/shoot-gallery.mjs shots http://localhost:5173   # gallery wall, align tools, floor guides
 ```
 
 Test runs use `?decor=<name>` with a scratch name (`e2e-…`, `test-…`, `furn`, …), which reads and writes a git-ignored `data/decor.<name>.json` instead of your layout.
@@ -88,4 +89,4 @@ pnpm test:types     # type-checks the tests
 BASE_URL=http://localhost:5184 CHROME_PATH=/path/to/chrome pnpm test:e2e   # needs a running dev server
 ```
 
-Unit tests live in `tests/unit`. The e2e smoke test (`tests/e2e/smoke.mjs`) switches views, opens each panel tab and places an artwork, a plant, lamps and a desk through the UI, then checks `data/decor.e2e-smoke.json` through the dev API. `tests/e2e/walk-measure.mjs` walks through the flat (entry, passage, balcony, walls), measures on the floor and checks the clearance overlay. Screenshots go to `test-results/e2e/` (ignored by version control).
+Unit tests live in `tests/unit`. The e2e smoke test (`tests/e2e/smoke.mjs`) switches views, opens each panel tab and places an artwork, a plant, lamps and a desk through the UI, then checks `data/decor.e2e-smoke.json` through the dev API. `tests/e2e/walk-measure.mjs` walks through the flat (entry, passage, balcony, walls), measures on the floor and checks the clearance overlay. `scripts/e2e-align.mjs <outDir> <baseUrl>` hangs three artworks, Shift-selects them, aligns, distributes, groups, drags the group, undoes, checks the smart guides and hangs them as a gallery, asserting `data/decor.test-align.json` at each step. Screenshots go to `test-results/e2e/` (ignored by version control).

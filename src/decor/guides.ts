@@ -1,7 +1,7 @@
 import type { DecorItem } from '../model/decor'
 import type { Vec3 } from '../model/types'
 import type { Guides } from './edit'
-import { boxIn, FLOOR_FRAME, frameDelta, framePoint, isWallItem, onPlane, unionBox, wallFrameOf, type Box, type Frame } from './extent'
+import { backedBox, boxIn, FLOOR_FRAME, frameDelta, framePoint, isWallItem, onPlane, unionBox, wallFrameOf, type Box, type Frame } from './extent'
 import { mountOf } from './placement'
 
 // Smart guides (Figma-like) for a moving item or selection: its edges and center
@@ -236,8 +236,14 @@ function targets(ctx: GuideCtx, frame: Frame): Box[] {
   const key = frame.kind === 'wall' ? `${frame.facing}:${frame.d.toFixed(2)}` : 'floor'
   let boxes = ctx.cache.get(key)
   if (!boxes) {
-    const pool = frame.kind === 'wall' ? ctx.wall.filter((i) => onPlane(i, frame)) : ctx.floor
-    boxes = pool.map((i) => boxIn(i, frame))
+    if (frame.kind === 'wall') {
+      // Pieces on this wall, and furniture standing against it (center the art over the sofa).
+      boxes = ctx.wall.filter((i) => onPlane(i, frame)).map((i) => boxIn(i, frame))
+      for (const i of ctx.floor) {
+        const b = backedBox(i, frame)
+        if (b) boxes.push(b)
+      }
+    } else boxes = ctx.floor.map((i) => boxIn(i, frame))
     ctx.cache.set(key, boxes)
   }
   return boxes

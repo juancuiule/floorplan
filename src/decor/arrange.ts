@@ -119,6 +119,8 @@ export interface GalleryOpts {
   centerV: number
   /** Grid only: columns (default: about square). */
   cols?: number
+  /** Where along the wall to center it (default: where the pieces are now). */
+  centerU?: number
 }
 
 /**
@@ -130,7 +132,7 @@ export function hangGallery(items: DecorItem[], frame: Frame, opts: GalleryOpts)
   if (frame.kind !== 'wall' || items.length < 2) return {}
   const entries = items.map((item) => ({ item, box: boxIn(item, frame) }))
   const all = unionBox(entries.map((e) => e.box))
-  const cu = (all.u0 + all.u1) / 2
+  const cu = opts.centerU ?? (all.u0 + all.u1) / 2
   const w = (b: Box) => b.u1 - b.u0
   const h = (b: Box) => b.v1 - b.v0
   const cols = opts.layout === 'row' ? entries.length : Math.max(1, opts.cols ?? (entries.length <= 3 ? entries.length : Math.ceil(Math.sqrt(entries.length))))

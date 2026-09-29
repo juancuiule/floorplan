@@ -116,7 +116,7 @@ const labelStyle = (color: string): React.CSSProperties => ({
 function GuideLines({ guides }: { guides: Guides }) {
   return (
     <group userData={{ editHelper: true }}>
-      {guides.align.length > 0 && <Line segments points={guides.align} color={GUIDE} lineWidth={1.25} depthTest={false} renderOrder={13} raycast={noRaycast} />}
+      {guides.align.length > 0 && <Line segments points={guides.align} color={GUIDE} lineWidth={1.75} depthTest={false} renderOrder={13} raycast={noRaycast} />}
       {guides.gallery.length > 0 && (
         <Line segments points={guides.gallery} color={GALLERY} lineWidth={1.25} dashed dashSize={0.04} gapSize={0.03} depthTest={false} renderOrder={13} raycast={noRaycast} />
       )}
