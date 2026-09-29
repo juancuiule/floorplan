@@ -14,6 +14,11 @@
     "bathTile": {
       "layout": "stack",
       "color": "#f6f6f4"
+    },
+    "shower": {
+      "screen": "glass",
+      "curtainColor": "#f2f0ea",
+      "fittings": "chrome"
     }
   },
   "items": [
@@ -257,8 +262,8 @@
       "id": "artwork-mum8pncps76b",
       "image": "/artwork/image%2058.png",
       "at": [
-        5.51,
-        2.2,
+        6.25,
+        2.22,
         3
       ],
       "facing": "z-",
@@ -280,8 +285,8 @@
       "id": "artwork-mum8r7fgamt1",
       "image": "/artwork/image%2057.png",
       "at": [
-        5.27,
-        2.23,
+        6.13,
+        2.03,
         3
       ],
       "facing": "z-",
@@ -425,7 +430,7 @@
       "rotation": 0,
       "size": [
         1.4,
-        0.93,
+        0.8,
         0.7
       ],
       "finish": {
@@ -601,7 +606,7 @@
       "id": "furniture-mum991u3ixdt",
       "type": "bookshelf",
       "at": [
-        3.68,
+        3.47,
         0,
         2.83
       ],
@@ -796,8 +801,8 @@
       "id": "artwork-mum9q22w3y0m",
       "image": "/artwork/image%2065.png",
       "at": [
-        4.84,
-        1.57,
+        5.23,
+        1.94,
         3
       ],
       "facing": "z-",
