@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "kind": "artwork",
+      "id": "artwork-gallery-a3",
+      "image": "/artwork/image%2054.png",
+      "at": [
+        0.3,
+        2.17,
+        2.4
+      ],
+      "facing": "z-",
+      "host": "side-kitchen",
+      "size": {
+        "preset": "50x70",
+        "w": 0.5,
+        "h": 0.7
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#ba7b01",
+        "mat": 0
+      }
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-gallery-square",
+      "image": "/artwork/IMG_3585.png",
+      "at": [
+        3.62,
+        1.81,
+        0
+      ],
+      "facing": "z+",
+      "host": "side-bath",
+      "size": {
+        "preset": "custom",
+        "w": 0.56,
+        "h": 0.56
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#1f1e1c",
+        "mat": 0
+      }
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mulzx26vu829",
+      "image": "/artwork/IMG_3582.png",
+      "at": [
+        6.32,
+        1.79,
+        0
+      ],
+      "facing": "z+",
+      "size": {
+        "preset": "custom",
+        "w": 0.56,
+        "h": 0.56
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-bath"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum0033igyoj",
+      "image": "/artwork/IMG_3583.png",
+      "at": [
+        5.65,
+        1.48,
+        0
+      ],
+      "facing": "z+",
+      "size": {
+        "preset": "custom",
+        "w": 0.56,
+        "h": 0.56
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-bath"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum01nj4azj8",
+      "image": "/artwork/image%2061.png",
+      "at": [
+        4.37,
+        1.03,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "A5",
+        "w": 0.148,
+        "h": 0.21
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "none",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum0242moyn0",
+      "image": "/artwork/image%2060.png",
+      "at": [
+        4.54,
+        1.07,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "A5",
+        "w": 0.148,
+        "h": 0.21
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "none",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "lamp",
+      "id": "lamp-mum043h5jbmp",
+      "type": "arc",
+      "at": [
+        6.66,
+        0,
+        2.47
+      ],
+      "rotation": 130,
+      "on": true,
+      "brightness": 0.1,
+      "warmth": 2700,
+      "color": "#e9e6e0"
+    }
+  ]
+}

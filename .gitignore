@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Scratch decor files used by test runs (?decor=<name>)
+data/decor.*.json

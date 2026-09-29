@@ -9,6 +9,11 @@ interface ViewState {
   /** Bumped on every preset request so re-selecting the same preset re-frames. */
   presetNonce: number
   showDims: boolean
+  lighting: 'day' | 'evening'
+  /** Evening only: the recessed ceiling downlights. */
+  downlights: boolean
+  setLighting: (lighting: 'day' | 'evening') => void
+  toggleDownlights: () => void
   setMode: (mode: ViewMode) => void
   goTo: (preset: ViewPreset) => void
   toggleDims: () => void
@@ -21,6 +26,10 @@ export const useView = create<ViewState>((set) => ({
   preset: (params.get('view') as ViewPreset) || 'iso-balcony',
   presetNonce: 0,
   showDims: params.get('dims') !== '0',
+  lighting: params.get('light') === 'evening' ? 'evening' : 'day',
+  downlights: params.get('downlights') !== '0',
+  setLighting: (lighting) => set({ lighting }),
+  toggleDownlights: () => set((s) => ({ downlights: !s.downlights })),
   setMode: (mode) => set({ mode }),
   goTo: (preset) => set((s) => ({ preset, presetNonce: s.presetNonce + 1 })),
   toggleDims: () => set((s) => ({ showDims: !s.showDims })),

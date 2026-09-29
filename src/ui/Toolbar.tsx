@@ -7,7 +7,7 @@ const MODES: { id: ViewMode; label: string }[] = [
 ]
 
 export function Toolbar() {
-  const { mode, preset, showDims, setMode, goTo, toggleDims } = useView()
+  const { mode, preset, showDims, setMode, goTo, toggleDims, lighting, setLighting, downlights, toggleDownlights } = useView()
   return (
     <div className="toolbar">
       <div className="title">
@@ -32,6 +32,18 @@ export function Toolbar() {
         <button aria-pressed={showDims} className={showDims ? 'on' : ''} onClick={toggleDims}>
           Dimensions
         </button>
+      </div>
+      <div className="group" role="radiogroup" aria-label="Lighting">
+        {(['day', 'evening'] as const).map((l) => (
+          <button key={l} role="radio" aria-checked={lighting === l} className={lighting === l ? 'on' : ''} onClick={() => setLighting(l)}>
+            {l === 'day' ? 'Day' : 'Evening'}
+          </button>
+        ))}
+        {lighting === 'evening' && (
+          <button aria-pressed={downlights} className={downlights ? 'on' : ''} onClick={toggleDownlights}>
+            Downlights
+          </button>
+        )}
       </div>
     </div>
   )

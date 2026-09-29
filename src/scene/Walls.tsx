@@ -7,6 +7,7 @@ import { project } from '../project'
 import { useView } from '../store'
 import { Box } from './Box'
 import { applyFade, faceDims, makeEdgeMaterial, makeMaterial } from './materials'
+import { requestShadowUpdate } from './shadows'
 
 /** Height in meters of one pattern repeat, used to keep tile rows continuous across the stub cut. */
 function patternHeight(id: string): number {
@@ -20,6 +21,9 @@ export const STUB_HEIGHT = 0.3
 const XRAY_ALPHA = 0.14
 const FADE_SPEED = 9
 const INSIDE: Vec2 = [3.45, 1.5]
+
+/** Walls currently cut away by dollhouse mode; decor hosted on them hides too. */
+export const cutWalls = new Set<string>()
 
 export function Walls() {
   const { walls, bulges } = project.shell
@@ -112,6 +116,8 @@ function WallView({ wall, bulges }: { wall: Wall; bulges: Bulge[] }) {
       const beyond = (camera.position.x - mx) * outward[0] + (camera.position.z - mz) * outward[1]
       if (beyond > 0.05) upper = 0
     }
+    if (upper === 0) cutWalls.add(wall.id)
+    else cutWalls.delete(wall.id)
     const k = 1 - Math.exp(-FADE_SPEED * dt)
     const a = alpha.current
     a.stub += (stub - a.stub) * k
@@ -123,6 +129,7 @@ function WallView({ wall, bulges }: { wall: Wall; bulges: Bulge[] }) {
     const shadows = mode !== 'xray' && upper > 0.5
     if (shadows !== a.shadows && groupRef.current) {
       a.shadows = shadows
+      requestShadowUpdate()
       groupRef.current.traverse((o) => {
         if ((o as THREE.Mesh).isMesh && !mats.stubSet.has((o as THREE.Mesh).material as THREE.Material)) o.castShadow = shadows
       })
@@ -130,7 +137,7 @@ function WallView({ wall, bulges }: { wall: Wall; bulges: Bulge[] }) {
   })
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} userData={{ host: wall.id }}>
       <group position={[frame.origin[0], 0, frame.origin[1]]} rotation={[0, frame.rotY, 0]}>
         {pieces.map((p, i) => (
           <Box

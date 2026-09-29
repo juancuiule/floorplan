@@ -1,5 +1,5 @@
 // Renders the app in headless Chromium and saves screenshots of each view.
-// Usage: node scripts/shoot.mjs [outDir] [baseUrl] [view:mode ...]
+// Usage: node scripts/shoot.mjs [outDir] [baseUrl] [view:mode:light ...]
 import { chromium } from 'playwright'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
@@ -20,10 +20,11 @@ page.on('console', (m) => m.type() === 'error' && console.log('[console]', m.tex
 page.on('pageerror', (e) => console.log('[pageerror]', e.message))
 
 for (const spec of shots) {
-  const [view, mode = 'dollhouse'] = spec.split(':')
-  await page.goto(`${base}/?view=${view}&mode=${mode}`)
+  const [view, mode = 'dollhouse', light = 'day'] = spec.split(':')
+  await page.goto(`${base}/?view=${view}&mode=${mode}&light=${light}`)
   await page.waitForFunction(() => (window.__frames ?? 0) > 40, null, { timeout: 60000 })
-  const file = join(outDir, `${view}-${mode}.png`)
+  await page.waitForTimeout(1200) // let textures and decor load
+  const file = join(outDir, `${view}-${mode}-${light}.png`)
   await page.screenshot({ path: file })
   console.log('saved', file)
 }
