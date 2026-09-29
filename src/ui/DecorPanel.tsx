@@ -1,13 +1,16 @@
 import { useEffect, useRef, type ChangeEvent, type ReactNode } from 'react'
-import { FRAME_COLORS, FRAME_STYLES, LAMPS, MAT_WIDTHS, PLANTS, POTS, SIZE_PRESETS, WARMTH } from '../decor/catalog'
+import { DEFAULT_POT_SIZE, FRAME_COLORS, FRAME_STYLES, LAMPS, MAT_WIDTHS, PLANTS, POT_SIZES, POTS, SIZE_PRESETS, WARMTH } from '../decor/catalog'
+import { BODY_FINISHES, FABRIC_FINISHES, FURNITURE, FURNITURE_GROUPS, METAL_FINISHES, type OptionSpec } from '../decor/furnitureCatalog'
 import { mountOf } from '../decor/placement'
 import { newId, useDecor, type PanelTab } from '../decor/store'
-import type { ArtworkItem, DecorItem, LampItem, LampType, PlantItem, PlantSpecies, SizePreset } from '../model/decor'
+import type { ArtworkItem, DecorItem, FurnitureItem, FurnitureType, LampItem, LampType, PlantItem, PlantSpecies, PotSize, SizePreset } from '../model/decor'
+import type { Vec3 } from '../model/types'
 import { artworkOuterSize } from '../scene/decor/Artwork'
 import { unplacedAt } from '../scene/decor/DecorLayer'
 
 const TABS: { id: PanelTab; label: string; kind: DecorItem['kind'] }[] = [
-  { id: 'artwork', label: 'Artwork', kind: 'artwork' },
+  { id: 'furniture', label: 'Furniture', kind: 'furniture' },
+  { id: 'artwork', label: 'Art', kind: 'artwork' },
   { id: 'plants', label: 'Plants', kind: 'plant' },
   { id: 'lights', label: 'Lights', kind: 'lamp' },
 ]
@@ -18,6 +21,7 @@ const fileName = (url: string) => decodeURIComponent(url.split('/').pop() ?? '')
 export function itemLabel(item: DecorItem) {
   if (item.kind === 'artwork') return fileName(item.image)
   if (item.kind === 'plant') return PLANTS[item.species].label
+  if (item.kind === 'furniture') return FURNITURE[item.type].label
   return LAMPS[item.type].label
 }
 
@@ -53,6 +57,7 @@ export function DecorPanel() {
         <Inspector item={selected} />
       ) : (
         <>
+          {tab === 'furniture' && <FurnitureLibrary />}
           {tab === 'artwork' && <ArtworkLibrary />}
           {tab === 'plants' && <PlantLibrary />}
           {tab === 'lights' && <LampLibrary />}
@@ -147,7 +152,17 @@ function PlantLibrary() {
             key={sp}
             className="card"
             onClick={() =>
-              startPlacing({ kind: 'plant', id: newId('plant'), species: sp, pot: PLANTS[sp].pot, at: unplacedAt(), rotation: Math.round(Math.random() * 360), scale: 1 })
+              startPlacing({
+                kind: 'plant',
+                id: newId('plant'),
+                species: sp,
+                pot: PLANTS[sp].pot,
+                at: unplacedAt(),
+                rotation: sp === 'collection' || sp === 'windowBox' ? 0 : Math.round(Math.random() * 360),
+                scale: 1,
+                potSize: DEFAULT_POT_SIZE[sp],
+                ...(sp === 'collection' ? { count: 10, spread: 0.9 } : {}),
+              })
             }
           >
             <strong>{PLANTS[sp].label}</strong>
@@ -211,6 +226,7 @@ function Inspector({ item }: { item: DecorItem }) {
       {item.kind === 'artwork' && <ArtworkControls item={item} />}
       {item.kind === 'plant' && <PlantControls item={item} />}
       {item.kind === 'lamp' && <LampControls item={item} />}
+      {item.kind === 'furniture' && <FurnitureControls item={item} />}
       <div className="actions">
         <button className="btn" onClick={() => relocate(item.id)}>
           Move
@@ -372,9 +388,31 @@ function PlantControls({ item }: { item: PlantItem }) {
           ))}
         </select>
       </Field>
-      <Field label="Pot">
-        <Swatches value={POTS.find((p) => p.id === item.pot)!.color} colors={POTS.map((p) => ({ label: p.label, color: p.color }))} onChange={(c) => set({ pot: POTS.find((p) => p.color === c)?.id ?? item.pot })} />
-      </Field>
+      {item.species !== 'collection' && item.species !== 'windowBox' && (
+        <Field label="Clay pot size">
+          <Chips value={item.potSize ?? 'auto'} options={POT_SIZES} onChange={(potSize: PotSize) => set({ potSize })} />
+        </Field>
+      )}
+      {(item.potSize ?? 'auto') === 'auto' && item.species !== 'collection' && (
+        <Field label="Pot">
+          <Swatches value={POTS.find((p) => p.id === item.pot)!.color} colors={POTS.map((p) => ({ label: p.label, color: p.color }))} onChange={(c) => set({ pot: POTS.find((p) => p.color === c)?.id ?? item.pot })} />
+        </Field>
+      )}
+      {item.species === 'collection' && (
+        <>
+          <Field label={`Pots · ${item.count ?? 10}`}>
+            <input type="range" min={2} max={30} step={1} value={item.count ?? 10} onChange={(e) => set({ count: parseInt(e.target.value) })} />
+          </Field>
+          <Field label={`Strip width · ${cm(item.spread ?? 0.9)} cm`}>
+            <input type="range" min={0.2} max={2.5} step={0.05} value={item.spread ?? 0.9} onChange={(e) => set({ spread: parseFloat(e.target.value) })} />
+          </Field>
+          <Field label="Mix">
+            <button className="btn" onClick={() => set({ seed: Math.random().toString(36).slice(2, 8) })}>
+              Shuffle plants
+            </button>
+          </Field>
+        </>
+      )}
       <Field label={`Size · ${Math.round(item.scale * 100)}%`}>
         <input type="range" min={0.5} max={1.6} step={0.05} value={item.scale} onChange={(e) => set({ scale: parseFloat(e.target.value) })} />
       </Field>
@@ -426,5 +464,170 @@ function LampControls({ item }: { item: LampItem }) {
         </Field>
       )}
     </>
+  )
+}
+
+// ---------- furniture ----------
+
+function FurnitureLibrary() {
+  const startPlacing = useDecor((s) => s.startPlacing)
+  return (
+    <section>
+      <h3>Choose a piece</h3>
+      {FURNITURE_GROUPS.map((group) => (
+        <div key={group} className="group-block">
+          <span className="group-label">{group}</span>
+          <div className="cards">
+            {(Object.keys(FURNITURE) as FurnitureType[])
+              .filter((t) => FURNITURE[t].group === group)
+              .map((t) => {
+                const spec = FURNITURE[t]
+                return (
+                  <button
+                    key={t}
+                    className="card"
+                    onClick={() =>
+                      startPlacing({
+                        kind: 'furniture',
+                        id: newId('furniture'),
+                        type: t,
+                        at: unplacedAt(),
+                        rotation: 0,
+                        size: [...spec.size] as Vec3,
+                        finish: { ...spec.finish },
+                        options: { ...spec.options },
+                      })
+                    }
+                  >
+                    <strong>{spec.label}</strong>
+                    <span>
+                      {spec.note} · {cm(spec.size[0])}×{cm(spec.size[2])}
+                    </span>
+                  </button>
+                )
+              })}
+          </div>
+        </div>
+      ))}
+    </section>
+  )
+}
+
+const SIT = 0.72
+const STAND = 1.1
+
+function FurnitureControls({ item }: { item: FurnitureItem }) {
+  const update = useDecor((s) => s.update<FurnitureItem>)
+  const set = (patch: Partial<FurnitureItem>) => update(item.id, patch)
+  const spec = FURNITURE[item.type]
+  const mount = mountOf(item)
+  const [w, h, d] = item.size
+  const setSize = (i: 0 | 1 | 2, v: number) => {
+    const size = [...item.size] as Vec3
+    size[i] = Math.max(0.01, v)
+    set({ size })
+  }
+  // A desk's height moves with sit/stand, so its presets only fix width and depth.
+  const preset = spec.presets?.find((p) => p.size.every((v, i) => (i === 1 && item.type === 'standingDesk') || Math.abs(v - item.size[i]) < 0.005))
+
+  return (
+    <>
+      {spec.presets && (
+        <Field label="Size">
+          <Chips
+            value={preset?.label ?? 'custom'}
+            options={[...spec.presets.map((p) => ({ id: p.label, label: p.label })), ...(preset ? [] : [{ id: 'custom', label: 'Custom' }])]}
+            onChange={(label) => {
+              const p = spec.presets!.find((x) => x.label === label)
+              // Keep the desk's current height when switching top sizes.
+              if (p) set({ size: item.type === 'standingDesk' ? [p.size[0], h, p.size[2]] : ([...p.size] as Vec3) })
+            }}
+          />
+        </Field>
+      )}
+      {spec.editable.length > 0 && (
+        <Field label="Dimensions">
+          <div className="row wrap">
+            {spec.editable.includes('w') && <NumberInput value={cm(w)} min={10} max={400} suffix="W" onChange={(v) => setSize(0, v / 100)} />}
+            {spec.editable.includes('d') && <NumberInput value={cm(d)} min={2} max={300} suffix="D" onChange={(v) => setSize(2, v / 100)} />}
+            {spec.editable.includes('h') && (
+              <NumberInput value={cm(h)} min={1} max={260} suffix={item.type === 'hangingRack' ? 'drop' : 'H'} onChange={(v) => setSize(1, v / 100)} />
+            )}
+          </div>
+        </Field>
+      )}
+      {item.type === 'standingDesk' && (
+        <Field label={`Desk height · ${cm(h)} cm`}>
+          <Chips
+            value={Math.abs(h - SIT) < 0.005 ? 'sit' : Math.abs(h - STAND) < 0.005 ? 'stand' : 'custom'}
+            options={[
+              { id: 'sit', label: `Sit · ${cm(SIT)}` },
+              { id: 'stand', label: `Stand · ${cm(STAND)}` },
+            ]}
+            onChange={(v) => setSize(1, v === 'sit' ? SIT : STAND)}
+          />
+          <input type="range" min={0.62} max={1.27} step={0.01} value={h} onChange={(e) => setSize(1, parseFloat(e.target.value))} />
+        </Field>
+      )}
+      {spec.uses.includes('body') && (
+        <Field label="Wood / body">
+          <Swatches value={item.finish.body} colors={BODY_FINISHES} onChange={(body) => set({ finish: { ...item.finish, body } })} />
+        </Field>
+      )}
+      {spec.uses.includes('metal') && (
+        <Field label="Metal">
+          <Swatches value={item.finish.metal} colors={METAL_FINISHES} onChange={(metal) => set({ finish: { ...item.finish, metal } })} />
+        </Field>
+      )}
+      {spec.uses.includes('fabric') && (
+        <Field label={item.type === 'butterflyChair' ? 'Sling' : 'Fabric'}>
+          <Swatches value={item.finish.fabric} colors={FABRIC_FINISHES} onChange={(fabric) => set({ finish: { ...item.finish, fabric } })} />
+        </Field>
+      )}
+      {spec.optionSpecs.map((o) => (
+        <OptionControl key={o.key} spec={o} value={item.options[o.key]} onChange={(v) => set({ options: { ...item.options, [o.key]: v } })} />
+      ))}
+      {mount === 'wall' && (
+        <Field label="Bottom edge">
+          <NumberInput value={cm(item.at[1])} min={0} max={250} suffix="cm from floor" onChange={(v) => set({ at: [item.at[0], v / 100, item.at[2]] })} />
+        </Field>
+      )}
+      {mount !== 'wall' && (
+        <Field label="Facing">
+          <Chips
+            value={Math.round(item.rotation) % 360}
+            options={[0, 90, 180, 270].map((r) => ({ id: r, label: `${r}°` }))}
+            onChange={(rotation) => set({ rotation })}
+          />
+        </Field>
+      )}
+    </>
+  )
+}
+
+function OptionControl({ spec, value, onChange }: { spec: OptionSpec; value: FurnitureItem['options'][string]; onChange: (v: FurnitureItem['options'][string]) => void }) {
+  if (spec.kind === 'toggle')
+    return (
+      <Field label={spec.label}>
+        <Chips
+          value={value === false ? 'no' : 'yes'}
+          options={[
+            { id: 'yes', label: 'Yes' },
+            { id: 'no', label: 'No' },
+          ]}
+          onChange={(v) => onChange(v === 'yes')}
+        />
+      </Field>
+    )
+  if (spec.kind === 'chips')
+    return (
+      <Field label={spec.label}>
+        <Chips value={value as string} options={spec.choices as { id: string; label: string }[]} onChange={onChange} />
+      </Field>
+    )
+  return (
+    <Field label={`${spec.label} · ${value}`}>
+      <input type="range" min={spec.min} max={spec.max} step={spec.step} value={Number(value)} onChange={(e) => onChange(parseFloat(e.target.value))} />
+    </Field>
   )
 }

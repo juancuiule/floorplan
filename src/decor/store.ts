@@ -6,7 +6,7 @@ export interface LibraryImage {
   url: string
 }
 
-export type PanelTab = 'artwork' | 'plants' | 'lights'
+export type PanelTab = 'furniture' | 'artwork' | 'plants' | 'lights'
 
 interface DecorState {
   items: DecorItem[]

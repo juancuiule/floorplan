@@ -517,3 +517,18 @@ body,
     bottom: calc(45vh + 32px);
   }
 }
+
+.group-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.group-label {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.row.wrap {
+  flex-wrap: wrap;
+}

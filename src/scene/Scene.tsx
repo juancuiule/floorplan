@@ -112,8 +112,9 @@ export function Scene() {
         <Walls />
         <Ceilings />
         <Fixtures />
+        {/* Decor is a surface too: plants on the desk, lamps on shelves. */}
+        <DecorLayer />
       </SurfaceEvents>
-      <DecorLayer />
       <Labels />
       <CameraRig />
       <FrameCounter />

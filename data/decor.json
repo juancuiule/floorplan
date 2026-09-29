@@ -6,12 +6,12 @@
       "id": "artwork-gallery-a3",
       "image": "/artwork/image%2054.png",
       "at": [
-        0.3,
-        2.17,
-        2.4
+        1.71,
+        2.12,
+        0.8
       ],
-      "facing": "z-",
-      "host": "side-kitchen",
+      "facing": "z+",
+      "host": "shower-niche",
       "size": {
         "preset": "50x70",
         "w": 0.5,
@@ -98,15 +98,15 @@
       "id": "artwork-mum01nj4azj8",
       "image": "/artwork/image%2061.png",
       "at": [
-        4.37,
-        1.03,
+        4.36,
+        1.07,
         3
       ],
       "facing": "z-",
       "size": {
-        "preset": "A5",
-        "w": 0.148,
-        "h": 0.21
+        "preset": "custom",
+        "w": 0.13,
+        "h": 0.19
       },
       "fit": "cover",
       "frame": {
@@ -121,15 +121,15 @@
       "id": "artwork-mum0242moyn0",
       "image": "/artwork/image%2060.png",
       "at": [
-        4.54,
-        1.07,
+        4.51,
+        1.16,
         3
       ],
       "facing": "z-",
       "size": {
-        "preset": "A5",
-        "w": 0.148,
-        "h": 0.21
+        "preset": "custom",
+        "w": 0.13,
+        "h": 0.19
       },
       "fit": "cover",
       "frame": {
@@ -153,6 +153,75 @@
       "brightness": 0.1,
       "warmth": 2700,
       "color": "#e9e6e0"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum06b1y5rc0",
+      "image": "/artwork/IMG_3588.png",
+      "at": [
+        3.99,
+        1.51,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "A4",
+        "w": 0.21,
+        "h": 0.297
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum074tfcxqr",
+      "image": "/artwork/IMG_3587.png",
+      "at": [
+        3.73,
+        1.32,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "A4",
+        "w": 0.21,
+        "h": 0.297
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum07ga1u4nu",
+      "image": "/artwork/image%2062.png",
+      "at": [
+        4.5,
+        0.9,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "custom",
+        "w": 0.13,
+        "h": 0.19
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "none",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
     }
   ]
 }

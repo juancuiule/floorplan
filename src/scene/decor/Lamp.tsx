@@ -131,6 +131,49 @@ export function Lamp({ item }: { item: LampItem }) {
         </group>
       )
 
+    case 'flowerpot':
+      // Verner Panton's Flowerpot: a dome over a smaller upturned dome, on a slim stem.
+      return (
+        <group>
+          <mesh position={[0, 0.01, 0]} material={m.shade} castShadow>
+            <cylinderGeometry args={[0.07, 0.08, 0.02, 32]} />
+          </mesh>
+          <mesh position={[0, 0.17, 0]} material={m.shade} castShadow>
+            <cylinderGeometry args={[0.008, 0.008, 0.3, 10]} />
+          </mesh>
+          <mesh position={[0, 0.33, 0]} material={m.shade} castShadow>
+            <sphereGeometry args={[0.115, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          </mesh>
+          <mesh position={[0, 0.34, 0]} rotation={[Math.PI, 0, 0]} material={m.shade}>
+            <sphereGeometry args={[0.055, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
+          </mesh>
+          <Bulb position={[0, 0.3, 0]} item={item} />
+        </group>
+      )
+
+    case 'lantern':
+      // Large rice-paper globe (Noguchi Akari style), glowing, with thin ribs.
+      return (
+        <group>
+          <mesh position={[0, -0.25, 0]} material={cable}>
+            <cylinderGeometry args={[0.003, 0.003, 0.5, 6]} />
+          </mesh>
+          <mesh position={[0, -0.82, 0]} material={m.glow} castShadow>
+            <sphereGeometry args={[0.3, 40, 28]} />
+          </mesh>
+          {Array.from({ length: 11 }, (_, i) => {
+            const y = -0.25 + (i + 1) * 0.05
+            const rr = Math.sqrt(Math.max(0, 0.3 * 0.3 - y * y)) + 0.001
+            return (
+              <mesh key={i} position={[0, -0.82 + y, 0]} rotation={[Math.PI / 2, 0, 0]} material={m.shade}>
+                <torusGeometry args={[rr, 0.0015, 4, 48]} />
+              </mesh>
+            )
+          })}
+          <Bulb position={[0, -0.82, 0]} item={item} />
+        </group>
+      )
+
     case 'pendant':
       return (
         <group>
@@ -185,9 +228,61 @@ export function Lamp({ item }: { item: LampItem }) {
         </group>
       )
 
+    case 'exit':
+      return <ExitCube item={item} />
+
     case 'string':
       return <StringLights item={item} bulb={m.bulb} />
   }
+}
+
+function exitTexture() {
+  const c = document.createElement('canvas')
+  c.width = c.height = 256
+  const g = c.getContext('2d')!
+  g.fillStyle = '#c8241a'
+  g.fillRect(0, 0, 256, 256)
+  g.fillStyle = '#fff2e8'
+  g.font = 'bold 92px Arial Narrow, Arial, sans-serif'
+  g.textAlign = 'center'
+  g.textBaseline = 'middle'
+  g.fillText('EXIT', 128, 132)
+  const t = new THREE.CanvasTexture(c)
+  t.colorSpace = THREE.SRGBColorSpace
+  return t
+}
+
+/** Red glass EXIT cube on a chrome wall plate, lettered on its sides. */
+function ExitCube({ item }: { item: LampItem }) {
+  const evening = useView((s) => s.lighting === 'evening')
+  const lit = item.on ? item.brightness * (evening ? 1 : 0.3) : 0
+  const mats = useMemo(() => {
+    const map = exitTexture()
+    const face = new THREE.MeshStandardMaterial({ map, emissiveMap: map, emissive: '#ffffff', roughness: 0.25 })
+    const plain = new THREE.MeshStandardMaterial({ color: item.color, emissive: item.color, roughness: 0.25 })
+    return { face, plain }
+  }, [item.color])
+  useEffect(() => {
+    mats.face.emissiveIntensity = 0.15 + lit * 0.9
+    mats.plain.emissiveIntensity = 0.1 + lit * 0.7
+  }, [mats, lit])
+  useEffect(() => () => (mats.face.map?.dispose(), mats.face.dispose(), mats.plain.dispose()), [mats])
+  // Box face order: +x, -x, +y, -y, +z, -z. Letters on the two sides and the front.
+  const faces = [mats.face, mats.face, mats.plain, mats.plain, mats.face, mats.plain]
+  return (
+    <group>
+      <mesh position={[0, 0, 0.01]} rotation={[Math.PI / 2, 0, 0]} material={metal}>
+        <cylinderGeometry args={[0.07, 0.07, 0.02, 32]} />
+      </mesh>
+      <mesh position={[0, 0, 0.11]} material={faces} castShadow>
+        <boxGeometry args={[0.16, 0.16, 0.16]} />
+      </mesh>
+      <mesh position={[0.05, -0.12, 0.03]} material={metal}>
+        <cylinderGeometry args={[0.002, 0.002, 0.14, 4]} />
+      </mesh>
+      {item.on && evening && <pointLight position={[0, 0, 0.3]} intensity={LAMPS.exit.power * item.brightness} distance={3} decay={2} color="#ff3b2a" />}
+    </group>
+  )
 }
 
 function StringLights({ item, bulb }: { item: LampItem; bulb: THREE.Material }) {

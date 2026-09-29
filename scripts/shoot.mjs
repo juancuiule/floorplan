@@ -20,11 +20,14 @@ page.on('console', (m) => m.type() === 'error' && console.log('[console]', m.tex
 page.on('pageerror', (e) => console.log('[pageerror]', e.message))
 
 for (const spec of shots) {
+  // view:mode:light, or cam=x,y,z,tx,ty,tz[,fov]:mode:light for an exact camera
   const [view, mode = 'dollhouse', light = 'day'] = spec.split(':')
-  await page.goto(`${base}/?view=${view}&mode=${mode}&light=${light}`)
+  const camera = view.startsWith('cam=') ? `cam=${view.slice(4)}` : `view=${view}`
+  await page.goto(`${base}/?${camera}&mode=${mode}&light=${light}&dims=0${process.env.DECOR ? `&decor=${process.env.DECOR}` : ''}`)
   await page.waitForFunction(() => (window.__frames ?? 0) > 40, null, { timeout: 60000 })
   await page.waitForTimeout(1200) // let textures and decor load
-  const file = join(outDir, `${view}-${mode}-${light}.png`)
+  const name = view.startsWith('cam=') ? `cam-${shots.indexOf(spec)}` : view
+  const file = join(outDir, `${name}-${mode}-${light}.png`)
   await page.screenshot({ path: file })
   console.log('saved', file)
 }

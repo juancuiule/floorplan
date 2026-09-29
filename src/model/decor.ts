@@ -25,8 +25,30 @@ export interface ArtworkItem {
   frame: { style: FrameStyle; color: string; /** Passe-partout width, meters. */ mat: number }
 }
 
-export type PlantSpecies = 'monstera' | 'snake' | 'fiddle' | 'olive' | 'fern' | 'palm' | 'cactus' | 'lavender' | 'pothos'
-export type PotStyle = 'terracotta' | 'ceramic' | 'concrete' | 'basket' | 'black'
+export type PlantSpecies =
+  | 'monstera'
+  | 'snake'
+  | 'fiddle'
+  | 'olive'
+  | 'fern'
+  | 'palm'
+  | 'cactus'
+  | 'lavender'
+  | 'pothos'
+  | 'succulent'
+  | 'herbs'
+  | 'aloe'
+  | 'jade'
+  | 'burro'
+  | 'haworthia'
+  | 'rubber'
+  | 'croton'
+  | 'spider'
+  | 'collection'
+  | 'windowBox'
+export type PotStyle = 'terracotta' | 'ceramic' | 'concrete' | 'basket' | 'black' | 'clay'
+/** Standard clay pot diameters in cm; 'auto' keeps the species' own pot. */
+export type PotSize = 'auto' | 6 | 8 | 12
 
 export interface PlantItem {
   kind: 'plant'
@@ -38,9 +60,19 @@ export interface PlantItem {
   /** Degrees around y. */
   rotation: number
   scale: number
+  /** A standard clay pot of this diameter; the plant is scaled to suit it. */
+  potSize?: PotSize
+  /** Collection only: how many pots, and the width of the strip they fill (m). */
+  count?: number
+  spread?: number
+  /** Varies the random layout of leaves (and of a collection's pots); defaults to the id. */
+  seed?: string
+  /** Window box only: the wall it hangs on. */
+  facing?: Facing
+  host?: string
 }
 
-export type LampType = 'arc' | 'tripod' | 'table' | 'mushroom' | 'pendant' | 'globe' | 'sconce' | 'string'
+export type LampType = 'arc' | 'tripod' | 'table' | 'mushroom' | 'flowerpot' | 'pendant' | 'globe' | 'lantern' | 'sconce' | 'exit' | 'string'
 export type Warmth = 2700 | 3000 | 4000
 
 export interface LampItem {
@@ -62,7 +94,53 @@ export interface LampItem {
   length?: number
 }
 
-export type DecorItem = ArtworkItem | PlantItem | LampItem
+export type FurnitureType =
+  // floor
+  | 'platformBed'
+  | 'murphyBed'
+  | 'daybed'
+  | 'sofa'
+  | 'standingDesk'
+  | 'diningTable'
+  | 'chair'
+  | 'butterflyChair'
+  | 'bookshelf'
+  | 'wardrobe'
+  | 'sideboard'
+  | 'blockShelf'
+  | 'rug'
+  // wall
+  | 'gridShelf'
+  | 'upperCabinets'
+  | 'floatingShelf'
+  | 'pegGrid'
+  | 'kitchenRail'
+  | 'fruitBaskets'
+  | 'stationClock'
+  // ceiling
+  | 'hangingRack'
+
+export type FurnitureOption = number | boolean | string
+
+export interface FurnitureItem {
+  kind: 'furniture'
+  id: string
+  type: FurnitureType
+  /**
+   * Floor pieces: footprint center at the floor. Wall pieces: on the wall
+   * surface, y = bottom edge. Ceiling pieces: the ceiling point they hang from.
+   */
+  at: Vec3
+  rotation: number
+  facing?: Facing
+  host?: string
+  /** [width, height, depth] in meters, in the piece's own axes (+z is its front). */
+  size: Vec3
+  finish: { body: string; metal: string; fabric: string }
+  options: Record<string, FurnitureOption>
+}
+
+export type DecorItem = ArtworkItem | PlantItem | LampItem | FurnitureItem
 export type DecorKind = DecorItem['kind']
 
 export interface DecorFile {

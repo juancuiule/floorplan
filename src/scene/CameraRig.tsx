@@ -16,6 +16,9 @@ export const PRESETS: Record<ViewPreset, { label: string; position: Vec3; target
   'from-entry': { label: 'From entry', position: [0.9, 1.6, 1.95], target: [6.9, 1.1, 1.3], fov: EYE },
 }
 
+/** ?cam=x,y,z,tx,ty,tz[,fov] opens at an exact camera, for screenshots. */
+const camParam = new URLSearchParams(window.location.search).get('cam')?.split(',').map(Number)
+
 export function CameraRig() {
   const ref = useRef<CameraControls>(null)
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera
@@ -26,6 +29,13 @@ export function CameraRig() {
   useEffect(() => {
     const c = ref.current
     if (!c) return
+    if (first.current && camParam && camParam.length >= 6) {
+      camera.fov = camParam[6] || EYE
+      camera.updateProjectionMatrix()
+      c.setLookAt(camParam[0], camParam[1], camParam[2], camParam[3], camParam[4], camParam[5], false)
+      first.current = false
+      return
+    }
     const p = PRESETS[preset]
     camera.fov = p.fov
     camera.updateProjectionMatrix()

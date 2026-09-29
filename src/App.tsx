@@ -8,7 +8,7 @@ import { Toolbar } from './ui/Toolbar'
 
 const HINTS = {
   wall: 'Click a wall to hang it',
-  surface: 'Click the floor, the counter or the balcony to set it down',
+  surface: 'Click the floor or any surface to set it down · hold Alt to skip wall snapping',
   ceiling: 'Click anywhere below the ceiling spot to hang it',
 }
 
@@ -26,7 +26,8 @@ function useShortcuts() {
         e.preventDefault()
         s.remove(sel.id)
       } else if ((e.key === 'r' || e.key === 'R') && sel && sel.kind !== 'artwork' && mountOf(sel) !== 'wall') {
-        const step = e.shiftKey ? -15 : 15
+        // Furniture turns in quarter turns; plants and lamps in small steps.
+        const step = (sel.kind === 'furniture' ? 90 : 15) * (e.shiftKey ? -1 : 1)
         s.update<PlantItem>(sel.id, { rotation: (((sel as PlantItem).rotation + step) % 360 + 360) % 360 })
       }
     }

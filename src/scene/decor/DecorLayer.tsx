@@ -8,6 +8,7 @@ import type { DecorItem } from '../../model/decor'
 import { requestShadowUpdate } from '../shadows'
 import { cutWalls } from '../Walls'
 import { Artwork } from './Artwork'
+import { Furniture } from './furniture/Furniture'
 import { Lamp } from './Lamp'
 import { Plant } from './Plant'
 
@@ -15,6 +16,11 @@ import { Plant } from './Plant'
 const UNPLACED_Y = -50
 
 export const unplacedAt = (): [number, number, number] => [0, UNPLACED_Y - 1, 0]
+
+function belongsTo(o: THREE.Object3D | null, id: string): boolean {
+  for (; o; o = o.parent) if (o.userData.decorId) return o.userData.decorId === id
+  return false
+}
 
 /**
  * Wraps the architecture so pointer events over it can place or drag decor.
@@ -24,12 +30,14 @@ export function SurfaceEvents({ children }: { children: ReactNode }) {
   const onPointerMove = (e: ThreeEvent<PointerEvent>) => {
     const s = useDecor.getState()
     if (!s.movingId) return
+    // The item being moved is not a surface for itself: look past it.
+    if (belongsTo(e.object, s.movingId)) return
     const hit = readHit(e)
     if (!hit) return
     e.stopPropagation()
     const item = s.items.find((i) => i.id === s.movingId)
     if (!item) return
-    const patch = placeAt(item, hit)
+    const patch = placeAt(item, hit, { free: e.nativeEvent.altKey })
     if (patch) s.update(item.id, patch)
   }
   const onClick = (e: ThreeEvent<MouseEvent>) => {
@@ -93,11 +101,12 @@ function DecorNode({ item, selected, onPointerDown }: { item: DecorItem; selecte
   })
 
   return (
-    <group ref={ref} position={item.at} rotation={[0, rotationY, 0]} onPointerDown={onPointerDown}>
+    <group ref={ref} position={item.at} rotation={[0, rotationY, 0]} onPointerDown={onPointerDown} userData={{ decorId: item.id, host }}>
       <Suspense fallback={null}>
         {item.kind === 'artwork' && <Artwork item={item} />}
         {item.kind === 'plant' && <Plant item={item} />}
         {item.kind === 'lamp' && <Lamp item={item} />}
+        {item.kind === 'furniture' && <Furniture item={item} />}
       </Suspense>
       {selected && <SelectionBox target={ref} />}
     </group>

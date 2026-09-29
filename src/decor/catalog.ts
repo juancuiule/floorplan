@@ -1,4 +1,4 @@
-import type { FrameStyle, LampType, PlantSpecies, PotStyle, SizePreset, Warmth } from '../model/decor'
+import type { FrameStyle, LampType, PlantSpecies, PotSize, PotStyle, SizePreset, Warmth } from '../model/decor'
 
 export type Mount = 'wall' | 'surface' | 'ceiling'
 
@@ -41,7 +41,38 @@ export const PLANTS: Record<PlantSpecies, { label: string; note: string; mount: 
   cactus: { label: 'Cactus', note: 'Column with arms · ~0.6 m', mount: 'surface', pot: 'terracotta' },
   lavender: { label: 'Lavender box', note: 'Planter box · 70 cm long', mount: 'surface', pot: 'concrete' },
   pothos: { label: 'Hanging pothos', note: 'Hangs from the ceiling', mount: 'ceiling', pot: 'ceramic' },
+  succulent: { label: 'Succulent', note: 'Echeveria rosette · small', mount: 'surface', pot: 'clay' },
+  herbs: { label: 'Herbs', note: 'Basil bush · kitchen', mount: 'surface', pot: 'clay' },
+  aloe: { label: 'Aloe', note: 'Spiky rosette · small', mount: 'surface', pot: 'clay' },
+  haworthia: { label: 'Haworthia', note: 'Striped rosette · tiny', mount: 'surface', pot: 'clay' },
+  jade: { label: 'Jade plant', note: 'Crassula, fat leaves · ~40 cm', mount: 'surface', pot: 'ceramic' },
+  burro: { label: 'Burro’s tail', note: 'Trailing bead strands', mount: 'surface', pot: 'clay' },
+  rubber: { label: 'Rubber plant', note: 'Variegated ficus · ~1 m', mount: 'surface', pot: 'basket' },
+  croton: { label: 'Croton', note: 'Red and yellow leaves · ~50 cm', mount: 'surface', pot: 'ceramic' },
+  spider: { label: 'Spider plant', note: 'Arching striped blades', mount: 'surface', pot: 'terracotta' },
+  collection: { label: 'Succulent collection', note: 'A row of small clay pots', mount: 'surface', pot: 'clay' },
+  windowBox: { label: 'Window box', note: 'Wall planter, trailing sedum', mount: 'wall', pot: 'terracotta' },
 }
+
+/** Default clay pot size for the small species; others keep their own pot. */
+export const DEFAULT_POT_SIZE: Partial<Record<PlantSpecies, PotSize>> = { succulent: 8, herbs: 12, aloe: 12, haworthia: 8, burro: 12 }
+
+/** Species a collection draws from, with the clay pot sizes they come in. */
+export const COLLECTION_SPECIES: { species: PlantSpecies; sizes: number[] }[] = [
+  { species: 'succulent', sizes: [0.06, 0.08, 0.12] },
+  { species: 'haworthia', sizes: [0.06, 0.08] },
+  { species: 'aloe', sizes: [0.08, 0.12] },
+  { species: 'jade', sizes: [0.12] },
+  { species: 'cactus', sizes: [0.08, 0.12] },
+  { species: 'burro', sizes: [0.12] },
+]
+
+export const POT_SIZES: { id: PotSize; label: string }[] = [
+  { id: 'auto', label: 'Plant’s own' },
+  { id: 6, label: '6 cm' },
+  { id: 8, label: '8 cm' },
+  { id: 12, label: '12 cm' },
+]
 
 export const POTS: { id: PotStyle; label: string; color: string }[] = [
   { id: 'terracotta', label: 'Terracotta', color: '#b86a45' },
@@ -49,6 +80,7 @@ export const POTS: { id: PotStyle; label: string; color: string }[] = [
   { id: 'concrete', label: 'Concrete', color: '#a8a59f' },
   { id: 'basket', label: 'Basket', color: '#c9ab7c' },
   { id: 'black', label: 'Matte black', color: '#2a2927' },
+  { id: 'clay', label: 'Clay pot', color: '#c0714a' },
 ]
 
 export const LAMPS: Record<LampType, { label: string; note: string; mount: Mount; color: string; power: number }> = {
@@ -56,9 +88,12 @@ export const LAMPS: Record<LampType, { label: string; note: string; mount: Mount
   tripod: { label: 'Tripod lamp', note: 'Wood legs, drum shade', mount: 'surface', color: '#efe8dc', power: 5 },
   table: { label: 'Table lamp', note: 'Drum shade, for a side table', mount: 'surface', color: '#efe8dc', power: 2.5 },
   mushroom: { label: 'Mushroom lamp', note: 'Small dome, glows', mount: 'surface', color: '#e8d6b8', power: 2 },
+  flowerpot: { label: 'Flowerpot lamp', note: 'Two domes, 70s table lamp', mount: 'surface', color: '#d8b53c', power: 2 },
   pendant: { label: 'Dome pendant', note: 'Hangs over a table', mount: 'ceiling', color: '#2b2a28', power: 6 },
   globe: { label: 'Globe pendant', note: 'Opal glass sphere', mount: 'ceiling', color: '#f5f2ea', power: 5 },
+  lantern: { label: 'Paper lantern', note: 'Large rice-paper globe', mount: 'ceiling', color: '#f6ead8', power: 6 },
   sconce: { label: 'Wall sconce', note: 'Up-light on a wall', mount: 'wall', color: '#2b2a28', power: 2.5 },
+  exit: { label: 'EXIT cube', note: 'Red glass cube on a wall', mount: 'wall', color: '#d42a1e', power: 1.2 },
   string: { label: 'String lights', note: 'Festoon along a wall', mount: 'wall', color: '#2b2a28', power: 0.5 },
 }
 
