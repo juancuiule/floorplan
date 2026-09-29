@@ -88,6 +88,17 @@ describe('furniture catalog', () => {
     expect(free.at[2]).toBeCloseTo(0.3)
   })
 
+  it('sizes that follow options: tube chair type, mug count', () => {
+    const bistro = FURNITURE.bistroChair.sizeFor!
+    expect(bistro({ variant: 'stool' }, FURNITURE.bistroChair.size)[1]).toBeCloseTo(0.46)
+    expect(bistro({ variant: 'bar' }, FURNITURE.bistroChair.size)[1]).toBeCloseTo(0.66)
+    expect(bistro({ variant: 'chair' }, FURNITURE.bistroChair.size)).toEqual(FURNITURE.bistroChair.size)
+    const mugs = FURNITURE.mugs.sizeFor!
+    expect(mugs({ count: 2 }, FURNITURE.mugs.size)[0]).toBeCloseTo(0.22)
+    expect(mugs({ count: 4 }, FURNITURE.mugs.size)).toEqual(FURNITURE.mugs.size)
+    expect(FURNITURE.railTable.mountHeight! + FURNITURE.railTable.size[1]).toBeCloseTo(0.75)
+  })
+
   it('groups the panel shows are all in use', () => {
     for (const g of FURNITURE_GROUPS) expect(TYPES.some((t) => FURNITURE[t].group === g), g).toBe(true)
   })

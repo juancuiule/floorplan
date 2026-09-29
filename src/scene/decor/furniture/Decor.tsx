@@ -217,6 +217,94 @@ export function WireBasket({ item }: { item: FurnitureItem }) {
   )
 }
 
+// ---------- ceramic mugs ----------
+
+/** Glazes: a speckled stoneware base color each. */
+export const GLAZES = ['#efe9dc', '#2f4d6b', '#c96f4a', '#e7d49a', '#7f9b86', '#d9a3a0']
+const WHITE_GLAZE = '#f3f1ec'
+const SPECKLED = '#e3d6bf'
+
+const glazeMaterials = new Map<string, THREE.MeshStandardMaterial>()
+
+/** Glossy stoneware with dark iron speckles (a small tiled canvas texture). */
+export function glazeMaterial(color: string, speckles = true): THREE.MeshStandardMaterial {
+  const key = `${color}|${speckles}`
+  let m = glazeMaterials.get(key)
+  if (m) return m
+  if (!speckles) {
+    m = new THREE.MeshStandardMaterial({ color, roughness: 0.25 })
+  } else {
+    const c = document.createElement('canvas')
+    c.width = c.height = 128
+    const g = c.getContext('2d')!
+    g.fillStyle = color
+    g.fillRect(0, 0, 128, 128)
+    const r = seeded(color)
+    for (let i = 0; i < 140; i++) {
+      g.fillStyle = `rgba(60,45,35,${0.25 + r() * 0.45})`
+      g.beginPath()
+      g.arc(r() * 128, r() * 128, 0.4 + r() * 1.1, 0, Math.PI * 2)
+      g.fill()
+    }
+    const t = new THREE.CanvasTexture(c)
+    t.colorSpace = THREE.SRGBColorSpace
+    t.wrapS = t.wrapT = THREE.RepeatWrapping
+    t.repeat.set(2, 1)
+    m = new THREE.MeshStandardMaterial({ map: t, roughness: 0.3 })
+  }
+  glazeMaterials.set(key, m)
+  return m
+}
+
+/** One mug standing on y = 0, handle toward +x: tapered body, a darker rim ring inside, a loop handle. */
+export function Mug({ p, turn = 0, glaze, r = 0.041, h = 0.095 }: { p: [number, number, number]; turn?: number; glaze: THREE.Material; r?: number; h?: number }) {
+  return (
+    <group position={p} rotation={[0, turn, 0]}>
+      <mesh position={[0, h / 2, 0]} material={glaze} castShadow receiveShadow>
+        <cylinderGeometry args={[r, r * 0.9, h, 24]} />
+      </mesh>
+      {/* the inside, seen over the rim: a shaded disc just below it */}
+      <mesh position={[0, h + 0.0005, 0]} rotation={[-Math.PI / 2, 0, 0]} material={mat('#6b5a4a', 'matte')}>
+        <circleGeometry args={[r - 0.004, 24]} />
+      </mesh>
+      <mesh position={[r - 0.002, h * 0.52, 0]} material={glaze} castShadow>
+        <torusGeometry args={[h * 0.24, 0.0065, 8, 16, Math.PI]} />
+      </mesh>
+    </group>
+  )
+}
+
+/** A set of stoneware mugs in a loose row, handles turned every which way. */
+export function Mugs({ item }: { item: FurnitureItem }) {
+  const [w] = item.size
+  const n = Math.max(1, Math.min(6, Math.round(Number(item.options.count ?? 4))))
+  const glaze = String(item.options.glaze ?? 'mixed')
+  const r = seeded(item.id)
+  const step = w / n
+  const tray = item.options.tray === true
+  const ty = tray ? 0.016 : 0
+  return (
+    <group>
+      {tray && (
+        <group>
+          <B s={[w + 0.03, 0.01, 0.15]} p={[0, 0.005, 0]} m={mat(item.finish.body)} />
+          {[-1, 1].map((k) => (
+            <B key={k} s={[w + 0.03, 0.018, 0.01]} p={[0, 0.009, k * 0.07]} m={mat(item.finish.body)} />
+          ))}
+        </group>
+      )}
+      {Array.from({ length: n }, (_, i) => {
+        const color = glaze === 'white' ? WHITE_GLAZE : glaze === 'speckled' ? SPECKLED : GLAZES[i % GLAZES.length]
+        const x = -w / 2 + step * (i + 0.5) - 0.012
+        const z = (r() - 0.5) * 0.03
+        // Handles mostly to the right, a couple turned back or forward.
+        const turn = (r() - 0.5) * 1.2 + (r() > 0.75 ? Math.PI * 0.5 : 0)
+        return <Mug key={i} p={[x, ty, z]} turn={turn} glaze={glazeMaterial(color, glaze !== 'white')} />
+      })}
+    </group>
+  )
+}
+
 // ---------- retro wall clock ----------
 
 /** A rounded triangle, point up, centered on its incircle. */

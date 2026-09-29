@@ -6,6 +6,7 @@ import { useView } from '../../../store'
 import { MATS, potMaterial } from '../Plant'
 import { buildPlant, seeded } from '../plantGeometry'
 import { B, mat, Rod } from './common'
+import { GLAZES, glazeMaterial, Mug } from './Decor'
 
 // Wall pieces: origin on the wall surface, y = bottom edge, +z out of the wall.
 
@@ -145,8 +146,6 @@ export function UpperCabinets({ item }: { item: FurnitureItem }) {
   )
 }
 
-const MUGS = ['#f1ede4', '#2f4d6b', '#c96f4a', '#e5d7a8', '#6f8f7a', '#1f2326']
-
 /** A few everyday things on a shelf: mugs, a jar, a stack of books, a small succulent. */
 function ShelfItems({ w, d, y, seed }: { w: number; d: number; y: number; seed: string }) {
   const r = seeded(seed)
@@ -162,18 +161,8 @@ function ShelfItems({ w, d, y, seed }: { w: number; d: number; y: number; seed: 
         const x = -w / 2 + 0.06 + (i + 0.5) * ((w - 0.12) / slots)
         const kind = kinds[(start + i) % kinds.length]
         if (kind === 'mug') {
-          const c = MUGS[Math.floor(r() * MUGS.length)]
-          const turn = r() * Math.PI * 2
-          return (
-            <group key={i} position={[x, 0, z]} rotation={[0, turn, 0]}>
-              <mesh position={[0, 0.045, 0]} material={mat(c, 'gloss')} castShadow>
-                <cylinderGeometry args={[0.04, 0.037, 0.09, 20]} />
-              </mesh>
-              <mesh position={[0.036, 0.048, 0]} rotation={[0, 0, -Math.PI / 2]} material={mat(c, 'gloss')}>
-                <torusGeometry args={[0.022, 0.006, 6, 14, Math.PI]} />
-              </mesh>
-            </group>
-          )
+          const c = GLAZES[Math.floor(r() * GLAZES.length)]
+          return <Mug key={i} p={[x, 0, z]} turn={r() * Math.PI * 2} glaze={glazeMaterial(c)} r={0.039} h={0.09} />
         }
         if (kind === 'jar')
           return (

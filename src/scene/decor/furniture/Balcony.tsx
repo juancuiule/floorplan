@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import type { FurnitureItem, PlantSpecies } from '../../../model/decor'
 import { MATS, potMaterial } from '../Plant'
 import { buildPlant, POT_SIZES, seeded } from '../plantGeometry'
-import { B, mat, Rod } from './common'
+import { B, cushionGeometry, mat, Pillow, Rod } from './common'
 
 const PILLOWS = ['#b3664b', '#d8b24a', '#9aab8e', '#e8e2d3']
 
@@ -74,12 +74,11 @@ export function BalconyBench({ item }: { item: FurnitureItem }) {
   return (
     <group>
       {base}
-      <B s={[w - 0.02, cushionH, d - 0.02]} p={[0, baseH + cushionH / 2, 0]} m={fabric} />
-      {/* piping line around the cushion */}
-      <B s={[w - 0.012, 0.006, d - 0.012]} p={[0, baseH + cushionH * 0.55, 0]} m={fabric} edges={false} />
+      <mesh geometry={cushionGeometry(w - 0.02, cushionH, d - 0.02, 0.04)} position={[0, baseH, 0]} material={fabric} castShadow receiveShadow />
       {Array.from({ length: pillows }, (_, i) => {
         const x = -((pillows - 1) * (pw + 0.03)) / 2 + i * (pw + 0.03)
-        return <B key={i} s={[pw, 0.42, 0.15]} p={[x, baseH + cushionH + 0.19, -d / 2 + 0.12]} r={[-0.2, (i - (pillows - 1) / 2) * 0.05, 0]} m={mat(PILLOWS[i % PILLOWS.length], 'fabric')} />
+        const ph = Math.min(0.45, pw * 0.95)
+        return <Pillow key={i} s={[pw, ph, 0.16]} p={[x, baseH + cushionH + ph / 2 - 0.01, -d / 2 + 0.1]} r={[-0.22, (i - (pillows - 1) / 2) * 0.06, (i % 2 ? 1 : -1) * 0.03]} m={mat(PILLOWS[i % PILLOWS.length], 'fabric')} />
       })}
     </group>
   )

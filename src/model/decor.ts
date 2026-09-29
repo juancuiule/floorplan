@@ -118,6 +118,7 @@ export type FurnitureType =
   | 'wireBasket'
   | 'balconyBench'
   | 'planterWall'
+  | 'mugs'
   // wall
   | 'gridShelf'
   | 'upperCabinets'

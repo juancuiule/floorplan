@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import type { FurnitureItem } from '../../../model/decor'
 import type { Vec3 } from '../../../model/types'
 import { seeded } from '../plantGeometry'
-import { B, Books, FingerHole, mat, Rod, T } from './common'
+import { B, Books, cushionGeometry, FingerHole, mat, Pillow, Rod, T } from './common'
 
 // ---------- ergonomic office chair ----------
 
@@ -54,37 +54,62 @@ function meshMaterial(grey: boolean) {
   return m
 }
 
+const BACK_R = 0.6
+
 /** A shallow curved panel (an arc of a 0.6 m radius open cylinder) that wraps around the sitter, facing +z. */
 function useBackGeometry(width: number, height: number) {
   const g = useMemo(() => {
-    const r = 0.6
-    const theta = width / r
-    const g = new THREE.CylinderGeometry(r, r, height, 16, 1, true, Math.PI - theta / 2, theta)
-    g.translate(0, 0, r)
+    const theta = width / BACK_R
+    const g = new THREE.CylinderGeometry(BACK_R, BACK_R, height, 16, 1, true, Math.PI - theta / 2, theta)
+    g.translate(0, 0, BACK_R)
     return g
   }, [width, height])
   useEffect(() => () => g.dispose(), [g])
   return g
 }
 
+/** A molded frame tube running around the edge of a curved back panel (see useBackGeometry). */
+function useFrameGeometry(width: number, height: number, radius: number) {
+  const g = useMemo(() => {
+    const half = width / BACK_R / 2
+    const at = (a: number, y: number) => new THREE.Vector3(BACK_R * Math.sin(a), y, BACK_R - BACK_R * Math.cos(a))
+    const pts: THREE.Vector3[] = []
+    const n = 8
+    const hy = height / 2
+    // Rounded corners: the ends of each edge pull in a little.
+    for (let i = 0; i <= n; i++) pts.push(at(-half * 0.92 + (1.84 * half * i) / n, hy))
+    pts.push(at(half, hy * 0.9), at(half, 0), at(half, -hy * 0.9))
+    for (let i = 0; i <= n; i++) pts.push(at(half * 0.92 - (1.84 * half * i) / n, -hy))
+    pts.push(at(-half, -hy * 0.9), at(-half, 0), at(-half, hy * 0.9))
+    const curve = new THREE.CatmullRomCurve3(pts, true, 'centripetal')
+    return new THREE.TubeGeometry(curve, 96, radius, 6, true)
+  }, [width, height, radius])
+  useEffect(() => () => g.dispose(), [g])
+  return g
+}
+
+/** Mesh-back task chair: five-star base on casters, gas lift, padded seat, curved mesh back, headrest, T-arms. */
 export function OfficeChair({ item }: { item: FurnitureItem }) {
   const grey = item.options.color === 'grey'
   const seatH = Math.max(0.4, Math.min(0.58, Number(item.options.seat ?? 48) / 100))
   const base = mat(item.finish.metal, 'metal')
   const frame = mat(grey ? '#b4b6b9' : '#2a2b2e', 'matte')
-  const cushion = mat(grey ? '#6d7075' : '#3a3c40', 'fabric')
+  const cushion = mat(grey ? '#6d7075' : '#35373b', 'fabric')
   const wheel = mat('#1a1a1a', 'matte')
   const chrome = mat('#c9ccce', 'metal')
   const mesh = meshMaterial(grey)
   const back = useBackGeometry(0.46, 0.56)
+  const backFrame = useFrameGeometry(0.47, 0.57, 0.014)
   const headGeo = useBackGeometry(0.28, 0.13)
+  const headFrame = useFrameGeometry(0.29, 0.14, 0.011)
   const headrest = item.options.headrest !== false
   const backY = seatH + 0.12
-  const backZ = -0.2
+  const backZ = -0.22
   const tilt = -0.12
+  const spineTop = backY + (headrest ? 0.62 : 0.3)
   return (
     <group>
-      {/* five-star base on casters */}
+      {/* five-star base on twin-wheel casters */}
       {Array.from({ length: 5 }, (_, i) => {
         const a = (i / 5) * Math.PI * 2
         const cx = Math.sin(a)
@@ -92,53 +117,51 @@ export function OfficeChair({ item }: { item: FurnitureItem }) {
         return (
           <group key={i}>
             <group rotation={[0, a, 0]}>
-              <B s={[0.045, 0.035, 0.3]} p={[0, 0.085, 0.15]} r={[0.12, 0, 0]} m={base} />
+              <B s={[0.05, 0.035, 0.27]} p={[0, 0.088, 0.17]} r={[0.1, 0, 0]} m={base} />
             </group>
-            <mesh position={[cx * 0.29, 0.03, cz * 0.29]} rotation={[0, a, Math.PI / 2]} material={wheel} castShadow>
-              <cylinderGeometry args={[0.028, 0.028, 0.035, 14]} />
-            </mesh>
-            <B s={[0.02, 0.04, 0.03]} p={[cx * 0.3, 0.065, cz * 0.3]} r={[0, a, 0]} m={base} edges={false} />
+            <group position={[cx * 0.3, 0.03, cz * 0.3]} rotation={[0, a, 0]}>
+              {[-1, 1].map((k) => (
+                <mesh key={k} position={[k * 0.012, 0, 0]} rotation={[0, 0, Math.PI / 2]} material={wheel} castShadow>
+                  <cylinderGeometry args={[0.028, 0.028, 0.018, 14]} />
+                </mesh>
+              ))}
+              <B s={[0.012, 0.035, 0.035]} p={[0, 0.022, 0]} m={wheel} edges={false} />
+            </group>
           </group>
         )
       })}
-      <mesh position={[0, 0.11, 0]} material={base} castShadow>
-        <cylinderGeometry args={[0.05, 0.06, 0.06, 20]} />
+      <mesh position={[0, 0.1, 0]} material={base} castShadow>
+        <cylinderGeometry args={[0.045, 0.06, 0.06, 20]} />
       </mesh>
       {/* gas lift: shroud and chrome piston */}
-      <Rod a={[0, 0.12, 0]} b={[0, 0.3, 0]} radius={0.034} m={frame} segments={16} />
-      <Rod a={[0, 0.3, 0]} b={[0, seatH - 0.08, 0]} radius={0.022} m={chrome} segments={14} />
-      {/* tilt mechanism and seat */}
-      <B s={[0.24, 0.05, 0.26]} p={[0, seatH - 0.085, 0]} m={frame} />
-      <B s={[0.5, 0.035, 0.48]} p={[0, seatH - 0.05, 0.01]} m={frame} edges={false} />
-      <B s={[0.5, 0.065, 0.46]} p={[0, seatH - 0.005, 0.01]} m={cushion} />
-      {/* spine from the mechanism up behind the back */}
-      <B s={[0.07, 0.03, 0.2]} p={[0, seatH - 0.08, -0.2]} m={frame} />
-      <B s={[0.07, 0.62 + (headrest ? 0.14 : 0), 0.03]} p={[0, seatH - 0.08 + (0.62 + (headrest ? 0.14 : 0)) / 2, backZ - 0.11]} r={[tilt, 0, 0]} m={frame} />
-      {/* mesh back on a frame */}
+      <Rod a={[0, 0.12, 0]} b={[0, 0.3, 0]} radius={0.032} m={frame} segments={16} />
+      <Rod a={[0, 0.3, 0]} b={[0, seatH - 0.1, 0]} radius={0.02} m={chrome} segments={14} />
+      {/* tilt mechanism with its paddle, seat pan and padded seat */}
+      <B s={[0.22, 0.05, 0.26]} p={[0, seatH - 0.115, 0]} m={frame} />
+      <B s={[0.1, 0.012, 0.025]} p={[0.16, seatH - 0.12, 0.08]} r={[0, -0.3, 0]} m={frame} edges={false} />
+      <mesh geometry={cushionGeometry(0.48, 0.03, 0.46, 0.08)} position={[0, seatH - 0.09, 0.01]} material={frame} castShadow />
+      <mesh geometry={cushionGeometry(0.5, 0.075, 0.48, 0.1)} position={[0, seatH - 0.075, 0.01]} material={cushion} castShadow receiveShadow />
+      {/* spine from the mechanism up behind the back to the headrest */}
+      <B s={[0.07, 0.03, 0.2]} p={[0, seatH - 0.105, -0.17]} m={frame} />
+      <B s={[0.06, spineTop - (seatH - 0.12), 0.03]} p={[0, (spineTop + seatH - 0.12) / 2, backZ - 0.045]} r={[tilt, 0, 0]} m={frame} />
+      {/* mesh back in a molded frame, with a lumbar pad */}
       <group position={[0, backY + 0.28, backZ]} rotation={[tilt, 0, 0]}>
         <mesh geometry={back} material={mesh} castShadow />
-        {[-1, 1].map((sx) => (
-          <B key={sx} s={[0.03, 0.58, 0.035]} p={[sx * 0.23, 0, 0.05]} r={[0, -sx * 0.38, 0]} m={frame} />
-        ))}
-        <B s={[0.44, 0.035, 0.035]} p={[0, 0.29, 0.02]} m={frame} />
-        <B s={[0.44, 0.035, 0.035]} p={[0, -0.29, 0.02]} m={frame} />
-        {/* lumbar pad */}
-        <B s={[0.3, 0.06, 0.025]} p={[0, -0.13, 0.01]} m={frame} />
+        <mesh geometry={backFrame} material={frame} castShadow />
+        <B s={[0.3, 0.07, 0.02]} p={[0, -0.14, 0.03]} m={frame} />
       </group>
       {headrest && (
-        <group position={[0, backY + 0.7, backZ - 0.05]} rotation={[tilt * 1.5, 0, 0]}>
+        <group position={[0, backY + 0.68, backZ - 0.02]} rotation={[tilt * 1.6, 0, 0]}>
           <mesh geometry={headGeo} material={mesh} castShadow />
-          <B s={[0.29, 0.03, 0.03]} p={[0, 0.07, 0.02]} m={frame} />
-          <B s={[0.29, 0.03, 0.03]} p={[0, -0.07, 0.02]} m={frame} />
-          <B s={[0.04, 0.12, 0.02]} p={[0, -0.12, -0.02]} m={frame} />
+          <mesh geometry={headFrame} material={frame} castShadow />
         </group>
       )}
-      {/* armrests: bracket under the seat, post, pad */}
+      {/* T-arms: bracket under the seat, post, padded top */}
       {[-1, 1].map((sx) => (
         <group key={sx}>
-          <B s={[0.16, 0.025, 0.05]} p={[sx * 0.2, seatH - 0.085, -0.02]} m={frame} />
-          <B s={[0.035, 0.25, 0.05]} p={[sx * 0.28, seatH + 0.04, -0.02]} m={frame} />
-          <B s={[0.075, 0.03, 0.25]} p={[sx * 0.28, seatH + 0.18, 0.0]} m={cushion} />
+          <B s={[0.12, 0.025, 0.05]} p={[sx * 0.22, seatH - 0.105, -0.03]} m={frame} />
+          <B s={[0.035, 0.29, 0.05]} p={[sx * 0.28, seatH + 0.03, -0.03]} m={frame} />
+          <mesh geometry={cushionGeometry(0.08, 0.03, 0.25, 0.035)} position={[sx * 0.28, seatH + 0.175, 0.0]} material={cushion} castShadow />
         </group>
       ))}
     </group>
@@ -218,10 +241,20 @@ export function BistroChair({ item }: { item: FurnitureItem }) {
   }, [variant, seatY, seatR])
   useEffect(() => () => geos.forEach((g) => g.dispose()), [geos])
   const band = useMemo(() => {
-    // Curved backrest band, part of a cylinder around the seat center.
-    const r = 0.23
-    return new THREE.CylinderGeometry(r, r, 0.08, 20, 1, true, Math.PI - 0.55, 1.1)
+    // Curved wood backrest band, an arc around the seat center, against the front of the back tubes.
+    const r = 0.162
+    const t = 0.012
+    const half = 0.62
+    const s = new THREE.Shape()
+    s.absarc(0, 0, r + t, Math.PI / 2 - half, Math.PI / 2 + half, false)
+    s.absarc(0, 0, r, Math.PI / 2 + half, Math.PI / 2 - half, true)
+    s.closePath()
+    const g = new THREE.ExtrudeGeometry(s, { depth: 0.085, bevelEnabled: false, curveSegments: 20 })
+    // Shape y -> -z (behind the seat), extrusion -> up.
+    g.rotateX(-Math.PI / 2)
+    return g
   }, [])
+  useEffect(() => () => band.dispose(), [band])
   return (
     <group>
       {geos.map((g, i) => (
@@ -239,7 +272,7 @@ export function BistroChair({ item }: { item: FurnitureItem }) {
       <mesh position={[0, seatY - 0.012, 0]} material={wood} castShadow receiveShadow>
         <cylinderGeometry args={[seatR, seatR, 0.024, 36]} />
       </mesh>
-      {variant === 'chair' && <mesh position={[0, 0.72, -0.01]} geometry={band} material={steel} castShadow />}
+      {variant === 'chair' && <mesh position={[0, 0.69, 0]} geometry={band} material={wood} castShadow />}
     </group>
   )
 }
@@ -295,9 +328,9 @@ export function WindowBench({ item }: { item: FurnitureItem }) {
       })}
       {cushion && (
         <group>
-          <B s={[w - 0.01, 0.06, d - 0.02]} p={[0, boxH + 0.03, 0.005]} m={mat(item.finish.fabric, 'fabric')} />
+          <mesh geometry={cushionGeometry(w - 0.01, 0.06, d - 0.02, 0.03)} position={[0, boxH, 0.005]} material={mat(item.finish.fabric, 'fabric')} castShadow receiveShadow />
           {/* a throw pillow against the wall at one end */}
-          <B s={[0.4, 0.36, 0.12]} p={[-w / 2 + 0.26, boxH + 0.06 + 0.17, -d / 2 + 0.09]} r={[-0.2, 0.08, 0]} m={mat('#e8e2d3', 'fabric')} />
+          <Pillow s={[0.4, 0.38, 0.14]} p={[-w / 2 + 0.26, boxH + 0.06 + 0.18, -d / 2 + 0.09]} r={[-0.22, 0.1, 0.04]} m={mat('#e8e2d3', 'fabric')} />
         </group>
       )}
     </group>

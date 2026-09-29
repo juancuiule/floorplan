@@ -73,6 +73,7 @@ const PATHS = {
   retroClock: 'M10 3 17 15.5H3zM10 8.5a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6zM10 11.3V9.8M10 11.3h1.2',
   railTable: 'M3.5 3v14M3.5 8H17M3.5 15.5 9 8M3.5 6h2',
   embroideryHoop: 'M10 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM10 1.5V4M8.5 1.5h3M8 9h1.5v1.5H8zM10.5 10.5H12V12h-1.5zM8 12h1.5v1.5H8z',
+  mugs: 'M2.5 8h5.5v7.5a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1zM8 10h1a1.5 1.5 0 0 1 0 3H8M11 6h5.5v9.5a1 1 0 0 1-1 1h-3.5a1 1 0 0 1-1-1zM16.5 8h1a1.5 1.5 0 0 1 0 3h-1M5 3.5c-.5 1 .5 1.5 0 2.5M14 1.5c-.5 1 .5 1.5 0 2.5',
 
   // ---------- plants ----------
   plantLeaves: `${POT}M10 13V8M10 8C6 9 4 7 4 4c4-1 6 1 6 4zM10 8c4 1 6-1 6-4-4-1-6 1-6 4z`,
@@ -162,6 +163,7 @@ export const FURNITURE_ICON: Record<FurnitureType, IconName> = {
   retroClock: 'retroClock',
   railTable: 'railTable',
   embroideryHoop: 'embroideryHoop',
+  mugs: 'mugs',
 }
 
 export const PLANT_ICON: Record<PlantSpecies, IconName> = {

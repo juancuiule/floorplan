@@ -5,7 +5,7 @@ import { Daybed, MurphyBed, PlatformBed } from './Sleep'
 import { ButterflyChair, ChairItem, DiningTable, Sofa, StandingDesk } from './SitWork'
 import { BlockShelf, Bookshelf, Rug, Sideboard, Wardrobe } from './Storage'
 import { BalconyBench, PlanterWall, RailTable } from './Balcony'
-import { EmbroideryHoop, GlassDivider, RetroClock, WireBasket } from './Decor'
+import { EmbroideryHoop, GlassDivider, Mugs, RetroClock, WireBasket } from './Decor'
 import { LoftBed } from './Loft'
 import { BistroChair, OfficeChair, WindowBench } from './Seating'
 import { FloatingShelf, FruitBaskets, GridShelf, HangingRack, KitchenRail, PegGrid, StationClock, UpperCabinets } from './Wall'
@@ -33,6 +33,7 @@ const VIEWS: Record<FurnitureType, (p: { item: FurnitureItem }) => ReactNode> = 
   wireBasket: WireBasket,
   balconyBench: BalconyBench,
   planterWall: PlanterWall,
+  mugs: Mugs,
   gridShelf: GridShelf,
   upperCabinets: UpperCabinets,
   floatingShelf: FloatingShelf,

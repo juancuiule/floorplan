@@ -390,7 +390,9 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     note: 'Bent steel tube, round wood seat',
     group: 'Sit',
     mount: 'surface',
-    size: [0.42, 0.8, 0.46],
+    size: [0.42, 0.84, 0.44],
+    // The footprint and height follow the type (the model itself is fixed-size).
+    sizeFor: (o) => (o.variant === 'stool' ? [0.44, 0.46, 0.44] : o.variant === 'bar' ? [0.47, 0.66, 0.47] : [0.42, 0.84, 0.44]),
     uses: ['body'],
     finish: finish(BODY_FINISHES[1].color),
     options: { variant: 'chair', color: '#e0662f' },
@@ -513,6 +515,32 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     options: { plants: 60 },
     optionSpecs: [{ key: 'plants', label: 'Cells planted', kind: 'range', min: 0, max: 100, step: 10, unit: '%' }],
     editable: ['w', 'h'],
+  },
+  mugs: {
+    label: 'Ceramic mugs',
+    note: 'Speckled stoneware, a few colors',
+    group: 'Kitchen & wall',
+    mount: 'surface',
+    size: [0.44, 0.1, 0.15],
+    sizeFor: (o, s) => [round2(Math.max(1, Math.min(6, Math.round(Number(o.count ?? 4)))) * 0.11), s[1], s[2]],
+    uses: ['body'],
+    finish: finish(BODY_FINISHES[1].color),
+    options: { count: 4, glaze: 'mixed', tray: false },
+    optionSpecs: [
+      { key: 'count', label: 'Mugs', kind: 'range', min: 1, max: 6, step: 1 },
+      { key: 'tray', label: 'On a wood tray', kind: 'toggle' },
+      {
+        key: 'glaze',
+        label: 'Glaze',
+        kind: 'chips',
+        choices: [
+          { id: 'mixed', label: 'Mixed colors' },
+          { id: 'speckled', label: 'Speckled oat' },
+          { id: 'white', label: 'Glossy white' },
+        ],
+      },
+    ],
+    editable: [],
   },
 
   gridShelf: {
@@ -651,6 +679,8 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     note: 'Drop-leaf, on a wall or railing',
     group: 'Balcony',
     mount: 'wall',
+    // Brackets 45 cm up put the leaf at table height (75 cm).
+    mountHeight: 0.45,
     size: [0.6, 0.3, 0.4],
     presets: [
       { label: '60 × 40', size: [0.6, 0.3, 0.4] },
@@ -876,4 +906,5 @@ export const FURNITURE_KEYWORDS: Partial<Record<FurnitureType, string>> = {
   retroClock: 'wall time red kitsch',
   railTable: 'folding drop leaf balcony bar table railing',
   embroideryHoop: 'embroidery cross stitch wall art egg',
+  mugs: 'cups coffee tea ceramic stoneware kitchen',
 }

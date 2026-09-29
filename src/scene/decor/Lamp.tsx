@@ -284,12 +284,14 @@ function ExitCeiling({ item }: { item: LampItem }) {
     const map = exitSignTexture(item.color)
     const face = new THREE.MeshStandardMaterial({ map, emissiveMap: map, emissive: '#ffffff', roughness: 0.35 })
     const milk = new THREE.MeshStandardMaterial({ color: '#f5f1e8', emissive: '#fff4e2', roughness: 0.35 })
-    const cap = new THREE.MeshStandardMaterial({ color: '#eeebe4', roughness: 0.4, metalness: 0.2 })
+    const cap = new THREE.MeshStandardMaterial({ color: '#eeebe4', emissive: '#fff1dc', roughness: 0.4, metalness: 0.2 })
     return { face, milk, cap }
   }, [item.color])
   useEffect(() => {
     mats.face.emissiveIntensity = 0.12 + lit * 0.85
     mats.milk.emissiveIntensity = 0.1 + lit * 0.7
+    // Glow from the glass catches the enameled rims.
+    mats.cap.emissiveIntensity = lit * 0.12
   }, [mats, lit])
   useEffect(() => () => (mats.face.map?.dispose(), Object.values(mats).forEach((m) => m.dispose())), [mats])
   const W = 0.36
@@ -317,7 +319,7 @@ function ExitCeiling({ item }: { item: LampItem }) {
       <mesh position={[0, y - H / 2 - 0.008, 0]} material={mats.cap}>
         <boxGeometry args={[W + 0.02, 0.016, D + 0.02]} />
       </mesh>
-      {item.on && evening && <pointLight position={[0, y - 0.1, 0]} intensity={LAMPS.exitCeiling.power * item.brightness} distance={3.5} decay={2} color="#ffe6d6" />}
+      {item.on && evening && <pointLight position={[0, y - H / 2 - 0.14, 0]} intensity={LAMPS.exitCeiling.power * item.brightness} distance={3.5} decay={2} color="#ffe6d6" />}
     </group>
   )
 }
