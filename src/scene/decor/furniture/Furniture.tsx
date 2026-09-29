@@ -9,7 +9,7 @@ import { EmbroideryHoop, GlassDivider, Mugs, RetroClock, WireBasket } from './De
 import { LoftBed } from './Loft'
 import { BistroChair, OfficeChair, WindowBench } from './Seating'
 import { FloatingShelf, FruitBaskets, GridShelf, HangingRack, KitchenRail, PegGrid, StationClock, UpperCabinets } from './Wall'
-import { AcIndoor, AcOutdoor, EspressoMachine, Speakers, StandMixer, Turntable } from './Devices'
+import { AcIndoor, AcOutdoor, Tv, EspressoMachine, Speakers, StandMixer, Turntable } from './Devices'
 
 const VIEWS: Record<FurnitureType, (p: { item: FurnitureItem }) => ReactNode> = {
   platformBed: PlatformBed,
@@ -51,6 +51,8 @@ const VIEWS: Record<FurnitureType, (p: { item: FurnitureItem }) => ReactNode> = 
   turntable: Turntable,
   acIndoor: AcIndoor,
   acOutdoor: AcOutdoor,
+  tv: Tv,
+  tvWall: Tv,
 }
 
 /** Only these fields change the model; moving or rotating a piece does not rebuild it. */

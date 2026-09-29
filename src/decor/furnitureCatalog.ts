@@ -67,6 +67,29 @@ export const SPEAKER_W = 0.155
 export const CONDENSER_H = 0.55
 const round2 = (v: number) => Math.round(v * 1000) / 1000
 
+/** Common TV sizes, diagonal in inches. */
+export const TV_INCHES = [32, 43, 50, 55, 65, 75]
+/** Bezel on each side of the picture, meters. */
+export const TV_BEZEL = 0.008
+/** How high the feet / pedestal lift the panel off the surface. */
+export const TV_LIFT = { feet: 0.07, pedestal: 0.1 } as const
+/** Outer [width, height] in meters of a 16:9 panel with the given diagonal in inches. */
+export function tvPanel(inches: number): [number, number] {
+  const d = inches * 0.0254
+  const k = Math.hypot(16, 9)
+  return [round2((d * 16) / k + 2 * TV_BEZEL), round2((d * 9) / k + 2 * TV_BEZEL)]
+}
+const tvSizeChoices = TV_INCHES.map((n) => ({ id: n, label: `${n}″` }))
+const tvScreen: OptionSpec = {
+  key: 'screen',
+  label: 'Screen',
+  kind: 'chips',
+  choices: [
+    { id: 'off', label: 'Off' },
+    { id: 'on', label: 'On' },
+  ],
+}
+
 export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
   platformBed: {
     label: 'Platform bed',
@@ -862,6 +885,49 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     ],
     editable: [],
   },
+  tv: {
+    label: 'TV on a stand',
+    note: '16:9, for a sideboard or desk',
+    group: 'Appliances & electronics',
+    mount: 'surface',
+    size: [tvPanel(55)[0], round2(tvPanel(55)[1] + TV_LIFT.feet), 0.25],
+    sizeFor: (o) => {
+      const [w, h] = tvPanel(Number(o.inches ?? 55))
+      return [w, round2(h + (o.stand === 'pedestal' ? TV_LIFT.pedestal : TV_LIFT.feet)), 0.25]
+    },
+    uses: ['metal'],
+    finish: finish(PLY, '#161718'),
+    options: { inches: 55, stand: 'feet', screen: 'off' },
+    optionSpecs: [
+      { key: 'inches', label: 'Size', kind: 'chips', choices: tvSizeChoices },
+      {
+        key: 'stand',
+        label: 'Stand',
+        kind: 'chips',
+        choices: [
+          { id: 'feet', label: 'Two feet' },
+          { id: 'pedestal', label: 'Center pedestal' },
+        ],
+      },
+      tvScreen,
+    ],
+    editable: [],
+  },
+  tvWall: {
+    label: 'TV on the wall',
+    note: '16:9, slim wall mount',
+    group: 'Appliances & electronics',
+    mount: 'wall',
+    size: [...tvPanel(55), 0.06],
+    // Bottom edge that puts a 55″ screen's center at a seated eye height of about 1.1 m.
+    mountHeight: 0.75,
+    sizeFor: (o) => [...tvPanel(Number(o.inches ?? 55)), 0.06],
+    uses: ['metal'],
+    finish: finish(PLY, '#161718'),
+    options: { inches: 55, screen: 'off' },
+    optionSpecs: [{ key: 'inches', label: 'Size', kind: 'chips', choices: tvSizeChoices }, tvScreen],
+    editable: [],
+  },
 }
 
 export const FURNITURE_GROUPS: FurnitureSpec['group'][] = ['Sleep', 'Sit', 'Work & dine', 'Storage', 'Kitchen & wall', 'Balcony', 'Decor', 'Appliances & electronics']
@@ -895,6 +961,8 @@ export const FURNITURE_KEYWORDS: Partial<Record<FurnitureType, string>> = {
   turntable: 'audio-technica at-lp120x record player vinyl music',
   acIndoor: 'air conditioner split aire acondicionado',
   acOutdoor: 'air conditioner condenser compressor split balcony',
+  tv: 'television tele screen smart tv 32 43 50 55 65 75 inch pulgadas',
+  tvWall: 'television tele screen smart tv wall mounted 32 43 50 55 65 75 inch pulgadas',
   loftBed: 'loft mezzanine high bed stairs steps drawers',
   glassDivider: 'partition screen reeded fluted glass wall',
   officeChair: 'desk task swivel ergonomic mesh',

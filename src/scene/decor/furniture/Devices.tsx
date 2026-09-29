@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { CONDENSER_H, SPEAKER_W } from '../../../decor/furnitureCatalog'
+import { CONDENSER_H, SPEAKER_W, TV_BEZEL, TV_LIFT, tvPanel } from '../../../decor/furnitureCatalog'
 import type { FurnitureItem } from '../../../model/decor'
 import type { Vec3 } from '../../../model/types'
 import { sharedEdgeMaterial } from '../../materials'
@@ -566,6 +566,84 @@ export function AcOutdoor({ item }: { item: FurnitureItem }) {
             </group>
           )
         })}
+    </group>
+  )
+}
+
+// ---------- TV ----------
+
+let tvOff: THREE.MeshStandardMaterial | undefined
+let tvOn: THREE.MeshStandardMaterial | undefined
+
+/** Screen glass: glossy black when off; a soft picture (a dusk sky over a skyline) when on. */
+function tvScreenMaterial(on: boolean): THREE.MeshStandardMaterial {
+  if (!on) return (tvOff ??= new THREE.MeshStandardMaterial({ color: '#0b0c0e', roughness: 0.12, metalness: 0.1 }))
+  if (tvOn) return tvOn
+  const c = document.createElement('canvas')
+  c.width = 256
+  c.height = 144
+  const g = c.getContext('2d')!
+  const sky = g.createLinearGradient(0, 0, 0, 144)
+  sky.addColorStop(0, '#27406b')
+  sky.addColorStop(0.55, '#c97a5a')
+  sky.addColorStop(1, '#f2c27a')
+  g.fillStyle = sky
+  g.fillRect(0, 0, 256, 144)
+  g.fillStyle = '#1c2230'
+  let x = 0
+  for (let i = 0; x < 256; i++) {
+    const w = 10 + ((i * 37) % 23)
+    const h = 22 + ((i * 53) % 48)
+    g.fillRect(x, 144 - h, w, h)
+    x += w + 2
+  }
+  const map = new THREE.CanvasTexture(c)
+  map.colorSpace = THREE.SRGBColorSpace
+  tvOn = new THREE.MeshStandardMaterial({ color: '#000000', roughness: 0.2, emissive: '#ffffff', emissiveMap: map, emissiveIntensity: 0.9 })
+  return tvOn
+}
+
+/**
+ * A 16:9 flat TV sized by its diagonal. On a stand: origin at the footprint center,
+ * feet or a pedestal lift the panel. On the wall: origin on the wall, y = bottom edge,
+ * a slim bracket holds the panel a few cm off the wall.
+ */
+export function Tv({ item }: { item: FurnitureItem }) {
+  const [pw, ph] = tvPanel(Number(item.options.inches ?? 55))
+  const wall = item.type === 'tvWall'
+  const pedestal = item.options.stand === 'pedestal'
+  // Frame and stand take the metal finish (black by default); the back stays dark.
+  const frame = mat(item.finish.metal, 'matte')
+  const back = mat('#26282b', 'matte')
+  const lift = wall ? 0 : pedestal ? TV_LIFT.pedestal : TV_LIFT.feet
+  const t = 0.03
+  // Panel center depth: a few cm off the wall when hung, over the stand otherwise.
+  const zc = wall ? 0.045 : 0.01
+  const cy = lift + ph / 2
+  const footX = pw / 2 - Math.min(0.16, pw * 0.14)
+  return (
+    <group>
+      <B s={[pw, ph, t]} p={[0, cy, zc]} m={frame} />
+      {/* the thicker electronics box at the back */}
+      <B s={[pw * 0.62, ph * 0.5, 0.02]} p={[0, lift + ph * 0.42, zc - t / 2 - 0.01]} m={back} />
+      <mesh position={[0, cy, zc + t / 2 + 0.0006]} material={tvScreenMaterial(item.options.screen === 'on')}>
+        <planeGeometry args={[pw - 2 * TV_BEZEL, ph - 2 * TV_BEZEL]} />
+      </mesh>
+      {wall ? (
+        <B s={[Math.min(0.4, pw * 0.4), Math.min(0.3, ph * 0.45), 0.025]} p={[0, cy, 0.0125]} m={back} />
+      ) : pedestal ? (
+        <group>
+          <B s={[Math.min(0.42, pw * 0.36), 0.012, 0.22]} p={[0, 0.006, 0]} m={frame} />
+          <B s={[0.07, lift + 0.12, 0.025]} p={[0, (lift + 0.12) / 2, zc - t / 2 - 0.0125]} m={frame} />
+        </group>
+      ) : (
+        [-1, 1].map((sx) => (
+          <group key={sx} position={[sx * footX, 0, 0]}>
+            <B s={[0.035, 0.012, 0.23]} p={[0, 0.006, 0]} m={frame} />
+            <B s={[0.03, lift + 0.03, 0.02]} p={[0, (lift + 0.03) / 2, zc - 0.005]} m={frame} />
+          </group>
+        ))
+      )}
     </group>
   )
 }

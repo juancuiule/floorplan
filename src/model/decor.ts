@@ -139,6 +139,8 @@ export type FurnitureType =
   | 'turntable'
   | 'acIndoor'
   | 'acOutdoor'
+  | 'tv'
+  | 'tvWall'
 
 export type FurnitureOption = number | boolean | string
 
