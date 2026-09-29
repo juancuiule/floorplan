@@ -93,7 +93,7 @@ export function SunControl() {
         >
           <Icon name={night ? 'moon' : 'sun'} />
           <span className="sun-clock">{formatMinutes(minutes)}</span>
-          <span className="sun-date tb-label">{shortDate(date)}</span>
+          <span className="sun-date tb-label opt">{shortDate(date)}</span>
         </button>
       </div>
       {open && <SunPopover onClose={close} triggerRef={triggerRef} />}

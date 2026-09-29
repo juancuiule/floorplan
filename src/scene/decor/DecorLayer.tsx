@@ -6,6 +6,7 @@ import { editRefs, useEdit } from '../../decor/edit'
 import { facingOf, facingRotation, facingVector, mountOf, placeAt, readIntersection, type SurfaceHit } from '../../decor/placement'
 import { useDecor } from '../../decor/store'
 import type { DecorItem } from '../../model/decor'
+import { useView } from '../../store'
 import { requestShadowUpdate } from '../shadows'
 import { cutWalls } from '../Walls'
 import { Artwork } from './Artwork'
@@ -49,7 +50,7 @@ function seeThrough(o: THREE.Object3D): boolean {
 }
 
 /** First hit the eye actually sees. */
-function firstSolid(list: THREE.Intersection[]) {
+export function firstSolid(list: THREE.Intersection[]) {
   return list.find((i) => !seeThrough(i.object))
 }
 
@@ -63,6 +64,12 @@ function surfaceUnder(list: THREE.Intersection[], opts: { skipId?: string | null
     if (hit || !id) return { hit, intersection: i }
   }
   return null
+}
+
+/** Walk mode (drag looks around) and the measure tool (clicks take points) leave decor alone. */
+const sceneTakenOver = () => {
+  const v = useView.getState()
+  return v.walking || v.tool !== null
 }
 
 /** Where the pointer grabbed the moving item, relative to the spot the item would snap to. */
@@ -121,7 +128,7 @@ export function SurfaceEvents({ children }: { children: ReactNode }) {
 
   const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
     const s = useDecor.getState()
-    if (s.movingId || e.button !== 0) return
+    if (s.movingId || e.button !== 0 || sceneTakenOver()) return
     const first = firstSolid(e.intersections)
     const id = first ? decorIdOf(first.object) : null
     // Architecture under the pointer: leave the press to the camera.
@@ -180,7 +187,7 @@ export function SurfaceEvents({ children }: { children: ReactNode }) {
     lastClickEvent = e.nativeEvent
     e.stopPropagation()
     const s = useDecor.getState()
-    if (e.delta > 6) return
+    if (e.delta > 6 || (sceneTakenOver() && !s.movingId)) return
     if (s.isDraft && s.movingId) {
       const item = s.items.find((i) => i.id === s.movingId)
       if (item && item.at[1] > UNPLACED_Y && !useEdit.getState().invalid) {
