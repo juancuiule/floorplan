@@ -15,7 +15,7 @@ const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || undefined,
   args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--enable-gpu'],
 })
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 })
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: Number(process.env.DSF ?? 1) })
 page.on('console', (m) => m.type() === 'error' && console.log('[console]', m.text()))
 page.on('pageerror', (e) => console.log('[pageerror]', e.message))
 
