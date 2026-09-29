@@ -73,7 +73,7 @@ export function Toolbar() {
           {MODES.map((m, i) => (
             <button key={m.id} type="button" role="radio" aria-checked={mode === m.id} tabIndex={i === modeIndex ? 0 : -1} data-tip={m.tip} aria-keyshortcuts="X" onClick={() => setMode(m.id)}>
               <Icon name={m.icon} />
-              <span className="tb-label">{m.label}</span>
+              <span className="tb-label mid">{m.label}</span>
             </button>
           ))}
         </div>
@@ -107,14 +107,13 @@ export function Toolbar() {
           <Icon name="chevron" size={14} className="select-chevron" />
         </label>
 
-        <div className="group">
+        <div className="group" role="group" aria-label="Space tools">
           <button type="button" aria-pressed={showDims} data-tip="Show room dimensions (M)" aria-keyshortcuts="M" onClick={toggleDims}>
             <Icon name="ruler" />
             <span className="tb-label opt">Dimensions</span>
           </button>
+          <SpaceTools />
         </div>
-
-        <SpaceTools />
 
         <div className="group" role="group" aria-label="Lighting">
           <div role="radiogroup" aria-label="Time of day" className="sub" onKeyDown={(e) => onRadioKeys(e, [...lights], lights.indexOf(lighting), setLighting)}>
@@ -137,7 +136,7 @@ export function Toolbar() {
           {lighting === 'evening' && (
             <button type="button" aria-pressed={downlights} data-tip="Recessed ceiling lights" onClick={toggleDownlights}>
               <Icon name="downlight" />
-              <span className="tb-label">Downlights</span>
+              <span className="tb-label opt">Downlights</span>
             </button>
           )}
         </div>

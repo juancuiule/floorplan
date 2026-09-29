@@ -192,7 +192,8 @@ export function Walk() {
   useEffect(() => {
     const el = gl.domElement
     const onDbl = (e: MouseEvent) => {
-      if (useView.getState().tool) return
+      // Not while measuring or while a piece follows the pointer (placing, moving).
+      if (useView.getState().tool || useDecor.getState().movingId) return
       const hit = pick(e, el, camera, scene)
       if (!hit || hit.point.y > 0.1 || worldNormal(hit).y < 0.7 || !insideFlat(hit.point.x, hit.point.z)) return
       const v = useView.getState()

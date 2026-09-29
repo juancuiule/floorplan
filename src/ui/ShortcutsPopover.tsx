@@ -23,9 +23,10 @@ const GROUPS: { title: string; items: [keys: string[][], what: string][] }[] = [
     title: 'Walk and measure',
     items: [
       [[['W']], 'Walk through at eye level (double-click the floor to start there)'],
-      [[['W', 'A', 'S', 'D']], 'Walk; arrows too, Shift to hurry'],
+      [[['W', 'A', 'S', 'D']], 'Walk (arrows too: ← → turn); drag to look, Shift to hurry'],
       [[['T']], 'Measure between two points'],
       [[['Shift']], 'Hold while measuring to keep it straight'],
+      [[['Delete']], 'Remove the hovered or last measurement'],
       [[['C']], 'Clearances around the selected piece'],
       [[['Esc']], 'Leave walk mode or the measure tool'],
     ],

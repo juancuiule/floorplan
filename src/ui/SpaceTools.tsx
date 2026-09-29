@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useDecor } from '../decor/store'
 import { useMeasure } from '../plan/measureStore'
 import { EYE_MAX, EYE_MIN, EYE_SEATED, EYE_STANDING, useView } from '../store'
 import { Icon } from './icons'
@@ -15,9 +16,11 @@ function useSpaceShortcuts() {
       if ((e.target as HTMLElement).closest?.('input:not([type="range"]), select, textarea, [contenteditable="true"]')) return
       const v = useView.getState()
       const key = e.key.toLowerCase()
+      // A piece following the pointer keeps the scene until it is set down or cancelled.
+      const placing = useDecor.getState().movingId !== null
       // While walking, W is a step forward.
-      if (key === 'w' && !v.walking) v.enterWalk()
-      else if (key === 't') v.setTool(v.tool === 'measure' ? null : 'measure')
+      if (key === 'w' && !v.walking && !placing) v.enterWalk()
+      else if (key === 't' && !placing) v.setTool(v.tool === 'measure' ? null : 'measure')
       else if (key === 'c') v.toggleClearances()
       else return
       e.preventDefault()
@@ -27,7 +30,7 @@ function useSpaceShortcuts() {
   }, [])
 }
 
-/** Toolbar buttons. */
+/** Toolbar buttons (they sit in the Space tools group next to Dimensions). */
 export function SpaceTools() {
   const walking = useView((s) => s.walking)
   const measuring = useView((s) => s.tool === 'measure')
@@ -35,7 +38,7 @@ export function SpaceTools() {
   useSpaceShortcuts()
   const v = useView.getState()
   return (
-    <div className="group" role="group" aria-label="Space tools">
+    <>
       <button
         type="button"
         aria-pressed={walking}
@@ -44,17 +47,17 @@ export function SpaceTools() {
         onClick={() => (walking ? v.exitWalk() : v.enterWalk())}
       >
         <Icon name="walk" />
-        <span className="tb-label">Walk</span>
+        <span className="tb-label opt">Walk</span>
       </button>
       <button type="button" aria-pressed={measuring} data-tip="Measure between two points (T)" aria-keyshortcuts="T" onClick={() => v.setTool(measuring ? null : 'measure')}>
         <Icon name="tape" />
-        <span className="tb-label">Measure</span>
+        <span className="tb-label opt">Measure</span>
       </button>
       <button type="button" aria-pressed={clearances} data-tip="Clearances around the selected piece (C)" aria-keyshortcuts="C" onClick={v.toggleClearances}>
         <Icon name="clearance" />
-        <span className="tb-label">Clearances</span>
+        <span className="tb-label opt">Clearances</span>
       </button>
-    </div>
+    </>
   )
 }
 
@@ -102,7 +105,7 @@ export function SpaceHud() {
             <kbd>W</kbd>
             <kbd>A</kbd>
             <kbd>S</kbd>
-            <kbd>D</kbd> or arrows to move · drag to look · <kbd>Shift</kbd> to hurry
+            <kbd>D</kbd> or arrows to move · drag to look · <kbd>Shift</kbd> to hurry · double-click the floor to jump
           </p>
         </section>
       )}

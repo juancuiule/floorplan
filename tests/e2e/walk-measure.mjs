@@ -46,6 +46,15 @@ async function hold(key, ms) {
 await page.goto(url('view=iso-balcony'))
 await waitForScene(page)
 
+await t.step('the toolbar fits on one row at 1440 px with the panel open, day and evening', async () => {
+  const height = () => page.evaluate(() => document.querySelector('.toolbar .tb-main').getBoundingClientRect().height)
+  assert.ok((await height()) < 48, `day: ${await height()} px`)
+  await page.keyboard.press('l')
+  await page.waitForTimeout(200)
+  assert.ok((await height()) < 48, `evening: ${await height()} px`)
+  await page.keyboard.press('l')
+})
+
 await t.step('W enters walk mode at the entry, at eye height', async () => {
   const before = await page.evaluate(() => window.__edit.camera())
   await page.keyboard.press('w')
@@ -78,6 +87,18 @@ await t.step('idle renders no frames', async () => {
   assert.equal(await frames(), f0, 'no frames while standing still')
 })
 
+await t.step('arrows walk instead of nudging the selection', async () => {
+  const deskAt = () => page.evaluate(() => window.__edit.decor.getState().items.find((i) => i.id === 'f-desk')?.at)
+  await page.evaluate(() => window.__edit.decor.getState().select('f-desk'))
+  const before = await deskAt()
+  const a = await pose()
+  await hold('ArrowUp', 500)
+  const b = await pose()
+  assert.deepEqual(await deskAt(), before, 'the desk stayed put')
+  assert.ok(Math.hypot(b.x - a.x, b.z - a.z) > 0.2, 'the arrow walked')
+  await page.evaluate(() => window.__edit.decor.getState().select(null))
+})
+
 await t.step('walls stop the walker', async () => {
   // Strafe left (toward the bathroom side, −z) for longer than it takes to hit something.
   await hold('a', 2500)
@@ -103,10 +124,10 @@ await t.step('walks out to the balcony through the sliding door, not past the ra
 })
 
 await t.step('seated eye height glides down', async () => {
-  await page.getByRole('button', { name: 'Seated' }).click()
+  await page.getByRole('button', { name: 'Seated', exact: true }).click()
   await page.waitForTimeout(1000)
   assert.ok(Math.abs((await pose()).eye - 1.15) < 0.01)
-  await page.getByRole('button', { name: 'Standing' }).click()
+  await page.getByRole('button', { name: 'Standing', exact: true }).click()
 })
 
 await t.step('Esc returns to the orbit view', async () => {

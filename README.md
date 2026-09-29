@@ -50,7 +50,7 @@ Coordinates: `x` runs from the inner face of the entry wall (0) to the balcony w
 | `B` | Flip A/B between two layouts |
 | `\` · `?` · `/` | Toggle panel · shortcuts · search |
 | `W` · `T` · `C` | Walk mode (or double-click the floor) · measure · clearances around the selection |
-| `WASD` / arrows (`Shift` = faster), drag | Walk mode: move, look around; `Esc` goes back to the orbit view |
+| `WASD` / `↑` `↓` (`Shift` = faster) · `←` `→` · drag | Walk mode: move · turn · look around; `Esc` goes back to the orbit view |
 | Click, click (`Shift` = straight) · `Delete` | Measure tool: take a dimension (snaps to edges within 5 cm) · remove the hovered or last one |
 | `Cmd/Ctrl+Z` · `Shift+Cmd/Ctrl+Z` (or `Ctrl+Y`) | Undo · redo |
 | `Cmd/Ctrl+C` · `V` · `D` | Copy · paste at the pointer · duplicate |

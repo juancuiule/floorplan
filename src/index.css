@@ -341,6 +341,18 @@ kbd {
   }
 }
 
+/* Narrower still (a 1280 px window with the panel open): the view modes go icon-only too. */
+@container toolbar (max-width: 960px) {
+  .tb-label.mid {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
 @container toolbar (max-width: 820px) {
   .tb-label {
     position: absolute;
