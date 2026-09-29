@@ -1,5 +1,5 @@
-import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
+import { invalidate, useFrame } from '@react-three/fiber'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { outwardNormal, wallFrame, wallPieces } from '../geometry/walls'
 import type { Bulge, Opening, Vec2, Vec3, Wall } from '../model/types'
@@ -25,8 +25,13 @@ const INSIDE: Vec2 = [3.45, 1.5]
 /** Walls currently cut away by dollhouse mode; decor hosted on them hides too. */
 export const cutWalls = new Set<string>()
 
+/** Longest step a fade takes in one frame: after an idle spell (on-demand rendering) dt can be seconds. */
+const MAX_DT = 1 / 30
+
 export function Walls() {
   const { walls, bulges } = project.shell
+  // The fade runs in useFrame; a mode switch has to wake the render loop.
+  useEffect(() => useView.subscribe((s, prev) => void (s.mode !== prev.mode && invalidate())), [])
   return (
     <group>
       {walls.map((w) => (
@@ -118,10 +123,16 @@ function WallView({ wall, bulges }: { wall: Wall; bulges: Bulge[] }) {
     }
     if (upper === 0) cutWalls.add(wall.id)
     else cutWalls.delete(wall.id)
-    const k = 1 - Math.exp(-FADE_SPEED * dt)
+    const k = 1 - Math.exp(-FADE_SPEED * Math.min(dt, MAX_DT))
     const a = alpha.current
     a.stub += (stub - a.stub) * k
     a.upper += (upper - a.upper) * k
+    // Keep rendering until the fade settles, then snap to the target.
+    if (Math.abs(stub - a.stub) > 0.002 || Math.abs(upper - a.upper) > 0.002) invalidate()
+    else {
+      a.stub = stub
+      a.upper = upper
+    }
     applyFade(mats.stubSet, a.stub)
     applyFade(mats.upperSet, a.upper)
 

@@ -25,6 +25,8 @@ declare global {
   }
 }
 
+const WARMUP_FRAMES = 60
+
 /**
  * Counts rendered frames (scripts wait on window.__frames) and publishes
  * renderer.info for the whole frame. Runs after the EffectComposer (priority 1).
@@ -41,7 +43,10 @@ function FrameCounter() {
     }
   }, [gl, invalidate])
   useFrame(() => {
-    window.__frames = (window.__frames ?? 0) + 1
+    const n = (window.__frames = (window.__frames ?? 0) + 1)
+    // Warm up: render continuously for the first frames while programs
+    // compile and textures upload; after that frames are rendered on demand.
+    if (n < WARMUP_FRAMES) invalidate()
     const { render, memory, programs } = gl.info
     window.__stats = {
       calls: render.calls,
@@ -129,6 +134,7 @@ export function Scene() {
         const d = useDecor.getState()
         if (!d.movingId) d.select(null)
       }}
+      frameloop="demand"
       shadows="soft"
       dpr={[1, 2]}
       camera={{ fov: 38, near: 0.05, far: 100, position: [11, 7.5, -4.5] }}

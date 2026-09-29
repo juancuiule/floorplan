@@ -1,4 +1,4 @@
-import { useFrame } from '@react-three/fiber'
+import { invalidate, useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { FurnitureItem } from '../../../model/decor'
@@ -135,11 +135,13 @@ export function StandingDesk({ item }: { item: FurnitureItem }) {
     const diff = target - current.current
     if (Math.abs(diff) < 0.0005) return
     // Real desks travel ~4 cm/s; this is faster so it is fun to watch.
-    current.current += Math.sign(diff) * Math.min(Math.abs(diff), 0.3 * dt)
+    // dt is capped: with on-demand rendering the first frame after idling can be seconds long.
+    current.current += Math.sign(diff) * Math.min(Math.abs(diff), 0.3 * Math.min(dt, 1 / 30))
     if (lift.current) lift.current.position.y = current.current - target
     const stretch = Math.max(0.05, (current.current - baseCol - topT) / (target - baseCol - topT || 1))
     for (const u of uppers.current) if (u) u.scale.y = stretch
     requestShadowUpdate(1)
+    invalidate()
   })
 
   const legX = w / 2 - 0.12

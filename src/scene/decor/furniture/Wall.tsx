@@ -1,4 +1,4 @@
-import { useFrame } from '@react-three/fiber'
+import { invalidate, useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { FurnitureItem } from '../../../model/decor'
@@ -326,6 +326,11 @@ export function StationClock({ item }: { item: FurnitureItem }) {
   useEffect(() => () => (face.map?.dispose(), face.dispose()), [face])
   // Each face's hands, with the side they are on: both faces must run clockwise to their viewer.
   const hands = useRef<{ o: THREE.Object3D; sx: number; hour: boolean }[]>([])
+  // The canvas renders on demand: wake it now and then so the hands keep moving.
+  useEffect(() => {
+    const id = setInterval(() => invalidate(), 20_000)
+    return () => clearInterval(id)
+  }, [])
   useFrame(() => {
     const now = new Date()
     const mins = now.getMinutes() + now.getSeconds() / 60
