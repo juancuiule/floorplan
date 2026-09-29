@@ -140,7 +140,9 @@ export function Scene() {
       }}
       frameloop="demand"
       shadows="soft"
-      dpr={[1, 2]}
+      // Every pixel pays for N8AO, SMAA and tone mapping; past 1.5x the extra
+      // sharpness is hard to see and costs ~1.8x the fill of 1.5x.
+      dpr={[1, 1.5]}
       camera={{ fov: 38, near: 0.05, far: 100, position: [11, 7.5, -4.5] }}
       gl={{ antialias: false }}
     >
@@ -157,11 +159,23 @@ export function Scene() {
       <Labels />
       <CameraRig />
       <FrameCounter />
-      <EffectComposer multisampling={4}>
-        <N8AO aoRadius={0.6} intensity={2.2} distanceFalloff={0.8} halfRes />
-        <SMAA />
-        <ToneMapping mode={ToneMappingMode.NEUTRAL} />
-      </EffectComposer>
+      <Effects />
     </Canvas>
+  )
+}
+
+/**
+ * Postprocessing. MSAA on the scene target only at 1x: on high-density
+ * screens the pixels are small enough for SMAA alone, and 4x MSAA on a
+ * half-float target at 1.5x DPR is a large share of the frame's bandwidth.
+ */
+function Effects() {
+  const dpr = useThree((s) => s.viewport.dpr)
+  return (
+    <EffectComposer multisampling={dpr > 1.2 ? 0 : 4}>
+      <N8AO aoRadius={0.6} intensity={2.2} distanceFalloff={0.8} halfRes />
+      <SMAA />
+      <ToneMapping mode={ToneMappingMode.NEUTRAL} />
+    </EffectComposer>
   )
 }

@@ -63,6 +63,21 @@ writeFileSync(file, original)
 await page.waitForTimeout(2500)
 await shot('desk-down')
 
+// Click the wardrobe: pointer events must reach the merged meshes and select it.
+f = await frames()
+await page.mouse.click(740, 520)
+await page.waitForTimeout(500)
+const selected = await page.evaluate(() => {
+  let found = false
+  window.__scene?.traverse((o) => (found ||= o.type === 'Box3Helper' && o.visible))
+  return found
+})
+console.log('wardrobe click selects:', selected, 'frames:', (await frames()) - f)
+await shot('selected')
+await page.keyboard.press('Escape')
+await page.mouse.click(1000, 850)
+await page.waitForTimeout(300)
+
 // Orbit drag with the mouse.
 f = await frames()
 await page.mouse.move(120, 700) // empty background, not a piece of furniture
