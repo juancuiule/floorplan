@@ -8,6 +8,7 @@ import type { Vec3 } from '../model/types'
 import { project } from '../project'
 import { useView } from '../store'
 import { CameraRig } from './CameraRig'
+import { setFinishes } from './materials'
 import { requestShadowUpdate, takeShadowUpdate } from './shadows'
 import { DecorLayer, SurfaceEvents } from './decor/DecorLayer'
 import { Ceilings, Floors } from './Floors'
@@ -63,6 +64,18 @@ function FrameCounter() {
     }
     gl.info.reset()
   }, 2)
+  return null
+}
+
+/** Pushes the layout's finishes into the materials: in place, no remount, one render. */
+function FinishesSync() {
+  const invalidate = useThree((s) => s.invalidate)
+  useEffect(() => {
+    if (setFinishes(useDecor.getState().finishes)) invalidate()
+    return useDecor.subscribe((s, prev) => {
+      if (s.finishes !== prev.finishes && setFinishes(s.finishes)) invalidate()
+    })
+  }, [invalidate])
   return null
 }
 
@@ -147,6 +160,7 @@ export function Scene() {
       gl={{ antialias: false }}
     >
       <ShadowController />
+      <FinishesSync />
       <Lights />
       <SurfaceEvents>
         <Floors />

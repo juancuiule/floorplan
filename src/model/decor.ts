@@ -1,3 +1,4 @@
+import type { Finishes } from './finishes'
 import type { Vec3 } from './types'
 
 // Movable decor, saved to data/decor.json. Positions are plan coordinates (meters).
@@ -143,7 +144,12 @@ export interface FurnitureItem {
 export type DecorItem = ArtworkItem | PlantItem | LampItem | FurnitureItem
 export type DecorKind = DecorItem['kind']
 
+/** One layout variant: data/decor.json ("Current") or data/decor.<slug>.json. */
 export interface DecorFile {
   version: 1
+  /** Display name in the layouts menu; the file name (slug) when missing. */
+  name?: string
+  /** Floors, paint and tiles for this layout; omitted when they are the defaults. */
+  finishes?: Partial<Finishes>
   items: DecorItem[]
 }

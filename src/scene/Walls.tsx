@@ -2,20 +2,13 @@ import { invalidate, useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { outwardNormal, wallFrame, wallPieces } from '../geometry/walls'
-import type { Bulge, Opening, Vec2, Vec3, Wall } from '../model/types'
+import type { Bulge, Opening, Shell, Vec2, Vec3, Wall } from '../model/types'
 import { project } from '../project'
 import { useView } from '../store'
 import { Box } from './Box'
 import { Merged } from './Merged'
 import { applyFade, faceDims, makeEdgeMaterial, makeMaterial } from './materials'
 import { requestShadowUpdate } from './shadows'
-
-/** Height in meters of one pattern repeat, used to keep tile rows continuous across the stub cut. */
-function patternHeight(id: string): number {
-  const p = project.materials[id]?.pattern
-  if (!p) return 0
-  return p.kind === 'tiles' ? p.height * 2 : p.length * 2
-}
 
 /** Height of the wall stub left standing when dollhouse mode cuts a wall away. */
 export const STUB_HEIGHT = 0.3
@@ -30,13 +23,13 @@ export const cutWalls = new Set<string>()
 const MAX_DT = 1 / 30
 
 export function Walls() {
-  const { walls, bulges } = project.shell
+  const { walls, bulges, accentPanels } = project.shell
   // The fade runs in useFrame; a mode switch has to wake the render loop.
   useEffect(() => useView.subscribe((s, prev) => void (s.mode !== prev.mode && invalidate())), [])
   return (
     <group>
       {walls.map((w) => (
-        <WallView key={w.id} wall={w} bulges={bulges.filter((b) => b.host === w.id)} />
+        <WallView key={w.id} wall={w} bulges={bulges.filter((b) => b.host === w.id)} accents={accentPanels.filter((a) => a.wall === w.id)} />
       ))}
     </group>
   )
@@ -50,9 +43,13 @@ interface BulgePiece {
   position: [number, number, number]
   material: THREE.MeshStandardMaterial
   stub: boolean
+  /** Accent paint layers have no outline: they are the wall's own surface. */
+  edges: boolean
 }
 
-function WallView({ wall, bulges }: { wall: Wall; bulges: Bulge[] }) {
+type AccentPanel = Shell['accentPanels'][number]
+
+function WallView({ wall, bulges, accents }: { wall: Wall; bulges: Bulge[]; accents: AccentPanel[] }) {
   const frame = useMemo(() => wallFrame(wall), [wall])
   const pieces = useMemo(() => wallPieces(wall, STUB_HEIGHT), [wall])
   const outward = useMemo(() => outwardNormal(wall, INSIDE), [wall])
@@ -80,7 +77,14 @@ function WallView({ wall, bulges }: { wall: Wall; bulges: Bulge[] }) {
     upperSet.add(upper).add(upperEdge)
 
     const bulgePieces: BulgePiece[] = []
-    for (const b of bulges) {
+    // Accent paint: one material per half (stub / upper) whatever the number of panels; hidden unless chosen.
+    const accentId = `accent:${wall.id}`
+    const accentMats = accents.length ? { stub: makeMaterial(accentId), upper: makeMaterial(accentId) } : null
+    const layers = [
+      ...bulges.map((b) => ({ ...b, accent: false })),
+      ...accents.map((a, i) => ({ id: `accent-${i}`, min: a.min, max: a.max, material: accentId, accent: true })),
+    ]
+    for (const b of layers) {
       const spans: [number, number, boolean][] =
         b.min[1] < STUB_HEIGHT && b.max[1] > STUB_HEIGHT
           ? [
@@ -92,9 +96,7 @@ function WallView({ wall, bulges }: { wall: Wall; bulges: Bulge[] }) {
       const full: Vec3 = [b.max[0] - b.min[0], b.max[1] - b.min[1], b.max[2] - b.min[2]]
       for (const [y0, y1, isStub] of spans) {
         const size: [number, number, number] = [full[0], y1 - y0, full[2]]
-        const dims = faceDims(size)
-        const material = makeMaterial(b.material, dims)
-        if (material.map) material.map.offset.y = isStub ? 0 : (y0 - b.min[1]) / (patternHeight(b.material) || 1)
+        const material = b.accent ? accentMats![isStub ? 'stub' : 'upper'] : makeMaterial(b.material, faceDims(size), [0, isStub ? 0 : y0 - b.min[1]])
         ;(isStub ? stubSet : upperSet).add(material)
         bulgePieces.push({
           key: `${b.id}:${isStub ? 's' : 'u'}`,
@@ -102,11 +104,12 @@ function WallView({ wall, bulges }: { wall: Wall; bulges: Bulge[] }) {
           position: [(b.min[0] + b.max[0]) / 2, (y0 + y1) / 2, (b.min[2] + b.max[2]) / 2],
           material,
           stub: isStub,
+          edges: !b.accent,
         })
       }
     }
     return { stub, stubEdge, upper, upperEdge, get, stubSet, upperSet, bulgePieces }
-  }, [wall, bulges])
+  }, [wall, bulges, accents])
 
   const alpha = useRef({ stub: 1, upper: 1, shadows: true })
 
@@ -167,7 +170,14 @@ function WallView({ wall, bulges }: { wall: Wall; bulges: Bulge[] }) {
           ))}
         </group>
         {mats.bulgePieces.map((p) => (
-          <Box key={p.key} size={p.size} position={p.position} material={p.material} edgeMaterial={p.stub ? mats.stubEdge : mats.upperEdge} />
+          <Box
+            key={p.key}
+            size={p.size}
+            position={p.position}
+            material={p.material}
+            edgeMaterial={p.edges ? (p.stub ? mats.stubEdge : mats.upperEdge) : undefined}
+            castShadow={p.edges}
+          />
         ))}
       </Merged>
     </group>

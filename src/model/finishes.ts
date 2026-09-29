@@ -1,0 +1,93 @@
+// Finishes: floors, wall paint and bathroom tiles, chosen per layout and saved
+// in the layout file next to the decor items. Every field has a default that
+// reproduces the original look, so a file without `finishes` renders as before.
+
+/** Floor finishes, see src/project/finishes.ts for how each one looks. */
+export const FLOOR_IDS = [
+  'oakLight',
+  'oakNatural',
+  'walnut',
+  'herringbone',
+  'concrete',
+  'hexGrey',
+  'hexCharcoal',
+  'terracotta',
+  'cementQuarter',
+  'porcelainGrey',
+  'balconyGrey',
+] as const
+export type FloorId = (typeof FLOOR_IDS)[number]
+
+/** The floor zones the owner can finish separately. */
+export type FloorZone = 'main' | 'hall' | 'bath' | 'balcony'
+
+/** Which floors make sense where (the first one is the default). */
+export const ZONE_FLOORS: Record<FloorZone, readonly FloorId[]> = {
+  main: ['oakLight', 'oakNatural', 'walnut', 'herringbone', 'concrete', 'hexGrey', 'hexCharcoal', 'terracotta'],
+  hall: ['oakLight', 'oakNatural', 'walnut', 'herringbone', 'concrete', 'hexGrey', 'hexCharcoal', 'terracotta', 'cementQuarter'],
+  bath: ['porcelainGrey', 'cementQuarter', 'hexGrey', 'hexCharcoal', 'concrete', 'terracotta'],
+  balcony: ['balconyGrey', 'terracotta', 'concrete', 'hexGrey', 'hexCharcoal', 'cementQuarter'],
+}
+
+/** Main-room walls that can take an accent color. */
+export const ACCENT_WALLS = ['none', 'side-bath', 'side-kitchen', 'entry-main'] as const
+export type AccentWall = (typeof ACCENT_WALLS)[number]
+
+export const TILE_LAYOUTS = ['stack', 'subway', 'square', 'vertical'] as const
+export type TileLayout = (typeof TILE_LAYOUTS)[number]
+
+export interface Finishes {
+  floors: Record<FloorZone, FloorId>
+  /** Hexagons from the hall scattered into the main-room floor past the passage. */
+  hexBlend: boolean
+  /** Paint for every plastered wall. */
+  wallPaint: string
+  accentWall: AccentWall
+  accentColor: string
+  bathTile: { layout: TileLayout; color: string }
+}
+
+export const DEFAULT_FINISHES: Finishes = {
+  floors: { main: 'oakLight', hall: 'oakLight', bath: 'porcelainGrey', balcony: 'balconyGrey' },
+  hexBlend: false,
+  wallPaint: '#f3f1ec',
+  accentWall: 'none',
+  accentColor: '#9fae95',
+  bathTile: { layout: 'stack', color: '#f6f6f4' },
+}
+
+const HEX_COLOR = /^#[0-9a-f]{6}$/i
+
+const color = (v: unknown, fallback: string) => (typeof v === 'string' && HEX_COLOR.test(v) ? v.toLowerCase() : fallback)
+const oneOf = <T extends string>(v: unknown, options: readonly T[], fallback: T): T => (options.includes(v as T) ? (v as T) : fallback)
+
+/**
+ * Reads `finishes` from a layout file: missing or unknown values fall back to
+ * the default (the original look), so old files and hand edits never break.
+ */
+export function normalizeFinishes(raw: unknown): Finishes {
+  const d = DEFAULT_FINISHES
+  const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const floors = (r.floors && typeof r.floors === 'object' ? r.floors : {}) as Record<string, unknown>
+  const tile = (r.bathTile && typeof r.bathTile === 'object' ? r.bathTile : {}) as Record<string, unknown>
+  return {
+    floors: {
+      main: oneOf(floors.main, ZONE_FLOORS.main, d.floors.main),
+      hall: oneOf(floors.hall, ZONE_FLOORS.hall, d.floors.hall),
+      bath: oneOf(floors.bath, ZONE_FLOORS.bath, d.floors.bath),
+      balcony: oneOf(floors.balcony, ZONE_FLOORS.balcony, d.floors.balcony),
+    },
+    hexBlend: r.hexBlend === true,
+    wallPaint: color(r.wallPaint, d.wallPaint),
+    accentWall: oneOf(r.accentWall, ACCENT_WALLS, d.accentWall),
+    accentColor: color(r.accentColor, d.accentColor),
+    bathTile: { layout: oneOf(tile.layout, TILE_LAYOUTS, d.bathTile.layout), color: color(tile.color, d.bathTile.color) },
+  }
+}
+
+export const sameFinishes = (a: Finishes, b: Finishes) => JSON.stringify(a) === JSON.stringify(b)
+
+export const isDefaultFinishes = (f: Finishes) => sameFinishes(f, DEFAULT_FINISHES)
+
+/** True when the hall's hexagons should spill into the main room: only hex into a non-hex floor. */
+export const showsHexBlend = (f: Finishes) => f.hexBlend && f.floors.hall.startsWith('hex') && !f.floors.main.startsWith('hex')

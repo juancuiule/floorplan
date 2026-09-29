@@ -26,6 +26,7 @@ const GROUPS: { title: string; items: [keys: string[][], what: string][] }[] = [
       [[['X']], 'Switch dollhouse and X-ray'],
       [[['M']], 'Show or hide dimensions'],
       [[['L']], 'Switch day and evening'],
+      [[['B']], 'Flip A/B between two layouts'],
       [[['/']], 'Search the panel'],
       [[['\\']], 'Show or hide the panel'],
       [[['?']], 'Show these shortcuts'],
