@@ -31,7 +31,22 @@ Coordinates: `x` runs from the inner face of the entry wall (0) to the balcony w
 - **Plants:** monstera, fiddle-leaf fig, snake plant, areca palm, Boston fern, olive tree, cactus, lavender box, rubber plant, croton, spider plant, jade, burro's tail, succulent, haworthia, aloe, herbs, a hanging pothos, a wall window box, and a *succulent collection* that fills a strip with small clay pots. Any plant can go in a standard 6, 8 or 12 cm clay pot. Plants can sit on furniture (shelves, desk, bed shelf).
 - **Lights:** arc, tripod, table, mushroom and flowerpot lamps, dome, globe and paper-lantern pendants, a wall sconce, a red EXIT cube, and string lights. Set on/off, brightness, warmth (2700–4000 K) and color.
 - **Day / Evening** in the toolbar switches the sun off so the lamps and the ceiling downlights take over.
-- Drag any item to move it. `R` / `Shift+R` rotates, `Delete` removes, `Esc` cancels a placement.
+- Click to select, drag to move (a footprint turns red on overlaps; the wall it snaps to lights up), or turn it with the ring. The edit bar at the bottom has rotate, duplicate, delete, undo and redo.
+
+## Keyboard
+
+| Keys | Action |
+|---|---|
+| `1`–`5` | Camera presets |
+| `X` · `M` · `L` | X-ray · dimensions · day/evening |
+| `\` · `?` · `/` | Toggle panel · shortcuts · search |
+| `Cmd/Ctrl+Z` · `Shift+Cmd/Ctrl+Z` (or `Ctrl+Y`) | Undo · redo |
+| `Cmd/Ctrl+C` · `V` · `D` | Copy · paste at the pointer · duplicate |
+| Arrows (`Shift` = 10 cm) | Nudge 1 cm; wall items slide along their wall |
+| `PageUp`/`PageDown` or `[` `]` | Raise / lower wall items |
+| `R` / `Shift+R` | Rotate (quarter turns for furniture) |
+| `Delete` · `Esc` | Remove · cancel a placement or drag |
+| `Alt` while placing | Skip wall snapping |
 
 ## Screenshots
 
