@@ -327,6 +327,15 @@ kbd {
   .cameras {
     display: none;
   }
+  /* Icon-only for the self-explanatory buttons, so the sun control fits on one row. */
+  .tb-label.opt {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
   .camera-select {
     display: flex;
   }

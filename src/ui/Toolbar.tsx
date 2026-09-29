@@ -109,7 +109,7 @@ export function Toolbar() {
         <div className="group">
           <button type="button" aria-pressed={showDims} data-tip="Show room dimensions (M)" aria-keyshortcuts="M" onClick={toggleDims}>
             <Icon name="ruler" />
-            <span className="tb-label">Dimensions</span>
+            <span className="tb-label opt">Dimensions</span>
           </button>
         </div>
 
@@ -127,7 +127,7 @@ export function Toolbar() {
                 onClick={() => setLighting(l)}
               >
                 <Icon name={l === 'day' ? 'sun' : 'moon'} />
-                <span className="tb-label">{l === 'day' ? 'Day' : 'Evening'}</span>
+                <span className="tb-label opt">{l === 'day' ? 'Day' : 'Evening'}</span>
               </button>
             ))}
           </div>
