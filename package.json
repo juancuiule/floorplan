@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
+    "test:types": "tsc -p tsconfig.test.json",
+    "test:e2e": "node tests/e2e/smoke.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
@@ -26,9 +31,11 @@
     "@types/react-dom": "^19.2.7",
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "jsdom": "^30.1.1",
     "oxlint": "^1.81.0",
     "playwright": "^1.63.0",
     "typescript": "~6.0.2",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "vitest": "^5.0.2"
   }
 }
