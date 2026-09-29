@@ -4,6 +4,7 @@
 // request also schedules the frames that will draw the new shadows.
 
 import { invalidate } from '@react-three/fiber'
+import type * as THREE from 'three'
 
 let pending = 8 // a few frames at startup while textures and decor load
 
@@ -19,3 +20,10 @@ export function takeShadowUpdate(): boolean {
   if (pending > 0) invalidate()
   return true
 }
+
+/**
+ * Shadow-only casters: hidden, except during the frames that re-render the
+ * shadow maps, where they draw with an invisible material. They cost nothing
+ * on ordinary frames and no depth, so they never show up in the view or the AO.
+ */
+export const shadowOnly = new Set<THREE.Object3D>()
