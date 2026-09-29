@@ -258,7 +258,7 @@
       "image": "/artwork/image%2058.png",
       "at": [
         5.51,
-        2,
+        2.2,
         3
       ],
       "facing": "z-",
@@ -280,8 +280,8 @@
       "id": "artwork-mum8r7fgamt1",
       "image": "/artwork/image%2057.png",
       "at": [
-        5.28,
-        1.99,
+        5.27,
+        2.23,
         3
       ],
       "facing": "z-",
@@ -425,7 +425,7 @@
       "rotation": 0,
       "size": [
         1.4,
-        0.72,
+        1.1,
         0.7
       ],
       "finish": {
@@ -743,8 +743,8 @@
       "id": "artwork-mum9o40qvb6d",
       "image": "/artwork/image%2059.png",
       "at": [
-        4.88,
-        1.4,
+        4.42,
+        2.11,
         3
       ],
       "facing": "z-",
@@ -835,8 +835,8 @@
       "id": "artwork-mum9q22w3y0m",
       "image": "/artwork/image%2065.png",
       "at": [
-        5.39,
-        0.74,
+        5.24,
+        1.58,
         3
       ],
       "facing": "z-",
@@ -858,8 +858,8 @@
       "id": "artwork-mum9qkc8imj1",
       "image": "/artwork/image%2064.png",
       "at": [
-        4.72,
-        0.48,
+        5.07,
+        0.81,
         3
       ],
       "facing": "z-",
@@ -1208,6 +1208,31 @@
       },
       "options": {
         "cup": true
+      }
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mumc520ru31v",
+      "type": "windowBench",
+      "at": [
+        5.64,
+        0,
+        2.79
+      ],
+      "rotation": 180,
+      "size": [
+        1.2,
+        0.46,
+        0.42
+      ],
+      "finish": {
+        "body": "#c49c6c",
+        "metal": "#1d1d1d",
+        "fabric": "#56585c"
+      },
+      "options": {
+        "front": "open",
+        "cushion": true
       }
     }
   ]
