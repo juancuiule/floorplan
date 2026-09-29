@@ -6,12 +6,12 @@
       "id": "artwork-gallery-a3",
       "image": "/artwork/image%2054.png",
       "at": [
-        1.71,
-        2.12,
-        0.8
+        2.2,
+        1.15,
+        1.12
       ],
-      "facing": "z+",
-      "host": "shower-niche",
+      "facing": "x+",
+      "host": "entry-main",
       "size": {
         "preset": "50x70",
         "w": 0.5,
@@ -52,8 +52,8 @@
       "id": "artwork-mulzx26vu829",
       "image": "/artwork/IMG_3582.png",
       "at": [
-        6.32,
-        1.79,
+        4.01,
+        0.99,
         0
       ],
       "facing": "z+",
@@ -75,8 +75,8 @@
       "id": "artwork-mum0033igyoj",
       "image": "/artwork/IMG_3583.png",
       "at": [
-        5.65,
-        1.48,
+        5.46,
+        2.02,
         0
       ],
       "facing": "z+",
@@ -121,8 +121,8 @@
       "id": "artwork-mum0242moyn0",
       "image": "/artwork/image%2060.png",
       "at": [
-        4.51,
-        1.16,
+        4.53,
+        1.15,
         3
       ],
       "facing": "z-",
@@ -140,27 +140,12 @@
       "host": "side-kitchen"
     },
     {
-      "kind": "lamp",
-      "id": "lamp-mum043h5jbmp",
-      "type": "arc",
-      "at": [
-        6.66,
-        0,
-        2.47
-      ],
-      "rotation": 130,
-      "on": true,
-      "brightness": 0.1,
-      "warmth": 2700,
-      "color": "#e9e6e0"
-    },
-    {
       "kind": "artwork",
       "id": "artwork-mum06b1y5rc0",
       "image": "/artwork/IMG_3588.png",
       "at": [
-        3.99,
-        1.51,
+        3.49,
+        2.02,
         3
       ],
       "facing": "z-",
@@ -182,8 +167,8 @@
       "id": "artwork-mum074tfcxqr",
       "image": "/artwork/IMG_3587.png",
       "at": [
-        3.73,
-        1.32,
+        3.18,
+        2.15,
         3
       ],
       "facing": "z-",
@@ -214,6 +199,858 @@
         "preset": "custom",
         "w": 0.13,
         "h": 0.19
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "none",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "plant",
+      "id": "plant-mum1cbkgztpr",
+      "species": "collection",
+      "pot": "clay",
+      "at": [
+        7.77,
+        0.01,
+        2.98
+      ],
+      "rotation": 0,
+      "scale": 1,
+      "count": 20,
+      "spread": 1.25,
+      "seed": "8f526k"
+    },
+    {
+      "kind": "plant",
+      "id": "plant-mum1e0pqb9dk",
+      "species": "pothos",
+      "pot": "ceramic",
+      "at": [
+        3.14,
+        2.6,
+        2.47
+      ],
+      "rotation": 60,
+      "scale": 1,
+      "potSize": "auto"
+    },
+    {
+      "kind": "plant",
+      "id": "plant-mum1fcdgnsa0",
+      "species": "rubber",
+      "pot": "basket",
+      "at": [
+        6.8,
+        0,
+        2.62
+      ],
+      "rotation": 191,
+      "scale": 1,
+      "potSize": "auto"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum8pncps76b",
+      "image": "/artwork/image%2058.png",
+      "at": [
+        5.51,
+        2,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "A5",
+        "w": 0.21,
+        "h": 0.148
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "none",
+        "color": "#1f1e1c",
+        "mat": 0.05
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum8r7fgamt1",
+      "image": "/artwork/image%2057.png",
+      "at": [
+        5.28,
+        1.99,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "A5",
+        "w": 0.21,
+        "h": 0.148
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "none",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum8rjrgwagr",
+      "image": "/artwork/image%2055.png",
+      "at": [
+        5.76,
+        1.33,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "A5",
+        "w": 0.21,
+        "h": 0.148
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "none",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum8rpm40zz3",
+      "image": "/artwork/image%2056.png",
+      "at": [
+        5.88,
+        1.5,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "A5",
+        "w": 0.21,
+        "h": 0.148
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "none",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum8sc2h1p4w",
+      "image": "/artwork/image%2010.png",
+      "at": [
+        4.55,
+        1.92,
+        0
+      ],
+      "facing": "z+",
+      "size": {
+        "preset": "custom",
+        "w": 0.32,
+        "h": 0.32
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-bath"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum8soqjii53",
+      "image": "/artwork/IMG_3589.png",
+      "at": [
+        4.58,
+        1.49,
+        0
+      ],
+      "facing": "z+",
+      "size": {
+        "preset": "custom",
+        "w": 0.32,
+        "h": 0.32
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-bath"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum8t17mvd9k",
+      "image": "/artwork/Screenshot%202025-11-01%20at%2016.43.01%202.png",
+      "at": [
+        6.7,
+        2.16,
+        0
+      ],
+      "facing": "z+",
+      "size": {
+        "preset": "custom",
+        "w": 0.37,
+        "h": 0.56
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-bath"
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mum8v6a9jkhr",
+      "type": "standingDesk",
+      "at": [
+        6.2,
+        0,
+        0.35
+      ],
+      "rotation": 0,
+      "size": [
+        1.4,
+        0.72,
+        0.7
+      ],
+      "finish": {
+        "body": "#6a4731",
+        "metal": "#1d1d1d",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "riser": true,
+        "monitor": true
+      }
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mum8wdam2n8c",
+      "type": "stationClock",
+      "at": [
+        2.14,
+        2.18,
+        1.4
+      ],
+      "rotation": 0,
+      "size": [
+        0.09,
+        0.17,
+        0.38
+      ],
+      "finish": {
+        "body": "#dcc196",
+        "metal": "#1d1d1d",
+        "fabric": "#e6e0d4"
+      },
+      "options": {},
+      "facing": "z+",
+      "host": "entry-main"
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mum8xts12xk5",
+      "type": "blockShelf",
+      "at": [
+        7.75,
+        0.01,
+        0.1
+      ],
+      "rotation": 0,
+      "size": [
+        1.2,
+        0.8,
+        0.3
+      ],
+      "finish": {
+        "body": "#c49c6c",
+        "metal": "#1d1d1d",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "levels": 2
+      }
+    },
+    {
+      "kind": "plant",
+      "id": "plant-mum908cqbz17",
+      "species": "collection",
+      "pot": "clay",
+      "at": [
+        7.75,
+        0.81,
+        0.2
+      ],
+      "rotation": 0,
+      "scale": 1,
+      "count": 29,
+      "spread": 1.2,
+      "seed": "yd9nxu"
+    },
+    {
+      "kind": "plant",
+      "id": "plant-mum91xg6i6ub",
+      "species": "herbs",
+      "pot": "clay",
+      "at": [
+        8.02,
+        0.41,
+        0.1
+      ],
+      "rotation": 52,
+      "scale": 1,
+      "potSize": 12
+    },
+    {
+      "kind": "plant",
+      "id": "plant-mum921bi01c9",
+      "species": "haworthia",
+      "pot": "clay",
+      "at": [
+        7.85,
+        0.41,
+        0.02
+      ],
+      "rotation": 240,
+      "scale": 1,
+      "potSize": 8
+    },
+    {
+      "kind": "plant",
+      "id": "plant-mum925rpfber",
+      "species": "jade",
+      "pot": "ceramic",
+      "at": [
+        8.16,
+        0.01,
+        0.42
+      ],
+      "rotation": 293,
+      "scale": 1
+    },
+    {
+      "kind": "plant",
+      "id": "plant-mum92f4q3e0j",
+      "species": "croton",
+      "pot": "ceramic",
+      "at": [
+        7.35,
+        0.01,
+        0.33
+      ],
+      "rotation": 223,
+      "scale": 1
+    },
+    {
+      "kind": "lamp",
+      "id": "lamp-mum93lkqi7co",
+      "type": "lantern",
+      "at": [
+        5.59,
+        2.6,
+        1.71
+      ],
+      "rotation": 0,
+      "on": true,
+      "brightness": 1,
+      "warmth": 2700,
+      "color": "#f6ead8"
+    },
+    {
+      "kind": "lamp",
+      "id": "lamp-mum94twhy0gj",
+      "type": "exit",
+      "at": [
+        0,
+        2.33,
+        1.92
+      ],
+      "rotation": 0,
+      "on": true,
+      "brightness": 1,
+      "warmth": 2700,
+      "color": "#d42a1e",
+      "facing": "x+",
+      "host": "entry"
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mum96tgeq1xs",
+      "type": "chair",
+      "at": [
+        6.18,
+        0,
+        1.07
+      ],
+      "rotation": 180,
+      "size": [
+        0.45,
+        0.8,
+        0.5
+      ],
+      "finish": {
+        "body": "#dcc196",
+        "metal": "#1d1d1d",
+        "fabric": "#e6e0d4"
+      },
+      "options": {}
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mum975jcn4dl",
+      "type": "daybed",
+      "at": [
+        3.18,
+        0,
+        0.7
+      ],
+      "rotation": 0,
+      "size": [
+        1.95,
+        0.46,
+        1.4
+      ],
+      "finish": {
+        "body": "#c49c6c",
+        "metal": "#eeeeec",
+        "fabric": "#56585c"
+      },
+      "options": {
+        "drawers": true,
+        "pillows": true
+      }
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mum991u3ixdt",
+      "type": "bookshelf",
+      "at": [
+        3.35,
+        0,
+        2.83
+      ],
+      "rotation": 180,
+      "size": [
+        1.05,
+        0.6,
+        0.33
+      ],
+      "finish": {
+        "body": "#dcc196",
+        "metal": "#1d1d1d",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "books": true
+      }
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mum99x52kiz5",
+      "type": "upperCabinets",
+      "at": [
+        1.36,
+        1.84,
+        3
+      ],
+      "rotation": 0,
+      "size": [
+        1.45,
+        0.7,
+        0.34
+      ],
+      "finish": {
+        "body": "#c49c6c",
+        "metal": "#1d1d1d",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "led": true,
+        "glass": "reeded"
+      },
+      "facing": "z-",
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mum9bk44it2w",
+      "type": "floatingShelf",
+      "at": [
+        0.95,
+        1.41,
+        3
+      ],
+      "rotation": 0,
+      "size": [
+        0.6,
+        0.035,
+        0.22
+      ],
+      "finish": {
+        "body": "#c49c6c",
+        "metal": "#1d1d1d",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "brackets": false
+      },
+      "facing": "z-",
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mum9dfb026gs",
+      "type": "kitchenRail",
+      "at": [
+        1.7,
+        1.49,
+        3
+      ],
+      "rotation": 0,
+      "size": [
+        0.6,
+        0.03,
+        0.04
+      ],
+      "finish": {
+        "body": "#dcc196",
+        "metal": "#b7babd",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "variant": "hooks"
+      },
+      "facing": "z-",
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum9o40qvb6d",
+      "image": "/artwork/image%2059.png",
+      "at": [
+        4.88,
+        1.4,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "custom",
+        "w": 0.27,
+        "h": 0.19
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum9oiuidzb7",
+      "image": "/artwork/Screenshot%202025-11-01%20at%2000.05.35%202.png",
+      "at": [
+        4.35,
+        1.67,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "custom",
+        "w": 0.105,
+        "h": 0.155
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "none",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum9p1j5zcf6",
+      "image": "/artwork/Screenshot%202025-11-01%20at%2000.06.00%202.png",
+      "at": [
+        4.23,
+        1.57,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "custom",
+        "w": 0.105,
+        "h": 0.155
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "none",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum9pazgqvyc",
+      "image": "/artwork/Screenshot%202025-11-01%20at%2000.07.11%202.png",
+      "at": [
+        4.35,
+        1.49,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "custom",
+        "w": 0.105,
+        "h": 0.155
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "none",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum9q22w3y0m",
+      "image": "/artwork/image%2065.png",
+      "at": [
+        5.39,
+        0.74,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "50x70",
+        "w": 0.5,
+        "h": 0.7
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#64422f",
+        "mat": 0.03
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum9qkc8imj1",
+      "image": "/artwork/image%2064.png",
+      "at": [
+        4.72,
+        0.48,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "custom",
+        "w": 0.62,
+        "h": 0.5
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum9rf1rl5wp",
+      "image": "/artwork/image%2069.png",
+      "at": [
+        6.29,
+        0.98,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "custom",
+        "w": 0.21,
+        "h": 0.21
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#f3f1ec",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum9s1wfkxx5",
+      "image": "/artwork/image%2068.png",
+      "at": [
+        6.03,
+        0.93,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "custom",
+        "w": 0.21,
+        "h": 0.29
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#f3f1ec",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum9smo4zeyv",
+      "image": "/artwork/Screenshot%202025-11-01%20at%2000.12.16%202.png",
+      "at": [
+        3.14,
+        1.29,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "A2",
+        "w": 0.42,
+        "h": 0.594
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum9vtvqlwuu",
+      "image": "/artwork/Screenshot%202026-09-29%20at%2003.03.54%202.png",
+      "at": [
+        3.65,
+        1.6,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "custom",
+        "w": 0.42,
+        "h": 0.3
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum9wk0x2lu0",
+      "image": "/artwork/Screenshot%202026-09-29%20at%2003.04.19%202.png",
+      "at": [
+        3.66,
+        1.21,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "custom",
+        "w": 0.42,
+        "h": 0.3
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-mum9ykr7x4jj",
+      "image": "/artwork/image%2070.png",
+      "at": [
+        3.82,
+        1.99,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "custom",
+        "w": 0.18,
+        "h": 0.25
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "thin",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-muma05ki575m",
+      "image": "/artwork/gol-guerra-tienda-1-07ad7d6924d5e185c617847286869907-1024-1024.webp",
+      "at": [
+        4.04,
+        1.73,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "custom",
+        "w": 0.22,
+        "h": 0.16
+      },
+      "fit": "cover",
+      "frame": {
+        "style": "none",
+        "color": "#1f1e1c",
+        "mat": 0
+      },
+      "host": "side-kitchen"
+    },
+    {
+      "kind": "artwork",
+      "id": "artwork-muma5x62zu5f",
+      "image": "/artwork/img_2197-61676a700d9101809317290255807040-1024-1024.webp",
+      "at": [
+        6.02,
+        2.01,
+        3
+      ],
+      "facing": "z-",
+      "size": {
+        "preset": "custom",
+        "w": 0.51,
+        "h": 0.71
       },
       "fit": "cover",
       "frame": {
