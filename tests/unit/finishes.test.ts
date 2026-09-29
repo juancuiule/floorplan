@@ -115,3 +115,19 @@ describe('setFinishes', () => {
     expect(accent.visible).toBe(false)
   })
 })
+
+describe('shower finishes', () => {
+  it('defaults to a glass door with brushed chrome fittings', () => {
+    expect(DEFAULT_FINISHES.shower).toEqual({ screen: 'glass', curtainColor: '#f2f0ea', fittings: 'chrome' })
+    expect(normalizeFinishes({}).shower).toEqual(DEFAULT_FINISHES.shower)
+  })
+
+  it('keeps valid choices and falls back on unknown ones', () => {
+    expect(normalizeFinishes({ shower: { screen: 'curtain', curtainColor: '#C07A5C', fittings: 'brass' } }).shower).toEqual({
+      screen: 'curtain',
+      curtainColor: '#c07a5c',
+      fittings: 'brass',
+    })
+    expect(normalizeFinishes({ shower: { screen: 'bathtub', curtainColor: 'red', fittings: 'gold' } }).shower).toEqual(DEFAULT_FINISHES.shower)
+  })
+})

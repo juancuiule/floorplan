@@ -36,6 +36,12 @@ export type AccentWall = (typeof ACCENT_WALLS)[number]
 export const TILE_LAYOUTS = ['stack', 'subway', 'square', 'vertical'] as const
 export type TileLayout = (typeof TILE_LAYOUTS)[number]
 
+/** How the shower is closed off: a glass door, a curtain on a rail, or open (walk-in). */
+export const SHOWER_SCREENS = ['glass', 'curtain', 'open'] as const
+export type ShowerScreen = (typeof SHOWER_SCREENS)[number]
+export const SHOWER_FITTINGS = ['chrome', 'black', 'brass'] as const
+export type ShowerFittings = (typeof SHOWER_FITTINGS)[number]
+
 export interface Finishes {
   floors: Record<FloorZone, FloorId>
   /** Hexagons from the hall scattered into the main-room floor past the passage. */
@@ -45,6 +51,7 @@ export interface Finishes {
   accentWall: AccentWall
   accentColor: string
   bathTile: { layout: TileLayout; color: string }
+  shower: { screen: ShowerScreen; curtainColor: string; fittings: ShowerFittings }
 }
 
 export const DEFAULT_FINISHES: Finishes = {
@@ -54,6 +61,7 @@ export const DEFAULT_FINISHES: Finishes = {
   accentWall: 'none',
   accentColor: '#9fae95',
   bathTile: { layout: 'stack', color: '#f6f6f4' },
+  shower: { screen: 'glass', curtainColor: '#f2f0ea', fittings: 'chrome' },
 }
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/i
@@ -70,6 +78,7 @@ export function normalizeFinishes(raw: unknown): Finishes {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
   const floors = (r.floors && typeof r.floors === 'object' ? r.floors : {}) as Record<string, unknown>
   const tile = (r.bathTile && typeof r.bathTile === 'object' ? r.bathTile : {}) as Record<string, unknown>
+  const shower = (r.shower && typeof r.shower === 'object' ? r.shower : {}) as Record<string, unknown>
   return {
     floors: {
       main: oneOf(floors.main, ZONE_FLOORS.main, d.floors.main),
@@ -82,6 +91,7 @@ export function normalizeFinishes(raw: unknown): Finishes {
     accentWall: oneOf(r.accentWall, ACCENT_WALLS, d.accentWall),
     accentColor: color(r.accentColor, d.accentColor),
     bathTile: { layout: oneOf(tile.layout, TILE_LAYOUTS, d.bathTile.layout), color: color(tile.color, d.bathTile.color) },
+    shower: { screen: oneOf(shower.screen, SHOWER_SCREENS, d.shower.screen), curtainColor: color(shower.curtainColor, d.shower.curtainColor), fittings: oneOf(shower.fittings, SHOWER_FITTINGS, d.shower.fittings) },
   }
 }
 

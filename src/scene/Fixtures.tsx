@@ -5,19 +5,23 @@ import type { SceneObject, Vec3 } from '../model/types'
 import { project } from '../project'
 import { Box } from './Box'
 import { Merged } from './Merged'
+import { Shower } from './Shower'
 import { sharedEdgeMaterial, sharedMaterial } from './materials'
 
 const m = sharedMaterial
 
 export function Fixtures() {
   return (
-    <Merged>
-      {project.objects.map((o) => (
-        <group key={o.id} position={o.position} rotation={[0, THREE.MathUtils.degToRad(o.rotation ?? 0), 0]}>
-          <Fixture object={o} />
-        </group>
-      ))}
-    </Merged>
+    <>
+      <Merged>
+        {project.objects.map((o) => (
+          <group key={o.id} position={o.position} rotation={[0, THREE.MathUtils.degToRad(o.rotation ?? 0), 0]}>
+            <Fixture object={o} />
+          </group>
+        ))}
+      </Merged>
+      <Shower />
+    </>
   )
 }
 

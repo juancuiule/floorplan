@@ -1,5 +1,5 @@
 import { useDecor } from '../decor/store'
-import { ACCENT_WALLS, TILE_LAYOUTS, ZONE_FLOORS, type FloorId, type FloorZone } from '../model/finishes'
+import { ACCENT_WALLS, SHOWER_FITTINGS, SHOWER_SCREENS, TILE_LAYOUTS, ZONE_FLOORS, type FloorId, type FloorZone } from '../model/finishes'
 import { ACCENT_LABELS, ACCENTS, bathTileDef, FLOORS, PAINTS, TILE_COLORS, TILE_LAYOUT_LABELS, ZONE_LABELS } from '../project/finishes'
 import { patternThumb } from '../scene/patterns'
 import { Chips, Field, Section, Swatches } from './controls'
@@ -11,6 +11,16 @@ import './finishes.css'
 // layout's file, so each layout variant keeps its own finishes.
 
 const ZONES: FloorZone[] = ['main', 'hall', 'bath', 'balcony']
+
+const SHOWER_LABELS = { glass: 'Glass door', curtain: 'Curtain', open: 'Open' } as const
+const FITTINGS_LABELS = { chrome: 'Brushed chrome', black: 'Matte black', brass: 'Brushed brass' } as const
+const CURTAIN_COLORS = [
+  { label: 'Off-white linen', color: '#f2f0ea' },
+  { label: 'Sage', color: '#a9b8a0' },
+  { label: 'Terracotta', color: '#c07a5c' },
+  { label: 'Navy', color: '#3a4a6b' },
+  { label: 'Charcoal', color: '#4a4b4e' },
+]
 
 export function FinishesPanel() {
   const f = useDecor((s) => s.finishes)
@@ -74,6 +84,20 @@ export function FinishesPanel() {
         <Field label="Color" value={TILE_COLORS.find((p) => p.color === f.bathTile.color)?.label ?? 'Custom'}>
           <Swatches value={f.bathTile.color} colors={TILE_COLORS} onChange={(color) => set({ bathTile: { ...f.bathTile, color } })} />
         </Field>
+      </Section>
+
+      <Section title="Shower">
+        <Field label="Screen">
+          <Chips value={f.shower.screen} options={SHOWER_SCREENS.map((id) => ({ id, label: SHOWER_LABELS[id] }))} onChange={(screen) => set({ shower: { ...f.shower, screen } })} />
+        </Field>
+        <Field label="Fittings">
+          <Chips value={f.shower.fittings} options={SHOWER_FITTINGS.map((id) => ({ id, label: FITTINGS_LABELS[id] }))} onChange={(fittings) => set({ shower: { ...f.shower, fittings } })} />
+        </Field>
+        {f.shower.screen === 'curtain' && (
+          <Field label="Curtain" value={CURTAIN_COLORS.find((p) => p.color === f.shower.curtainColor)?.label ?? 'Custom'}>
+            <Swatches value={f.shower.curtainColor} colors={CURTAIN_COLORS} onChange={(curtainColor) => set({ shower: { ...f.shower, curtainColor } })} />
+          </Field>
+        )}
       </Section>
     </div>
   )
