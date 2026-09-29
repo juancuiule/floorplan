@@ -216,7 +216,9 @@ describe('update, remove, duplicate', () => {
     expect(copy.id).not.toBe('p1')
     expect(copy.id).toMatch(/^plant-/)
     expect(s).toMatchObject({ movingId: copy.id, isDraft: true })
-    expect({ ...copy, id: 'p1' }).toEqual(s.items[0])
+    // Same item, fresh id; the copy pins its leaf layout to the original's seed.
+    expect({ ...copy, id: 'p1', seed: undefined }).toEqual({ ...s.items[0], seed: undefined })
+    expect(copy.seed).toBe('p1')
     expect(copy.at).not.toBe((s.items[0] as PlantItem).at)
     // Cancelling the duplicate leaves the original alone.
     s.cancelPlacing()

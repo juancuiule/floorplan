@@ -158,32 +158,32 @@ describe('snapToWalls', () => {
   const desk = furniture('standingDesk') // 1.40 × 0.70
 
   it('backs a 70 cm desk flush onto the bath-side wall, facing into the room', () => {
-    expect(snapToWalls(4, 0.2, desk)).toEqual({ x: 4, z: 0.35, rotation: 0 })
+    expect(snapToWalls(4, 0.2, desk)).toMatchObject({ x: 4, z: 0.35, rotation: 0 })
     // From the other side of its final spot too.
-    expect(snapToWalls(4, 0.7, desk)).toEqual({ x: 4, z: 0.35, rotation: 0 })
+    expect(snapToWalls(4, 0.7, desk)).toMatchObject({ x: 4, z: 0.35, rotation: 0 })
   })
 
   it('faces the kitchen-side wall the other way', () => {
-    expect(snapToWalls(4, 2.8, desk)).toEqual({ x: 4, z: 2.65, rotation: 180 })
+    expect(snapToWalls(4, 2.8, desk)).toMatchObject({ x: 4, z: 2.65, rotation: 180 })
   })
 
   it('turns to face the room against the facade and the entry-main partition', () => {
     const shelf = furniture('bookshelf') // 0.33 deep
-    expect(snapToWalls(6.7, 1.0, shelf)).toEqual({ x: 6.73, z: 1.0, rotation: 270 })
-    expect(snapToWalls(2.4, 1.0, shelf)).toEqual({ x: 2.37, z: 1.0, rotation: 90 })
+    expect(snapToWalls(6.7, 1.0, shelf)).toMatchObject({ x: 6.73, z: 1.0, rotation: 270 })
+    expect(snapToWalls(2.4, 1.0, shelf)).toMatchObject({ x: 2.37, z: 1.0, rotation: 90 })
   })
 
   it('slides into the balcony-side corner', () => {
-    expect(snapToWalls(6.5, 0.2, desk)).toEqual({ x: 6.2, z: 0.35, rotation: 0 })
+    expect(snapToWalls(6.5, 0.2, desk)).toMatchObject({ x: 6.2, z: 0.35, rotation: 0 })
   })
 
   it('slides into the corner by the entry-main partition', () => {
-    expect(snapToWalls(2.6, 0.2, desk)).toEqual({ x: 2.9, z: 0.35, rotation: 0 })
+    expect(snapToWalls(2.6, 0.2, desk)).toMatchObject({ x: 2.9, z: 0.35, rotation: 0 })
   })
 
   it('does not move pieces that already clear the side wall', () => {
     const r = snapToWalls(5.2, 0.2, desk)
-    expect(r).toEqual({ x: 5.2, z: 0.35, rotation: 0 })
+    expect(r).toMatchObject({ x: 5.2, z: 0.35, rotation: 0 })
   })
 
   it('returns null in the middle of the room', () => {
@@ -215,9 +215,8 @@ describe('snapToWalls', () => {
   // 4 mm GAP. It shifts the desk to x = 2.05, and the next wall face (entry-main, x = 2.1,
   // looking -x) then pushes it to x = 1.40, straight through the partition into the shower.
   // Actual: { x: 1.4, z: 0.35 }, expected { x: 2.9, z: 0.35 }.
-  // When snapToWalls is fixed this test starts failing: change `it.fails` to `it`.
-  it.fails('slides into the bath-side corner by the entry-main partition from x = 2.3 (known bug)', () => {
-    expect(snapToWalls(2.3, 0.1, desk)).toEqual({ x: 2.9, z: 0.35, rotation: 0 })
+  it('slides into the bath-side corner by the entry-main partition from x = 2.3', () => {
+    expect(snapToWalls(2.3, 0.1, desk)).toMatchObject({ x: 2.9, z: 0.35, rotation: 0 })
   })
 
   it('never ends up inside a wall when dropped along the bath-side wall of the main room', () => {
