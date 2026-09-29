@@ -22,6 +22,10 @@ try {
   process.exit(2)
 }
 await api.resetDecor(DECOR)
+// Layouts a previous run saved from this file.
+const LAYOUT_B = 'e2e-layout-b'
+const dropLayout = (slug) => fetch(`${BASE_URL}/api/layouts?file=${slug}`, { method: 'DELETE' })
+await dropLayout(LAYOUT_B)
 
 const { browser, page, errors } = await launch()
 const panel = page.getByRole('complementary', { name: /decor/i })
@@ -66,7 +70,7 @@ await t.step('loads with a canvas, toolbar and panel, and no page errors', async
   await page.goto(url('view=iso-balcony'))
   await waitForScene(page)
   assert.ok(await page.locator('canvas').first().isVisible(), 'canvas visible')
-  assert.equal(await page.getByRole('tab').count(), 4, 'four panel tabs')
+  assert.equal(await page.getByRole('tab').count(), 5, 'four decor tabs and Room')
   assert.deepEqual((await api.readDecor(DECOR)).items, [], 'isolated decor file starts empty')
   await shot(page, '01-loaded')
   assert.deepEqual(errors, [])
@@ -129,7 +133,7 @@ await t.step('opens every panel tab', async () => {
     assert.equal(await tab.getAttribute('aria-selected'), 'true')
     // Each library shows a heading and at least one choice.
     assert.ok(await panel.getByRole('heading').first().isVisible())
-    assert.ok((await panel.locator('.lib-row, .thumb').count()) > 0 || /art/i.test(await tab.innerText()), 'library has choices')
+    assert.ok((await panel.locator('.lib-row, .thumb, .samples [role="radio"]').count()) > 0 || /art/i.test(await tab.innerText()), 'library has choices')
   }
   await shot(page, '05-tabs')
 })
@@ -230,6 +234,83 @@ await t.step('the saved file has one of each kind and survives a reload', async 
   await page.getByRole('radio', { name: /evening/i }).click()
   await page.waitForTimeout(900)
   await shot(page, '10-final-evening')
+  assert.deepEqual(errors, [])
+})
+
+await t.step('changes the main-room floor in the Room tab and saves it with the layout', async () => {
+  await page.goto(url('view=iso-balcony'))
+  await waitForScene(page)
+  const calls = await page.evaluate(() => window.__stats?.calls)
+  await openTab(/^room/i)
+  const floors = panel.getByRole('radiogroup', { name: /main room floor/i })
+  await floors.getByRole('radio', { name: /walnut/i }).click()
+  assert.equal(await floors.getByRole('radio', { name: /walnut/i }).getAttribute('aria-checked'), 'true')
+  const saved = await eventually(async () => {
+    const f = (await api.readDecor(DECOR)).finishes
+    return f?.floors?.main === 'walnut' && f
+  }, { message: 'walnut floor saved' })
+  assert.equal(saved.floors.hall, 'oakLight', 'the hall keeps its floor')
+  await page.waitForTimeout(600)
+  // Swapped in place: same meshes, same draw calls.
+  assert.equal(await page.evaluate(() => window.__stats?.calls), calls, 'draw calls unchanged')
+  await shot(page, '11-walnut')
+  assert.deepEqual(errors, [])
+})
+
+await t.step('saves a second layout, flips A/B and keeps finishes per layout', async () => {
+  await page.getByRole('button', { name: /^layout/i }).click()
+  const menu = page.getByRole('dialog', { name: /layouts/i })
+  await menu.getByLabel(/save a copy as/i).fill('E2E layout B')
+  await menu.getByRole('button', { name: /save as new/i }).click()
+  await eventually(async () => new URL(page.url()).searchParams.get('decor') === LAYOUT_B, { message: 'URL follows the new layout' })
+  assert.equal(await page.getByTestId('layout-current').innerText(), 'E2E layout B')
+  const b = await eventually(() => api.readDecor(LAYOUT_B), { message: 'layout B written' })
+  assert.equal(b.name, 'E2E layout B')
+  assert.equal(b.finishes.floors.main, 'walnut', 'the copy starts with the same finishes')
+  assert.equal(b.items.length, (await placed()).length, 'and the same items')
+
+  // Change B only.
+  await openTab(/^room/i)
+  await panel.getByRole('radiogroup', { name: /main room floor/i }).getByRole('radio', { name: /concrete/i }).click()
+  await eventually(async () => (await api.readDecor(LAYOUT_B)).finishes?.floors?.main === 'concrete', { message: 'concrete saved to B' })
+  await shot(page, '12-layout-b-concrete')
+
+  // A/B flips back to the first layout without a reload.
+  await page.evaluate(() => (window.__noReload = true))
+  await page.getByRole('button', { name: /compare/i }).click()
+  await eventually(async () => new URL(page.url()).searchParams.get('decor') === DECOR, { message: 'back on A' })
+  assert.equal(await page.evaluate(() => window.__noReload), true, 'no page reload')
+  await eventually(async () => (await panel.getByRole('radiogroup', { name: /main room floor/i }).getByRole('radio', { name: /walnut/i }).getAttribute('aria-checked')) === 'true', { message: 'A shows walnut' })
+  assert.equal((await api.readDecor(DECOR)).finishes.floors.main, 'walnut', 'A untouched')
+  // And the B key flips again.
+  await page.mouse.move(700, 850)
+  await page.keyboard.press('b')
+  await eventually(async () => new URL(page.url()).searchParams.get('decor') === LAYOUT_B, { message: 'B key flips to B' })
+  await page.keyboard.press('b')
+  await eventually(async () => new URL(page.url()).searchParams.get('decor') === DECOR, { message: 'B key flips back' })
+  assert.deepEqual(errors, [])
+})
+
+await t.step('renames and deletes a layout from the menu', async () => {
+  await page.getByRole('button', { name: /^layout/i }).click()
+  const menu = page.getByRole('dialog', { name: /layouts/i })
+  // Test layouts are hidden from the list; the open one always shows.
+  await menu.getByRole('button', { name: `Rename ${DECOR}` }).click()
+  const input = menu.getByRole('textbox', { name: /new name/i })
+  await input.fill('E2E smoke renamed')
+  await input.press('Enter')
+  await eventually(async () => new URL(page.url()).searchParams.get('decor') === 'e2e-smoke-renamed', { message: 'renamed slug in URL' })
+  const renamed = await api.readDecor('e2e-smoke-renamed')
+  assert.equal(renamed.name, 'E2E smoke renamed')
+  assert.equal(renamed.finishes.floors.main, 'walnut')
+  // Put it back under its test name, then delete layout B through the API the menu uses.
+  const back = await fetch(`${BASE_URL}/api/layouts?file=e2e-smoke-renamed`, { method: 'PATCH', body: JSON.stringify({ name: 'e2e smoke' }) })
+  assert.equal((await back.json()).slug, DECOR)
+  assert.equal((await dropLayout(LAYOUT_B)).status, 200)
+  const all = await (await fetch(`${BASE_URL}/api/layouts?all=1`)).json()
+  assert.ok(!all.some((l) => l.slug === LAYOUT_B), 'B deleted')
+  assert.ok(!(await (await fetch(`${BASE_URL}/api/layouts`)).json()).some((l) => /^e2e/.test(l.slug ?? '')), 'test layouts hidden from the list')
+  await page.keyboard.press('Escape')
   assert.deepEqual(errors, [])
 })
 

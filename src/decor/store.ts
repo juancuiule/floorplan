@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { DecorFile, DecorItem, DecorKind } from '../model/decor'
+import { DEFAULT_FINISHES, isDefaultFinishes, normalizeFinishes, type Finishes } from '../model/finishes'
 import type { Vec3 } from '../model/types'
 import { editRefs } from './edit'
 import { isFloorPiece, mountOf, placeAt } from './placement'
@@ -9,7 +10,7 @@ export interface LibraryImage {
   url: string
 }
 
-export type PanelTab = 'furniture' | 'artwork' | 'plants' | 'lights'
+export type PanelTab = 'furniture' | 'artwork' | 'plants' | 'lights' | 'room'
 
 interface DecorState {
   items: DecorItem[]
@@ -24,6 +25,14 @@ interface DecorState {
   library: LibraryImage[]
   tab: PanelTab
   error: string | null
+  /** Floors, paint and tiles of this layout (saved in its file, not part of undo). */
+  finishes: Finishes
+  /** The layout being edited: null for data/decor.json, else the <slug> of data/decor.<slug>.json. */
+  layout: string | null
+  /** Display name stored in the file ('' when it has none). */
+  layoutName: string
+  /** The other side of the A/B compare toggle (undefined: nothing to compare with). */
+  compareWith: string | null | undefined
 
   load: () => Promise<void>
   refreshLibrary: () => Promise<void>
@@ -57,11 +66,27 @@ interface DecorState {
   canRedo: boolean
   select: (id: string | null) => void
   setTab: (tab: PanelTab) => void
+  setFinishes: (patch: Partial<Finishes>) => void
+  /** Saves what is pending, then loads another layout (fresh undo history). The URL follows. */
+  switchLayout: (slug: string | null) => Promise<void>
+  /** Flips between this layout and compareWith. */
+  toggleCompare: () => Promise<void>
+  setCompareWith: (slug: string | null | undefined) => void
+  /** After a rename on the server: the new slug and name of the open layout. */
+  renamed: (slug: string | null, name: string) => void
 }
 
 /** Which decor file this tab edits: data/decor.json, or data/decor.<name>.json with ?decor=<name>. */
-const decorFile = new URLSearchParams(window.location.search).get('decor')
-const decorUrl = `/api/decor${decorFile ? `?file=${encodeURIComponent(decorFile)}` : ''}`
+let decorFile = new URLSearchParams(window.location.search).get('decor')
+const decorUrl = () => `/api/decor${decorFile ? `?file=${encodeURIComponent(decorFile)}` : ''}`
+
+/** Keeps ?decor= in the address bar in step with the open layout, without a reload. */
+function syncUrl() {
+  const url = new URL(window.location.href)
+  if (decorFile) url.searchParams.set('decor', decorFile)
+  else url.searchParams.delete('decor')
+  window.history.replaceState(window.history.state, '', url)
+}
 
 export const newId = (kind: DecorKind) => `${kind}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
 
@@ -75,21 +100,32 @@ export const useDecor = create<DecorState>((set, get) => ({
   library: [],
   tab: 'artwork',
   error: null,
+  finishes: DEFAULT_FINISHES,
+  layout: decorFile,
+  layoutName: '',
+  compareWith: undefined,
   hasClipboard: false,
   canUndo: false,
   canRedo: false,
 
   load: async () => {
     try {
-      const res = await fetch(decorUrl)
+      const file = decorFile
+      const res = await fetch(decorUrl())
       const data = (await res.json()) as DecorFile
+      // Switched again while this was loading: the newer load wins.
+      if (file !== decorFile) return
       const items = data.items ?? []
-      lastSaved = serialize(items)
+      const finishes = normalizeFinishes(data.finishes)
+      const layoutName = typeof data.name === 'string' ? data.name : ''
+      lastSaved = serialize(items, finishes, layoutName)
+      lastFinishes = finishes
+      lastName = layoutName
       // Keep the item under the pointer when the file is reloaded mid-placement.
       const { movingId, isDraft } = get()
       const moving = isDraft ? get().items.find((i) => i.id === movingId) : undefined
       applying = true
-      set({ items: moving ? [...items.filter((i) => i.id !== moving.id), moving] : items, loaded: true })
+      set({ items: moving ? [...items.filter((i) => i.id !== moving.id), moving] : items, loaded: true, finishes, layoutName, layout: file })
       applying = false
       // A file loaded from disk starts a fresh history: undo never reverts someone else's edit.
       past.length = 0
@@ -209,6 +245,34 @@ export const useDecor = create<DecorState>((set, get) => ({
   },
   select: (id) => set({ selectedId: id }),
   setTab: (tab) => set({ tab }),
+  setFinishes: (patch) => set((s) => ({ finishes: { ...s.finishes, ...patch } })),
+  switchLayout: async (slug) => {
+    const from = decorFile
+    if (slug === from) return
+    const s = get()
+    if (s.movingId) s.cancelPlacing()
+    set({ selectedId: null })
+    await flushSave()
+    decorFile = slug
+    syncUrl()
+    set({ layout: slug, compareWith: from })
+    await get().load()
+  },
+  toggleCompare: async () => {
+    const other = get().compareWith
+    if (other !== undefined) await get().switchLayout(other)
+  },
+  setCompareWith: (compareWith) => set({ compareWith }),
+  renamed: (slug, name) => {
+    if (slug !== decorFile) {
+      decorFile = slug
+      syncUrl()
+    }
+    // The server already wrote the new name: do not write it again.
+    lastName = name
+    lastSaved = serialize(committedOf(get()), get().finishes, name)
+    set({ layout: slug, layoutName: name })
+  },
 }))
 
 // ---------- copy / duplicate ----------
@@ -304,25 +368,52 @@ useDecor.subscribe((s) => {
 
 // Persist placed items (not the one still following the pointer) back to data/decor.json.
 let saveTimer: ReturnType<typeof setTimeout> | undefined
+let pendingSave: (() => Promise<void>) | null = null
 let lastSaved = ''
 let lastItems: DecorItem[] | null = null
+let lastFinishes: Finishes | null = null
+let lastName = ''
 /** Bodies this tab wrote recently: their file-change echoes must not trigger a reload. */
 const written: string[] = []
-const serialize = (items: DecorItem[]) => JSON.stringify({ version: 1, items } satisfies DecorFile, null, 2) + '\n'
+/** The layout file: name and finishes only when there is something to say, so untouched files keep their shape. */
+export const serialize = (items: DecorItem[], finishes: Finishes = DEFAULT_FINISHES, name = '') =>
+  JSON.stringify(
+    { version: 1, ...(name ? { name } : {}), ...(isDefaultFinishes(finishes) ? {} : { finishes }), items } satisfies DecorFile,
+    null,
+    2,
+  ) + '\n'
+
+/** Writes a pending (debounced) save right away; resolves once it is on disk. */
+export async function flushSave() {
+  clearTimeout(saveTimer)
+  const save = pendingSave
+  pendingSave = null
+  if (save) await save()
+}
+
 useDecor.subscribe((s) => {
   if (!s.loaded || s.error?.startsWith('Saving')) return
   const items = committedOf(s)
-  if (items === lastItems) return
+  if (items === lastItems && s.finishes === lastFinishes && s.layoutName === lastName) return
   lastItems = items
-  const body = serialize(items)
+  lastFinishes = s.finishes
+  lastName = s.layoutName
+  const body = serialize(items, s.finishes, s.layoutName)
   clearTimeout(saveTimer)
+  pendingSave = null
   // Back to what is on disk (a cancelled drag, an undo): drop the pending save too.
   if (body === lastSaved) return
-  saveTimer = setTimeout(() => {
+  const url = decorUrl()
+  const save = async () => {
     lastSaved = body
     written.push(body)
     if (written.length > 8) written.shift()
-    fetch(decorUrl, { method: 'PUT', body, headers: { 'Content-Type': 'application/json' } }).catch(() => {})
+    await fetch(url, { method: 'PUT', body, headers: { 'Content-Type': 'application/json' } }).catch(() => {})
+  }
+  pendingSave = save
+  saveTimer = setTimeout(() => {
+    pendingSave = null
+    void save()
   }, 400)
 })
 
@@ -331,7 +422,7 @@ useDecor.subscribe((s) => {
 if (import.meta.hot) {
   import.meta.hot.on('decor:changed', async (data: { file: string | null }) => {
     if ((data.file ?? null) !== (decorFile ?? null)) return
-    const text = await fetch(decorUrl).then((r) => r.text()).catch(() => null)
+    const text = await fetch(decorUrl()).then((r) => r.text()).catch(() => null)
     if (text === null || text === lastSaved || written.includes(text)) return
     clearTimeout(saveTimer)
     await useDecor.getState().load()

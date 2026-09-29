@@ -23,8 +23,16 @@ dist-ssr
 *.sln
 *.sw?
 
-# Scratch decor files used by test runs (?decor=<name>)
-data/decor.*.json
+# Scratch decor files used by test runs (?decor=<name>). Named layouts
+# (data/decor.<slug>.json) are real design variants and stay versioned.
+data/decor.e2e*.json
+data/decor.test*.json
+data/decor.shot*.json
+data/decor.snap.json
+data/decor.furn.json
+data/decor.edit.json
+data/decor.objects.json
+data/decor.devices.json
 
 # Test output (screenshots from pnpm test:e2e)
 test-results

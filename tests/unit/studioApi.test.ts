@@ -185,7 +185,9 @@ describe('file watching', () => {
     onChange!(path.join(root, 'src', 'decor.json'))
     expect(wsSent).toEqual([
       { type: 'custom', event: 'decor:changed', data: { file: null } },
+      { type: 'custom', event: 'layouts:changed', data: {} },
       { type: 'custom', event: 'decor:changed', data: { file: 'e2e' } },
+      { type: 'custom', event: 'layouts:changed', data: {} },
     ])
   })
 })

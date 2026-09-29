@@ -27,6 +27,7 @@ const GROUPS: { title: string; items: [keys: string[][], what: string][] }[] = [
       [[['M']], 'Show or hide dimensions'],
       [[['L']], 'Switch day and evening'],
       [[[','], ['.']], 'Sun: 15 minutes earlier or later'],
+      [[['B']], 'Flip A/B between two layouts'],
       [[['/']], 'Search the panel'],
       [[['\\']], 'Show or hide the panel'],
       [[['?']], 'Show these shortcuts'],

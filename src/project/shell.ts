@@ -13,6 +13,8 @@ const H = 2.6
 const CEIL_ENTRY = 2.4
 /** Tile + adhesive build-up on bathroom walls. */
 const TILE = 0.01
+/** Accent paint layer: proud of the plaster, behind the thinnest poster (0.5 mm off the wall). */
+const PAINT = 0.001
 
 export const shell: Shell = {
   walls: [
@@ -125,6 +127,22 @@ export const shell: Shell = {
     { id: 'balcony', rect: [6.9, -0.2, 8.4, 3.2], height: H, material: 'ceiling' },
   ],
 
-  baseFloor: { rect: [0, 0, 7.1, 3.0], material: 'oakFloor' },
+  // One continuous floor, split at the passage wall so the hall + kitchen zone and
+  // the main room can take different finishes (patterns stay aligned across it).
+  baseFloors: [
+    { id: 'hall', rect: [0, 0, 2.15, 3.0], material: 'floorHall' },
+    { id: 'main', rect: [2.15, 0, 7.1, 3.0], material: 'floorMain' },
+  ],
+
+  // Accent paint on the main-room face of each candidate wall, 1 mm proud of the plaster.
+  accentPanels: [
+    { wall: 'side-bath', min: [2.2, 0, 0], max: [6.9, H, PAINT] },
+    // Stops under the beam and short of the column.
+    { wall: 'side-kitchen', min: [2.2, 0, 3.0 - PAINT], max: [6.45, 2.42, 3.0] },
+    // Around the passage (1.4–2.4 along z, 2.4 m high).
+    { wall: 'entry-main', min: [2.2, 0, 0], max: [2.2 + PAINT, H, 1.4] },
+    { wall: 'entry-main', min: [2.2, 0, 2.4], max: [2.2 + PAINT, H, 3.0] },
+    { wall: 'entry-main', min: [2.2, 2.4, 1.4], max: [2.2 + PAINT, H, 2.4] },
+  ],
   slab: { rect: [-0.2, -0.2, 8.4, 3.2], thickness: 0.18, material: 'concrete' },
 }

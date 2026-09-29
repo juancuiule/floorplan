@@ -1,7 +1,9 @@
 import * as THREE from 'three'
+import { DEFAULT_FINISHES, sameFinishes, type Finishes } from '../model/finishes'
 import type { MaterialDef, Vec3 } from '../model/types'
 import { project } from '../project'
-import { planks, tiles, type Pattern } from './patterns'
+import { finishDef, isFinishMaterial } from '../project/finishes'
+import { patternFor } from './patterns'
 
 export const EDGE_COLOR = '#5f5a52'
 
@@ -12,27 +14,93 @@ export function faceDims([sx, sy, sz]: Vec3): [number, number] {
   return [sx, sy]
 }
 
-function patternFor(def: MaterialDef): Pattern | null {
-  const p = def.pattern
-  if (!p) return null
-  if (p.kind === 'planks') return planks(def.color, p.width, p.length)
-  return tiles(def.color, p.grout, p.width, p.height)
+// ---------- finishes ----------
+//
+// Floors, wall paint and bathroom tiles come from the layout's finishes. Every
+// material built for one of those ids is remembered with its surface size, so
+// a finish change updates those materials in place (color, roughness, texture)
+// instead of rebuilding meshes: same objects, same draw calls.
+
+let finishes: Finishes = DEFAULT_FINISHES
+
+interface Binding {
+  id: string
+  dims?: [number, number]
+  origin: [number, number]
+  /** The definition last applied, to skip materials a change does not touch. */
+  key: string
 }
+
+const bound = new Map<THREE.MeshStandardMaterial, Binding>()
+const listeners = new Set<(f: Finishes) => void>()
+
+export const currentFinishes = () => finishes
+
+/** Called after every finishes change (the hex blend overlay listens). */
+export function onFinishes(fn: (f: Finishes) => void): () => void {
+  listeners.add(fn)
+  return () => void listeners.delete(fn)
+}
+
+type Def = MaterialDef & { hidden?: boolean }
+
+function defOf(id: string): Def {
+  if (isFinishMaterial(id)) return finishDef(id, finishes, project.materials)!
+  return project.materials[id] ?? { color: '#ff00ff' }
+}
+
+/** The pattern texture for a surface: a clone of the shared one, repeated at true scale and offset to `origin` (meters). */
+function mapOf(def: MaterialDef, dims: [number, number] | undefined, origin: [number, number]): THREE.Texture | null {
+  const pattern = dims ? patternFor(def) : null
+  if (!pattern || !dims) return null
+  const map = pattern.texture.clone()
+  map.repeat.set(dims[0] / pattern.size[0], dims[1] / pattern.size[1])
+  map.offset.set(origin[0] / pattern.size[0], origin[1] / pattern.size[1])
+  map.needsUpdate = true
+  return map
+}
+
+/**
+ * Applies new finishes to every material built for a finish id. Returns false
+ * (and does nothing) when they did not change. Old textures are disposed; the
+ * shared canvas stays cached for a quick switch back.
+ */
+export function setFinishes(next: Finishes): boolean {
+  if (sameFinishes(next, finishes)) return false
+  finishes = next
+  for (const [m, b] of bound) {
+    const def = defOf(b.id)
+    const key = JSON.stringify(def)
+    if (key === b.key) continue
+    b.key = key
+    const old = m.map
+    const map = mapOf(def, b.dims, b.origin)
+    // Adding or removing a map changes the shader; swapping one does not.
+    if (!old !== !map) m.needsUpdate = true
+    m.map = map
+    m.color.set(map ? '#ffffff' : def.color)
+    m.roughness = def.roughness ?? 0.8
+    m.metalness = def.metalness ?? 0
+    m.userData.hidden = !!def.hidden
+    if (def.hidden) m.visible = false
+    else if (m.opacity > 0.005) m.visible = true
+    old?.dispose()
+  }
+  for (const fn of listeners) fn(finishes)
+  return true
+}
+
+// ---------- materials ----------
 
 /**
  * A fresh material. Pass the surface's real-world `dims` to get its pattern
  * (planks, tiles) repeated at true scale; without dims the plain color is used.
+ * `origin` (meters) shifts the pattern, e.g. to line floors up across rooms.
  */
-export function makeMaterial(id: string, dims?: [number, number]): THREE.MeshStandardMaterial {
-  const def: MaterialDef = project.materials[id] ?? { color: '#ff00ff' }
+export function makeMaterial(id: string, dims?: [number, number], origin: [number, number] = [0, 0]): THREE.MeshStandardMaterial {
+  const def = defOf(id)
   const opacity = def.opacity ?? 1
-  const pattern = dims ? patternFor(def) : null
-  let map: THREE.Texture | null = null
-  if (pattern && dims) {
-    map = pattern.texture.clone()
-    map.repeat.set(dims[0] / pattern.size[0], dims[1] / pattern.size[1])
-    map.needsUpdate = true
-  }
+  const map = mapOf(def, dims, origin)
   const m = new THREE.MeshStandardMaterial({
     map,
     color: map ? '#ffffff' : def.color,
@@ -48,6 +116,14 @@ export function makeMaterial(id: string, dims?: [number, number]): THREE.MeshSta
     m.emissiveIntensity = 1.2
   }
   m.userData.baseOpacity = opacity
+  if (isFinishMaterial(id)) {
+    bound.set(m, { id, dims, origin, key: JSON.stringify(def) })
+    m.addEventListener('dispose', () => bound.delete(m))
+    if (def.hidden) {
+      m.userData.hidden = true
+      m.visible = false
+    }
+  }
   return m
 }
 
@@ -75,7 +151,7 @@ export function sharedEdgeMaterial(): THREE.LineBasicMaterial {
   return sharedEdges
 }
 
-/** Sets a fade factor (0–1) on materials that remember their base opacity. */
+/** Sets a fade factor (0–1) on materials that remember their base opacity. Hidden ones (an unused accent wall) stay hidden. */
 export function applyFade(mats: Iterable<THREE.Material>, alpha: number) {
   for (const m of mats) {
     const base = (m.userData.baseOpacity as number | undefined) ?? 1
@@ -87,6 +163,6 @@ export function applyFade(mats: Iterable<THREE.Material>, alpha: number) {
     }
     m.opacity = o
     m.depthWrite = !transparent
-    m.visible = o > 0.005
+    m.visible = o > 0.005 && !m.userData.hidden
   }
 }

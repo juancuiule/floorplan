@@ -1,12 +1,16 @@
-import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
+import { invalidate, useFrame } from '@react-three/fiber'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { Ceiling, Rect } from '../model/types'
 import { project } from '../project'
 import { Box } from './Box'
-import { faceDims, makeMaterial, sharedEdgeMaterial, sharedMaterial } from './materials'
+import { showsHexBlend, type Finishes } from '../model/finishes'
+import { FLOORS } from '../project/finishes'
+import { currentFinishes, faceDims, makeMaterial, onFinishes, sharedEdgeMaterial, sharedMaterial } from './materials'
+import { FLOOR_Z1, hash, hexScatter } from './patterns'
 
 const FLOOR_T = 0.012
+const noRaycast = () => {}
 const INLAY_T = 0.006
 
 function rectBox(r: Rect, y0: number, y1: number) {
@@ -17,17 +21,20 @@ function rectBox(r: Rect, y0: number, y1: number) {
 }
 
 export function Floors() {
-  const { slab, baseFloor, rooms } = project.shell
+  const { slab, baseFloors, rooms } = project.shell
   const edge = sharedEdgeMaterial()
   return (
     <group>
       <Box {...rectBox(slab.rect, -slab.thickness - FLOOR_T, -FLOOR_T)} material={sharedMaterial(slab.material)} edgeMaterial={edge} />
-      <FloorBox rect={baseFloor.rect} y0={-FLOOR_T} y1={0} material={baseFloor.material} />
+      {baseFloors.map((f) => (
+        <FloorBox key={f.id} rect={f.rect} y0={-FLOOR_T} y1={0} material={f.material} />
+      ))}
       {rooms
         .filter((r) => r.floor)
         .map((r) => (
           <FloorBox key={r.id} rect={r.rect} y0={0} y1={INLAY_T} material={r.floor!} />
         ))}
+      <HexBlend />
     </group>
   )
 }
@@ -35,9 +42,62 @@ export function Floors() {
 function FloorBox({ rect, y0, y1, material }: { rect: Rect; y0: number; y1: number; material: string }) {
   const { box, mat } = useMemo(() => {
     const box = rectBox(rect, y0, y1)
-    return { box, mat: makeMaterial(material, faceDims(box.size)) }
+    // Patterns are anchored to the plan (x = 0, z = FLOOR_Z1), so they run on across neighboring floors.
+    return { box, mat: makeMaterial(material, faceDims(box.size), [rect[0], FLOOR_Z1 - rect[3]]) }
   }, [rect, y0, y1, material])
   return <Box {...box} material={mat} castShadow={false} />
+}
+
+/** Where the hall's hexagons spill into the main room: around the passage (x 2.15, z 1.4–2.4). */
+const BLEND_RECT: Rect = [2.15, 0, 3.55, 3.0]
+
+/** Density of scattered hexagons: solid at the passage, thinning out into the room. */
+function blendKeep(x: number, z: number, col: number, row: number) {
+  const dz = Math.max(0, Math.abs(z - 1.9) - 0.35)
+  const d = Math.hypot(x - 2.15, dz * 1.6)
+  const p = Math.min(1, Math.max(0, 1 - (d - 0.12) / 1.05)) ** 1.6
+  return hash(col, row, 91) < p
+}
+
+/**
+ * The hex-to-wood transition: a see-through layer just above the main-room
+ * floor with the hall's hexagons (alpha-tested, no blending). It exists from
+ * the start and only its texture and visibility change with the finishes.
+ */
+function HexBlend() {
+  const { geometry, position, mat } = useMemo(() => {
+    const [x0, z0, x1, z1] = BLEND_RECT
+    // A plane with the same UV layout as a box's top face (v runs from +z to −z).
+    const geometry = new THREE.PlaneGeometry(x1 - x0, z1 - z0).rotateX(-Math.PI / 2)
+    const position: [number, number, number] = [(x0 + x1) / 2, 0.0015, (z0 + z1) / 2]
+    const mat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.55, alphaTest: 0.5 })
+    return { geometry, position, mat }
+  }, [])
+  const ref = useRef<THREE.Mesh>(null)
+  useEffect(() => {
+    let key = ''
+    const apply = (f: Finishes) => {
+      const on = showsHexBlend(f)
+      const def = FLOORS[f.floors.hall].def
+      const next = on ? `${def.color}|${JSON.stringify(def.pattern)}` : ''
+      if (ref.current) ref.current.visible = on
+      if (next === key) return
+      key = next
+      if (!on) return
+      const old = mat.map
+      mat.map = hexScatter(def, BLEND_RECT, blendKeep)
+      mat.roughness = def.roughness ?? 0.6
+      mat.needsUpdate = true
+      old?.dispose()
+      invalidate()
+    }
+    apply(currentFinishes())
+    return onFinishes(apply)
+  }, [mat])
+  return (
+    // Not a surface: clicks and placement go to the floor underneath.
+    <mesh ref={ref} visible={false} geometry={geometry} position={position} material={mat} receiveShadow raycast={noRaycast} />
+  )
 }
 
 export function Ceilings() {

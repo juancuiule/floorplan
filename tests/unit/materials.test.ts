@@ -22,22 +22,23 @@ describe('faceDims', () => {
 
 describe('patterns', () => {
   it('planks cover plank length × 2 by plank width × rows and repeat', () => {
-    const p = planks('#e2cba8', 0.19, 1.2, 5)
+    const p = planks('#e2cba8', 0.19, 1.2)
     expect(p.size[0]).toBeCloseTo(2.4)
     expect(p.size[1]).toBeCloseTo(0.95)
     expect(p.texture).toBeInstanceOf(THREE.CanvasTexture)
     expect(p.texture.wrapS).toBe(THREE.RepeatWrapping)
     expect(p.texture.wrapT).toBe(THREE.RepeatWrapping)
     expect(p.texture.colorSpace).toBe(THREE.SRGBColorSpace)
+    // Power-of-two canvases (clean mipmaps), drawn in meters.
     const canvas = p.texture.image as HTMLCanvasElement
-    expect(canvas.width).toBe(Math.round(2.4 * 700))
-    expect(canvas.height).toBe(Math.round(0.95 * 700))
+    expect(canvas.width).toBe(2048)
+    expect(canvas.height).toBe(1024)
   })
 
-  it('tiles cover two tiles each way', () => {
+  it('tiles cover about 1.2 m each way in whole tiles', () => {
     const p = tiles('#f6f6f4', '#9c9a96', 0.6, 0.3)
     expect(p.size[0]).toBeCloseTo(1.2)
-    expect(p.size[1]).toBeCloseTo(0.6)
+    expect(p.size[1]).toBeCloseTo(1.2)
   })
 
   it('caches by parameters', () => {
@@ -49,8 +50,8 @@ describe('patterns', () => {
   it('actually draws on the canvas', () => {
     const p = tiles('#123456', '#000000', 0.45, 0.45)
     const log = (globalThis as { __canvasCalls?: WeakMap<HTMLCanvasElement, string[]> }).__canvasCalls?.get(p.texture.image as HTMLCanvasElement)
-    // grout fill + 4 tiles
-    expect(log?.filter((c) => c === 'fillRect').length).toBe(5)
+    // grout fill, then per tile (3 × 3): the tile and a two-strip bevel
+    expect(log?.filter((c) => c === 'fillRect').length).toBe(1 + 3 * 3 * 3)
   })
 })
 
@@ -67,7 +68,8 @@ describe('makeMaterial', () => {
     expect(m.map!.repeat.x).toBeCloseTo(4.8 / 2.4)
     expect(m.map!.repeat.y).toBeCloseTo(1.9 / 0.95)
     // Clones: two surfaces do not share a repeat.
-    const other = makeMaterial('oakFloor', [2.4, 0.95])
+    const other = makeMaterial('oakFloor', [2.4, 0.95], [1.2, 0])
+    expect(other.map!.offset.x).toBeCloseTo(0.5)
     expect(other.map).not.toBe(m.map)
     expect(other.map!.repeat.x).toBeCloseTo(1)
   })

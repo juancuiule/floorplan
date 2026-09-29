@@ -2,9 +2,11 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { useDecor, type PanelTab } from '../decor/store'
 import { ArtworkLibrary, dragHasFiles, uploadFiles } from './ArtworkLibrary'
 import { TABS, tabOfKind } from './format'
-import { Icon } from './icons'
+import { FinishesPanel } from './FinishesPanel'
+import { Icon, type IconName } from './icons'
 import { Inspector } from './Inspector'
 import { CatalogLibrary, LIBRARY_ENTRIES } from './Libraries'
+import { LayoutMenu } from './LayoutMenu'
 import { RoomList, useRoomCounts } from './RoomList'
 import { useUi } from './uiStore'
 
@@ -12,6 +14,9 @@ import { useUi } from './uiStore'
 // for the selected item, and the list of what is in the room. Each part
 // subscribes to the narrowest slice of the store it needs, so dragging an
 // item around the room does not re-render the libraries.
+
+/** The decor tabs plus Room (finishes), which has no library or items of its own. */
+const PANEL_TABS: { id: PanelTab; label: string; icon: IconName }[] = [...TABS, { id: 'room', label: 'Room', icon: 'roller' }]
 
 export function DecorPanel() {
   const open = useUi((s) => s.panelOpen)
@@ -28,7 +33,7 @@ function PanelBody() {
   const [query, setQuery] = useState('')
   const [dropping, setDropping] = useState(false)
   const dragDepth = useRef(0)
-  const current = TABS.find((t) => t.id === tab)!
+  const current = TABS.find((t) => t.id === tab)
 
   // Selecting something in the room brings its tab forward.
   useEffect(() => {
@@ -41,7 +46,7 @@ function PanelBody() {
     setQuery('')
   }
 
-  const showInspector = !!selectedId && selectedKind === current.kind
+  const showInspector = !!current && !!selectedId && selectedKind === current.kind
 
   return (
     <aside
@@ -72,6 +77,7 @@ function PanelBody() {
         void uploadFiles([...e.dataTransfer.files])
       }}
     >
+      <LayoutMenu />
       <Tabs tab={tab} onChange={changeTab} />
 
       <div className="panel-body" role="tabpanel" id="decor-tabpanel" aria-labelledby={`tab-${tab}`}>
@@ -81,15 +87,17 @@ function PanelBody() {
             {error}
           </p>
         )}
-        {showInspector ? (
+        {!current ? (
+          <FinishesPanel />
+        ) : showInspector ? (
           <Inspector id={selectedId!} />
         ) : (
           <>
             <SearchBox query={query} onChange={setQuery} placeholder={`Search ${current.noun}`} />
-            {tab === 'artwork' ? (
+            {current.id === 'artwork' ? (
               <ArtworkLibrary query={query} onClear={() => setQuery('')} />
             ) : (
-              <CatalogLibrary entries={LIBRARY_ENTRIES[tab]} query={query} noun={current.noun} onClear={() => setQuery('')} />
+              <CatalogLibrary entries={LIBRARY_ENTRIES[current.id as keyof typeof LIBRARY_ENTRIES]} query={query} noun={current.noun} onClear={() => setQuery('')} />
             )}
           </>
         )}
@@ -110,17 +118,17 @@ function PanelBody() {
 function Tabs({ tab, onChange }: { tab: PanelTab; onChange: (t: PanelTab) => void }) {
   const counts = useRoomCounts()
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    const i = TABS.findIndex((t) => t.id === tab)
-    const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: TABS.length - 1 }[e.key]
+    const i = PANEL_TABS.findIndex((t) => t.id === tab)
+    const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: PANEL_TABS.length - 1 }[e.key]
     if (next === undefined) return
     e.preventDefault()
-    const t = TABS[(next + TABS.length) % TABS.length]
+    const t = PANEL_TABS[(next + PANEL_TABS.length) % PANEL_TABS.length]
     onChange(t.id)
     document.getElementById(`tab-${t.id}`)?.focus()
   }
   return (
     <div className="tabs" role="tablist" aria-label="Decor type" onKeyDown={onKeyDown}>
-      {TABS.map((t, i) => (
+      {PANEL_TABS.map((t, i) => (
         <button
           key={t.id}
           id={`tab-${t.id}`}
@@ -133,7 +141,7 @@ function Tabs({ tab, onChange }: { tab: PanelTab; onChange: (t: PanelTab) => voi
         >
           <Icon name={t.icon} size={18} />
           <span className="tab-label">{t.label}</span>
-          {counts[i] > 0 && (
+          {(counts[i] ?? 0) > 0 && (
             <span className="badge" aria-label={`, ${counts[i]} in the room`}>
               {counts[i]}
             </span>

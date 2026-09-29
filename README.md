@@ -33,6 +33,13 @@ Coordinates: `x` runs from the inner face of the entry wall (0) to the balcony w
 - **Sun study** (the clock button in the toolbar): the real sun over Buenos Aires (UTC−3) for any date and time, through the balcony door. Scrub the time (sunrise and sunset are marked), pick a date or a solstice/equinox, set which way the balcony faces (N, NE… or any bearing; saved in the browser), or play a whole day in 12 s. Once the sun is 4° below the horizon it's night and the lamps and ceiling downlights take over. **Day / Evening** jump to today at 15:00 and 21:00. `src/sun/solar.ts` has the solar math; `src/scene/SunOccluders.tsx` adds shadow-only roof and walls so sunlight only enters through the balcony door even in dollhouse views (the balcony's side walls are assumed).
 - Click to select, drag to move (a footprint turns red on overlaps; the wall it snaps to lights up), or turn it with the ring. The edit bar at the bottom has rotate, duplicate, delete, undo and redo.
 
+## Layouts and finishes
+
+- **Layouts:** the menu at the top of the panel lists every saved arrangement: *Current* is `data/decor.json`, named ones are `data/decor.<slug>.json` (each file keeps its display name, items and finishes). Switch, save the current one as a new layout, rename or delete (with confirmation). Switching updates `?decor=` without a reload and starts a fresh undo history. **A/B** (or `B`) flips between the open layout and the previous one, or the one picked with the compare button in the menu. Files starting with `e2e` or `test` are left out of the list.
+- **Room tab (finishes):** floors for the main room, the hall + kitchen zone, the bathroom and the balcony (light or natural oak, walnut, oak herringbone, polished concrete, grey or charcoal hexagons, terracotta, blue/cream quarter-circle cement tiles), with an option to scatter the hall's hexagons into the main room past the passage. Wall paint for the whole apartment, an optional accent wall in the main room (bath side, kitchen side, entry wall) and the bathroom wall tile layout and color. Finishes are saved in the layout file (`finishes`, only when they differ from the original look) and apply in place: materials and textures change, meshes and draw calls do not.
+- Dev API: `GET /api/layouts`, `POST /api/layouts {name, data}`, `PATCH /api/layouts?file=<slug> {name}`, `DELETE /api/layouts?file=<slug>` (see `server/layouts.ts`).
+- Named layouts are versioned like `data/decor.json`. Only scratch files used by tests are git-ignored (`e2e*`, `test*`, `snap`, `furn`, `edit`, `objects`, `devices`).
+
 ## Keyboard
 
 | Keys | Action |
@@ -40,6 +47,7 @@ Coordinates: `x` runs from the inner face of the entry wall (0) to the balcony w
 | `1`–`5` | Camera presets |
 | `X` · `M` · `L` | X-ray · dimensions · day/evening |
 | `,` · `.` | Sun 15 minutes earlier · later |
+| `B` | Flip A/B between two layouts |
 | `\` · `?` · `/` | Toggle panel · shortcuts · search |
 | `Cmd/Ctrl+Z` · `Shift+Cmd/Ctrl+Z` (or `Ctrl+Y`) | Undo · redo |
 | `Cmd/Ctrl+C` · `V` · `D` | Copy · paste at the pointer · duplicate |
@@ -58,7 +66,7 @@ CHROME_PATH=/path/to/chrome node scripts/shoot.mjs shots http://localhost:5173 i
 CHROME_PATH=/path/to/chrome node scripts/e2e-decor.mjs shots   # clicks through the panel
 ```
 
-Test runs use `?decor=<name>`, which reads and writes `data/decor.<name>.json` (git-ignored) instead of your layout.
+Test runs use `?decor=<name>` with a scratch name (`e2e-…`, `test-…`, `furn`, …), which reads and writes a git-ignored `data/decor.<name>.json` instead of your layout.
 
 ## Tests
 

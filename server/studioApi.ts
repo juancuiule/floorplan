@@ -2,6 +2,7 @@ import { promises as fs } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import path from 'node:path'
 import type { Plugin } from 'vite'
+import { createLayout, deleteLayout, LayoutError, listLayouts, renameLayout } from './layouts.ts'
 
 // Dev-only API so the browser can write back into the project:
 //   GET  /api/artwork          list images in public/artwork
@@ -9,7 +10,12 @@ import type { Plugin } from 'vite'
 //   GET  /api/decor            read data/decor.json
 //   PUT  /api/decor            replace data/decor.json
 // /api/decor takes ?file=<name> to use data/decor.<name>.json instead (tests use this).
-// Changes to the decor files on disk are pushed to open tabs as 'decor:changed'.
+//   GET    /api/layouts             list layouts (main first; ?all=1 includes e2e*/test* files)
+//   POST   /api/layouts             { name, data? | from? } save a new layout, returns { slug, name }
+//   PATCH  /api/layouts?file=<slug> { name } rename (no ?file= renames the main one), returns { slug, name }
+//   DELETE /api/layouts?file=<slug> delete a named layout
+// Changes to the decor files on disk are pushed to open tabs as 'decor:changed',
+// and any layout file written, added or removed as 'layouts:changed'.
 
 const IMAGE_EXT = /\.(png|jpe?g|webp|gif|avif)$/i
 const MAX_UPLOAD = 30 * 1024 * 1024
@@ -67,10 +73,17 @@ export function studioApi(): Plugin {
       }
 
       server.watcher.add(path.join(dataDir, 'decor*.json'))
+      const layoutOf = (file: string) => (path.dirname(file) === dataDir ? path.basename(file).match(/^decor(?:\.([a-z0-9-]+))?\.json$/) : null)
       server.watcher.on('change', (file) => {
-        const m = path.basename(file).match(/^decor(?:\.([a-z0-9-]+))?\.json$/)
-        if (path.dirname(file) === dataDir && m) server.ws.send({ type: 'custom', event: 'decor:changed', data: { file: m[1] ?? null } })
+        const m = layoutOf(file)
+        if (!m) return
+        server.ws.send({ type: 'custom', event: 'decor:changed', data: { file: m[1] ?? null } })
+        server.ws.send({ type: 'custom', event: 'layouts:changed', data: {} })
       })
+      for (const ev of ['add', 'unlink'] as const)
+        server.watcher.on(ev, (file) => {
+          if (layoutOf(file)) server.ws.send({ type: 'custom', event: 'layouts:changed', data: {} })
+        })
 
       server.middlewares.use(async (req, res, next) => {
         const url = new URL(req.url ?? '/', 'http://localhost')
@@ -90,6 +103,22 @@ export function studioApi(): Plugin {
             await fs.writeFile(path.join(artDir, name), body)
             return send(res, 200, { name, url: artUrl(name) })
           }
+          if (url.pathname === '/api/layouts') {
+            const file = url.searchParams.get('file')
+            if (req.method === 'GET') return send(res, 200, await listLayouts(dataDir, url.searchParams.get('all') === '1'))
+            if (req.method === 'POST') {
+              const body = JSON.parse((await readBody(req, 5 * 1024 * 1024)).toString('utf8') || '{}')
+              return send(res, 201, await createLayout(dataDir, body))
+            }
+            if (req.method === 'PATCH') {
+              const body = JSON.parse((await readBody(req, 64 * 1024)).toString('utf8') || '{}')
+              return send(res, 200, await renameLayout(dataDir, file, body.name))
+            }
+            if (req.method === 'DELETE') {
+              await deleteLayout(dataDir, file)
+              return send(res, 200, { ok: true })
+            }
+          }
           const decorFile = url.pathname === '/api/decor' ? decorFileFor(url.searchParams.get('file')) : ''
           if (url.pathname === '/api/decor' && req.method === 'GET') {
             // Served verbatim so clients can compare it with what they last wrote.
@@ -106,6 +135,8 @@ export function studioApi(): Plugin {
           }
           send(res, 404, { error: 'Not found' })
         } catch (e) {
+          if (e instanceof LayoutError) return send(res, e.status, { error: e.message })
+          if (e instanceof SyntaxError) return send(res, 400, { error: 'Malformed JSON' })
           send(res, 500, { error: e instanceof Error ? e.message : String(e) })
         }
       })

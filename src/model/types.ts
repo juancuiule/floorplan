@@ -16,10 +16,23 @@ export interface MaterialDef {
   opacity?: number
   emissive?: string
   /** Procedural surface pattern, in meters. */
-  pattern?:
-    | { kind: 'planks'; width: number; length: number }
-    | { kind: 'tiles'; width: number; height: number; grout: string }
+  pattern?: PatternDef
 }
+
+/** Procedural surface patterns (src/scene/patterns.ts). Sizes in meters; `color` of the material is the base tone. */
+export type PatternDef =
+  /** Boards running along x, staggered. `grain` 0–1 sets how visible the grain is. */
+  | { kind: 'planks'; width: number; length: number; grain?: number }
+  /** Rectangular tiles; `bond` 0.5 offsets every other row by half a tile; `tones` mixes colors tile by tile. */
+  | { kind: 'tiles'; width: number; height: number; grout: string; bond?: number; tones?: string[]; vary?: number }
+  /** Boards in a 45° herringbone. */
+  | { kind: 'herringbone'; width: number; length: number; grain?: number }
+  /** Hexagonal tiles, `size` across flats, colored at random from `tones`. */
+  | { kind: 'hex'; size: number; grout: string; tones: string[] }
+  /** Polished concrete: soft mottling and fine aggregate. */
+  | { kind: 'concrete' }
+  /** Cement tiles with a quarter circle in one corner, turned to make circles. */
+  | { kind: 'quarter'; size: number; ink: string; grout: string }
 
 export interface DoorLeaf {
   /** Which jamb the hinge sits on: 'a' = the end nearest wall.a. */
@@ -95,8 +108,10 @@ export interface Shell {
   bulges: Bulge[]
   rooms: Room[]
   ceilings: Ceiling[]
-  /** Continuous finished floor under everything that has no room floor of its own. */
-  baseFloor: { rect: Rect; material: MaterialId }
+  /** Continuous finished floor under everything that has no room floor of its own, one zone per finish. */
+  baseFloors: { id: string; rect: Rect; material: MaterialId }[]
+  /** Thin paint layers over one face of a wall, shown when that wall is the accent wall. */
+  accentPanels: { wall: string; min: Vec3; max: Vec3 }[]
   slab: { rect: Rect; thickness: number; material: MaterialId }
 }
 
