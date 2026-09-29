@@ -3,7 +3,7 @@ import { useDecor } from '../decor/store'
 import { structureOf } from '../model/finishes'
 import { isDefaultStructure, REMOVABLE_WALLS, toggleWall, type RemovableWall, type Structure } from '../model/structure'
 import type { Rect, Wall } from '../model/types'
-import { shell } from '../project/shell'
+import { shell } from '../project'
 import { activeShell, REMOVALS, useStructure, WALL_LABELS } from '../project/structure'
 import { Section } from './controls'
 

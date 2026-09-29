@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { describe, expect, it } from 'vitest'
 import { applyFade, faceDims, makeEdgeMaterial, makeMaterial, sharedMaterial } from '../../src/scene/materials'
 import { planks, tiles } from '../../src/scene/patterns'
-import { materials } from '../../src/project/materials'
+import { materials } from '../../src/project'
 
 describe('faceDims', () => {
   it('returns the footprint for a floor-like box (thin in y)', () => {

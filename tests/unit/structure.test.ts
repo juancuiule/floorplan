@@ -8,7 +8,7 @@ import { DEFAULT_STRUCTURE, normalizeStructure, toggleWall, type Structure } fro
 import type { Vec2 } from '../../src/model/types'
 import { passable, shellObstacles } from '../../src/plan/obstacles'
 import { walk, walkObstacles } from '../../src/plan/walk'
-import { shell } from '../../src/project/shell'
+import { shell } from '../../src/project'
 import { activeShell, activeWalls, ceilingFitting, currentStructure, lostWallOf, setStructure } from '../../src/project/structure'
 
 const piece = (type: FurnitureType, at: [number, number, number], rotation = 0): FurnitureItem => ({

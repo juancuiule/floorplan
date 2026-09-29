@@ -1,0 +1,1040 @@
+{
+  "version": 1,
+  "id": "monoambiente",
+  "name": "Monoambiente",
+  "subtitle": "6.90 × 3.00 m + 1.30 m balcony",
+  "location": {
+    "label": "Buenos Aires",
+    "lat": -34.6037,
+    "lon": -58.3816,
+    "tz": -3
+  },
+  "materials": {
+    "plaster": {
+      "color": "#f3f1ec",
+      "roughness": 0.95
+    },
+    "ceiling": {
+      "color": "#f7f6f2",
+      "roughness": 0.95
+    },
+    "oakFloor": {
+      "color": "#e2cba8",
+      "roughness": 0.7,
+      "pattern": {
+        "kind": "planks",
+        "width": 0.19,
+        "length": 1.2
+      }
+    },
+    "bathFloor": {
+      "color": "#c4c1bb",
+      "roughness": 0.6,
+      "pattern": {
+        "kind": "tiles",
+        "width": 0.6,
+        "height": 0.6,
+        "grout": "#a9a59e"
+      }
+    },
+    "tile": {
+      "color": "#f6f6f4",
+      "roughness": 0.35,
+      "pattern": {
+        "kind": "tiles",
+        "width": 0.6,
+        "height": 0.3,
+        "grout": "#9c9a96"
+      }
+    },
+    "oakDoor": {
+      "color": "#c8a172",
+      "roughness": 0.7
+    },
+    "steelFrame": {
+      "color": "#8c8f92",
+      "roughness": 0.5,
+      "metalness": 0.3
+    },
+    "aluminum": {
+      "color": "#eef0f1",
+      "roughness": 0.45,
+      "metalness": 0.1
+    },
+    "glass": {
+      "color": "#cfe4ec",
+      "roughness": 0.05,
+      "opacity": 0.22
+    },
+    "concrete": {
+      "color": "#c7c3bc",
+      "roughness": 1
+    },
+    "balconyFloor": {
+      "color": "#c9c4bb",
+      "roughness": 0.85,
+      "pattern": {
+        "kind": "tiles",
+        "width": 0.45,
+        "height": 0.45,
+        "grout": "#aca79e"
+      }
+    },
+    "ceramic": {
+      "color": "#fbfbfa",
+      "roughness": 0.2
+    },
+    "cabinet": {
+      "color": "#ebe8e2",
+      "roughness": 0.7
+    },
+    "countertop": {
+      "color": "#d6d2ca",
+      "roughness": 0.5
+    },
+    "appliance": {
+      "color": "#e2e3e4",
+      "roughness": 0.35,
+      "metalness": 0.2
+    },
+    "blackGlass": {
+      "color": "#1f2022",
+      "roughness": 0.15
+    },
+    "steel": {
+      "color": "#b9bcbf",
+      "roughness": 0.3,
+      "metalness": 0.7
+    },
+    "downlight": {
+      "color": "#ffffff",
+      "roughness": 0.5,
+      "emissive": "#fff6e0"
+    }
+  },
+  "shell": {
+    "walls": [
+      {
+        "id": "entry",
+        "a": [
+          -0.1,
+          -0.2
+        ],
+        "b": [
+          -0.1,
+          3.2
+        ],
+        "thickness": 0.2,
+        "height": 2.6,
+        "kind": "exterior",
+        "material": "plaster",
+        "openings": [
+          {
+            "id": "front-door",
+            "kind": "door",
+            "offset": 1.6,
+            "width": 1,
+            "height": 2.05,
+            "leaf": {
+              "hinge": "a",
+              "swing": -1,
+              "openDeg": 25,
+              "material": "oakDoor",
+              "frameMaterial": "oakDoor"
+            }
+          }
+        ]
+      },
+      {
+        "id": "side-bath",
+        "a": [
+          0,
+          -0.1
+        ],
+        "b": [
+          7.1,
+          -0.1
+        ],
+        "thickness": 0.2,
+        "height": 2.6,
+        "kind": "exterior",
+        "material": "plaster"
+      },
+      {
+        "id": "side-kitchen",
+        "a": [
+          0,
+          3.1
+        ],
+        "b": [
+          7.1,
+          3.1
+        ],
+        "thickness": 0.2,
+        "height": 2.6,
+        "kind": "exterior",
+        "material": "plaster"
+      },
+      {
+        "id": "facade",
+        "a": [
+          7,
+          0
+        ],
+        "b": [
+          7,
+          3
+        ],
+        "thickness": 0.2,
+        "height": 2.6,
+        "kind": "exterior",
+        "material": "plaster",
+        "openings": [
+          {
+            "id": "balcony-door",
+            "kind": "window",
+            "offset": 0,
+            "width": 3,
+            "height": 2.2,
+            "sill": 0,
+            "glazing": {
+              "panels": 2,
+              "frameMaterial": "aluminum"
+            }
+          }
+        ]
+      },
+      {
+        "id": "bath-hall",
+        "a": [
+          0,
+          1.35
+        ],
+        "b": [
+          1.25,
+          1.35
+        ],
+        "thickness": 0.1,
+        "height": 2.6,
+        "kind": "interior",
+        "material": "plaster",
+        "openings": [
+          {
+            "id": "bath-door",
+            "kind": "door",
+            "offset": 0.3,
+            "width": 0.9,
+            "height": 2.05,
+            "leaf": {
+              "hinge": "a",
+              "swing": -1,
+              "openDeg": 70,
+              "material": "oakDoor",
+              "frameMaterial": "steelFrame"
+            }
+          }
+        ]
+      },
+      {
+        "id": "bath-niche",
+        "a": [
+          1.3,
+          0.7
+        ],
+        "b": [
+          1.3,
+          1.4
+        ],
+        "thickness": 0.1,
+        "height": 2.6,
+        "kind": "interior",
+        "material": "plaster"
+      },
+      {
+        "id": "shower-niche",
+        "a": [
+          1.35,
+          0.75
+        ],
+        "b": [
+          2.1,
+          0.75
+        ],
+        "thickness": 0.1,
+        "height": 2.6,
+        "kind": "interior",
+        "material": "plaster"
+      },
+      {
+        "id": "entry-main",
+        "a": [
+          2.15,
+          0
+        ],
+        "b": [
+          2.15,
+          3
+        ],
+        "thickness": 0.1,
+        "height": 2.6,
+        "kind": "interior",
+        "material": "plaster",
+        "openings": [
+          {
+            "id": "passage",
+            "kind": "passage",
+            "offset": 1.4,
+            "width": 1,
+            "height": 2.4
+          }
+        ]
+      }
+    ],
+    "bulges": [
+      {
+        "id": "kitchen-pier",
+        "host": "side-kitchen",
+        "min": [
+          0,
+          0,
+          2.4
+        ],
+        "max": [
+          0.6,
+          2.6,
+          3
+        ],
+        "material": "plaster"
+      },
+      {
+        "id": "column-kitchen",
+        "host": "side-kitchen",
+        "min": [
+          6.45,
+          0,
+          2.88
+        ],
+        "max": [
+          6.9,
+          2.6,
+          3
+        ],
+        "material": "plaster"
+      },
+      {
+        "id": "beam-kitchen",
+        "host": "side-kitchen",
+        "min": [
+          2.2,
+          2.42,
+          2.8
+        ],
+        "max": [
+          6.45,
+          2.6,
+          3
+        ],
+        "material": "plaster"
+      },
+      {
+        "id": "tile-entry",
+        "host": "entry",
+        "min": [
+          0,
+          0,
+          0
+        ],
+        "max": [
+          0.01,
+          2.4,
+          1.3
+        ],
+        "material": "tile"
+      },
+      {
+        "id": "tile-side",
+        "host": "side-bath",
+        "min": [
+          0.01,
+          0,
+          0
+        ],
+        "max": [
+          2.1,
+          2.4,
+          0.01
+        ],
+        "material": "tile"
+      },
+      {
+        "id": "tile-shower-back",
+        "host": "entry-main",
+        "min": [
+          2.0900000000000003,
+          0,
+          0.01
+        ],
+        "max": [
+          2.1,
+          2.4,
+          0.7
+        ],
+        "material": "tile"
+      },
+      {
+        "id": "tile-shower-side",
+        "host": "shower-niche",
+        "min": [
+          1.35,
+          0,
+          0.69
+        ],
+        "max": [
+          2.0900000000000003,
+          2.4,
+          0.7
+        ],
+        "material": "tile"
+      },
+      {
+        "id": "tile-niche-wall",
+        "host": "bath-niche",
+        "min": [
+          1.24,
+          0,
+          0.7
+        ],
+        "max": [
+          1.25,
+          2.4,
+          1.3
+        ],
+        "material": "tile"
+      },
+      {
+        "id": "tile-door-l",
+        "host": "bath-hall",
+        "min": [
+          0.01,
+          0,
+          1.29
+        ],
+        "max": [
+          0.3,
+          2.4,
+          1.3
+        ],
+        "material": "tile"
+      },
+      {
+        "id": "tile-door-r",
+        "host": "bath-hall",
+        "min": [
+          1.2,
+          0,
+          1.29
+        ],
+        "max": [
+          1.24,
+          2.4,
+          1.3
+        ],
+        "material": "tile"
+      },
+      {
+        "id": "tile-door-head",
+        "host": "bath-hall",
+        "min": [
+          0.3,
+          2.05,
+          1.29
+        ],
+        "max": [
+          1.2,
+          2.4,
+          1.3
+        ],
+        "material": "tile"
+      }
+    ],
+    "rooms": [
+      {
+        "id": "bath",
+        "name": "Bathroom",
+        "rect": [
+          0,
+          0,
+          2.1,
+          0.7
+        ],
+        "floor": "bathFloor"
+      },
+      {
+        "id": "bath-2",
+        "name": "Bathroom",
+        "rect": [
+          0,
+          0.7,
+          1.25,
+          1.3
+        ],
+        "floor": "bathFloor",
+        "label": true,
+        "labelAt": [
+          0.75,
+          0.6
+        ],
+        "labelDims": "2.10 × 1.30"
+      },
+      {
+        "id": "niche",
+        "name": "Niche",
+        "rect": [
+          1.35,
+          0.8,
+          2.1,
+          1.4
+        ],
+        "label": true
+      },
+      {
+        "id": "hall",
+        "name": "Hall + kitchen",
+        "rect": [
+          0,
+          1.4,
+          2.1,
+          3
+        ],
+        "label": true,
+        "labelAt": [
+          1.05,
+          1.9
+        ]
+      },
+      {
+        "id": "main",
+        "name": "Main room",
+        "rect": [
+          2.2,
+          0,
+          6.9,
+          3
+        ],
+        "label": true
+      },
+      {
+        "id": "balcony",
+        "name": "Balcony",
+        "rect": [
+          7.1,
+          -0.2,
+          8.4,
+          3.2
+        ],
+        "floor": "balconyFloor",
+        "label": true,
+        "labelAt": [
+          7.75,
+          1.5
+        ],
+        "labelDims": "1.30 × 3.00"
+      }
+    ],
+    "ceilings": [
+      {
+        "id": "entry-dropped",
+        "rect": [
+          0,
+          0,
+          2.1,
+          3
+        ],
+        "height": 2.4,
+        "material": "ceiling"
+      },
+      {
+        "id": "main",
+        "rect": [
+          2.1,
+          0,
+          6.9,
+          3
+        ],
+        "height": 2.6,
+        "material": "ceiling"
+      },
+      {
+        "id": "balcony",
+        "rect": [
+          6.9,
+          -0.2,
+          8.4,
+          3.2
+        ],
+        "height": 2.6,
+        "material": "ceiling"
+      }
+    ],
+    "baseFloors": [
+      {
+        "id": "hall",
+        "rect": [
+          0,
+          0,
+          2.15,
+          3
+        ],
+        "material": "floorHall"
+      },
+      {
+        "id": "main",
+        "rect": [
+          2.15,
+          0,
+          7.1,
+          3
+        ],
+        "material": "floorMain"
+      }
+    ],
+    "accentPanels": [
+      {
+        "wall": "side-bath",
+        "min": [
+          2.2,
+          0,
+          0
+        ],
+        "max": [
+          6.9,
+          2.6,
+          0.001
+        ]
+      },
+      {
+        "wall": "side-kitchen",
+        "min": [
+          2.2,
+          0,
+          2.999
+        ],
+        "max": [
+          6.45,
+          2.42,
+          3
+        ]
+      },
+      {
+        "wall": "entry-main",
+        "min": [
+          2.2,
+          0,
+          0
+        ],
+        "max": [
+          2.201,
+          2.6,
+          1.4
+        ]
+      },
+      {
+        "wall": "entry-main",
+        "min": [
+          2.2,
+          0,
+          2.4
+        ],
+        "max": [
+          2.201,
+          2.6,
+          3
+        ]
+      },
+      {
+        "wall": "entry-main",
+        "min": [
+          2.2,
+          2.4,
+          1.4
+        ],
+        "max": [
+          2.201,
+          2.6,
+          2.4
+        ]
+      }
+    ],
+    "slab": {
+      "rect": [
+        -0.2,
+        -0.2,
+        8.4,
+        3.2
+      ],
+      "thickness": 0.18,
+      "material": "concrete"
+    }
+  },
+  "fixtures": [
+    {
+      "id": "toilet",
+      "type": "toilet",
+      "position": [
+        0.33,
+        0,
+        0.36
+      ],
+      "rotation": 90
+    },
+    {
+      "id": "basin",
+      "type": "basin",
+      "position": [
+        0.2,
+        0,
+        1
+      ],
+      "rotation": 90,
+      "size": [
+        0.46,
+        0.86,
+        0.38
+      ]
+    },
+    {
+      "id": "shower-tray",
+      "type": "showerTray",
+      "position": [
+        1.725,
+        0,
+        0.35
+      ],
+      "size": [
+        0.75,
+        0.06,
+        0.7
+      ]
+    },
+    {
+      "id": "fridge",
+      "type": "fridge",
+      "position": [
+        2.52,
+        0,
+        2.69
+      ],
+      "rotation": 180,
+      "size": [
+        0.6,
+        1.75,
+        0.62
+      ]
+    },
+    {
+      "id": "counter",
+      "type": "counter",
+      "position": [
+        1.365,
+        0,
+        2.7
+      ],
+      "rotation": 180,
+      "size": [
+        1.45,
+        0.9,
+        0.6
+      ]
+    },
+    {
+      "id": "kitchen-sink",
+      "type": "kitchenSink",
+      "position": [
+        1,
+        0.9,
+        2.72
+      ],
+      "rotation": 180,
+      "size": [
+        0.45,
+        0.18,
+        0.38
+      ]
+    },
+    {
+      "id": "cooktop",
+      "type": "cooktop",
+      "position": [
+        1.74,
+        0.9,
+        2.72
+      ],
+      "rotation": 180,
+      "size": [
+        0.3,
+        0.01,
+        0.5
+      ]
+    },
+    {
+      "id": "railing-front",
+      "type": "railing",
+      "position": [
+        8.36,
+        0,
+        1.5
+      ],
+      "rotation": 90,
+      "size": [
+        3.36,
+        1.05,
+        0.02
+      ]
+    },
+    {
+      "id": "railing-bath",
+      "type": "railing",
+      "position": [
+        7.73,
+        0,
+        -0.16
+      ],
+      "size": [
+        1.26,
+        1.05,
+        0.02
+      ]
+    },
+    {
+      "id": "railing-kitchen",
+      "type": "railing",
+      "position": [
+        7.73,
+        0,
+        3.16
+      ],
+      "size": [
+        1.26,
+        1.05,
+        0.02
+      ]
+    },
+    {
+      "id": "dl-bath",
+      "type": "downlight",
+      "position": [
+        0.7,
+        2.4,
+        0.65
+      ]
+    },
+    {
+      "id": "dl-hall",
+      "type": "downlight",
+      "position": [
+        1.05,
+        2.4,
+        1.9
+      ]
+    },
+    {
+      "id": "dl-main-1",
+      "type": "downlight",
+      "position": [
+        3.4,
+        2.6,
+        1.5
+      ]
+    },
+    {
+      "id": "dl-main-2",
+      "type": "downlight",
+      "position": [
+        5.6,
+        2.6,
+        1.5
+      ]
+    },
+    {
+      "id": "dl-balcony",
+      "type": "downlight",
+      "position": [
+        7.75,
+        2.6,
+        1.5
+      ]
+    }
+  ],
+  "walls": {
+    "labels": {
+      "entry": "Entry wall",
+      "side-bath": "Party wall, bathroom side",
+      "side-kitchen": "Party wall, kitchen side",
+      "facade": "Facade"
+    },
+    "roles": {
+      "facade": "facade",
+      "side-bath": "party",
+      "side-kitchen": "party"
+    },
+    "removable": {
+      "bath-hall": {
+        "label": "Bathroom ↔ hall",
+        "note": "Takes the bathroom door and the tiles around it.",
+        "floors": [
+          {
+            "rect": [
+              0,
+              1.3,
+              1.25,
+              1.35
+            ],
+            "material": "bathFloor"
+          }
+        ]
+      },
+      "bath-niche": {
+        "label": "Bathroom ↔ niche",
+        "note": "Opens the bathroom onto the niche; its tiles go.",
+        "floors": [
+          {
+            "rect": [
+              1.25,
+              0.7,
+              1.3,
+              1.3
+            ],
+            "material": "bathFloor"
+          }
+        ]
+      },
+      "shower-niche": {
+        "label": "Shower ↔ niche",
+        "note": "Opens the shower onto the niche; its tiles go.",
+        "floors": [
+          {
+            "rect": [
+              1.35,
+              0.7,
+              2.1,
+              0.75
+            ],
+            "material": "bathFloor"
+          },
+          {
+            "rect": [
+              1.3,
+              0.7,
+              1.35,
+              0.75
+            ],
+            "material": "bathFloor",
+            "with": [
+              "bath-niche"
+            ]
+          }
+        ]
+      },
+      "entry-main": {
+        "label": "Hall ↔ main room",
+        "note": "The passage and its header go. The shower’s back wall (the plumbing wall) stays.",
+        "keep": [
+          0,
+          0.8
+        ],
+        "floors": []
+      }
+    },
+    "accent": {
+      "side-bath": "Bath side",
+      "side-kitchen": "Kitchen side",
+      "entry-main": "Entry wall"
+    }
+  },
+  "droppedCeiling": {
+    "id": "entry-dropped",
+    "raiseTo": 2.6,
+    "bulkheadWall": "entry-main",
+    "label": "Raise the entry ceiling to 2.60"
+  },
+  "hexBlend": {
+    "rect": [
+      2.15,
+      0,
+      3.55,
+      3
+    ],
+    "focus": [
+      2.15,
+      1.9
+    ],
+    "halfSpan": 0.35
+  },
+  "cameras": {
+    "iso-balcony": {
+      "label": "Iso · balcony",
+      "position": [
+        11.2,
+        7.6,
+        -4.6
+      ],
+      "target": [
+        4,
+        0.4,
+        1.5
+      ]
+    },
+    "iso-entry": {
+      "label": "Iso · entry",
+      "position": [
+        -3.8,
+        7.6,
+        7.4
+      ],
+      "target": [
+        4,
+        0.4,
+        1.5
+      ]
+    },
+    "top": {
+      "label": "Top",
+      "position": [
+        4.1,
+        13.5,
+        1.5001
+      ],
+      "target": [
+        4.1,
+        0,
+        1.5
+      ]
+    },
+    "from-balcony": {
+      "label": "From balcony",
+      "position": [
+        8.2,
+        1.55,
+        1.5
+      ],
+      "target": [
+        0,
+        1.2,
+        1.6
+      ]
+    },
+    "from-entry": {
+      "label": "From entry",
+      "position": [
+        0.9,
+        1.6,
+        1.95
+      ],
+      "target": [
+        6.9,
+        1.1,
+        1.3
+      ]
+    }
+  }
+}

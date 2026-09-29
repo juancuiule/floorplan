@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { DEFAULT_STRUCTURE, isRemovableWall, type RemovableWall, type Structure } from '../model/structure'
 import type { Bulge, Ceiling, MaterialId, Rect, Shell, Vec3, Wall } from '../model/types'
-import { shell } from './shell'
+import { shell } from '.'
 
 // The shell as the open layout has it: shell.ts minus the partitions the owner
 // took out (src/model/structure.ts), with what they carried (tiles, doors,

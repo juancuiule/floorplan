@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { outwardNormal, openingById, wallFrame, wallPieces, type WallPiece } from '../../src/geometry/walls'
 import type { Wall } from '../../src/model/types'
-import { shell } from '../../src/project/shell'
+import { shell } from '../../src/project'
 
 const wall = (id: string) => {
   const w = shell.walls.find((x) => x.id === id)

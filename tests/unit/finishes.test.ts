@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_FINISHES, isDefaultFinishes, normalizeFinishes, showsHexBlend, ZONE_FLOORS, type Finishes } from '../../src/model/finishes'
-import { materials } from '../../src/project/materials'
+import { materials } from '../../src/project'
 import { FLOORS, finishDef } from '../../src/project/finishes'
 import { makeMaterial, setFinishes } from '../../src/scene/materials'
 import { patternFor, patternSize, pow2 } from '../../src/scene/patterns'
