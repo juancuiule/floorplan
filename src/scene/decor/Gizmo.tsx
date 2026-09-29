@@ -3,7 +3,7 @@ import { Html, Line } from '@react-three/drei'
 import { useThree, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { editRefs, useEdit } from '../../decor/edit'
+import { editRefs, useEdit, type Guides } from '../../decor/edit'
 import { collisionsOf, footprintOf, mountOf, type Footprint, type SnapFace } from '../../decor/placement'
 import { useDecor } from '../../decor/store'
 import type { DecorItem, FurnitureItem } from '../../model/decor'
@@ -41,6 +41,8 @@ export function EditOverlays() {
   const items = useDecor((s) => s.items)
   const movingId = useDecor((s) => s.movingId)
   const selectedId = useDecor((s) => s.selectedId)
+  const selectedIds = useDecor((s) => s.selectedIds)
+  const guides = useEdit((s) => s.guides)
   const snap = useEdit((s) => s.snap)
   const invalid = useEdit((s) => s.invalid)
   const rotating = useEdit((s) => s.rotating)
@@ -59,9 +61,14 @@ export function EditOverlays() {
         const o = items.find((i) => i.id === id)
         return o && isFloorFurniture(o) ? <FootprintRect key={id} fp={footprintOf(o)} y={o.at[1]} color={RED} fill={0.1} /> : null
       })}
+      {selectedIds.length > 1 &&
+        items.map((o) =>
+          o !== active && selectedIds.includes(o.id) && isFloorFurniture(o) && o.at[1] < 0.3 ? <FootprintRect key={`sel-${o.id}`} fp={footprintOf(o)} y={o.at[1]} color={BLUE} fill={movingId ? 0.16 : 0.08} /> : null,
+        )}
       {movingId && snap.map((f, i) => <SnapStrip key={i} face={f} />)}
       {movingId && invalid && <NoDrop point={invalid.point} normal={invalid.normal} />}
-      {active && !movingId && selectedId === active.id && mountOf(active) === 'surface' && 'rotation' in active && active.at[1] > -1 && (
+      {guides && <GuideLines guides={guides} />}
+      {active && !movingId && selectedId === active.id && selectedIds.length <= 1 && mountOf(active) === 'surface' && 'rotation' in active && active.at[1] > -1 && (
         <RotateRing item={active} rotating={rotating} />
       )}
     </group>
@@ -89,6 +96,36 @@ function FootprintRect({ fp, y, color, fill }: { fp: Footprint; y: number; color
         <meshBasicMaterial color={color} transparent opacity={fill} depthWrite={false} polygonOffset polygonOffsetFactor={-4} toneMapped={false} />
       </mesh>
       <Line points={pts} color={color} lineWidth={2} transparent opacity={0.9} depthTest={false} renderOrder={11} raycast={noRaycast} />
+    </group>
+  )
+}
+
+const GUIDE = '#f43f5e'
+const GALLERY = '#d97706'
+const labelStyle = (color: string): React.CSSProperties => ({
+  padding: '1px 5px',
+  borderRadius: 4,
+  background: color,
+  color: '#fff',
+  font: '600 10px ui-sans-serif, system-ui, sans-serif',
+  fontVariantNumeric: 'tabular-nums',
+  whiteSpace: 'nowrap',
+})
+
+/** Smart guides during a drag: alignment lines, the gallery line and equal-spacing marks. */
+function GuideLines({ guides }: { guides: Guides }) {
+  return (
+    <group userData={{ editHelper: true }}>
+      {guides.align.length > 0 && <Line segments points={guides.align} color={GUIDE} lineWidth={1.25} depthTest={false} renderOrder={13} raycast={noRaycast} />}
+      {guides.gallery.length > 0 && (
+        <Line segments points={guides.gallery} color={GALLERY} lineWidth={1.25} dashed dashSize={0.04} gapSize={0.03} depthTest={false} renderOrder={13} raycast={noRaycast} />
+      )}
+      {guides.spacing.length > 0 && <Line segments points={guides.spacing} color={GUIDE} lineWidth={1.5} depthTest={false} renderOrder={13} raycast={noRaycast} />}
+      {guides.labels.slice(0, 8).map((l, i) => (
+        <Html key={i} position={l.at} center zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
+          <div style={labelStyle(l.kind === 'gallery' ? GALLERY : GUIDE)}>{l.text}</div>
+        </Html>
+      ))}
     </group>
   )
 }

@@ -1,0 +1,65 @@
+/* Multi-selection inspector and group rows in the room list. */
+
+.text-input {
+  width: 100%;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+.text-input:focus-visible {
+  outline: 2px solid #4a7dd8;
+  outline-offset: -1px;
+}
+
+.sel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sel-list .placed-main {
+  width: 100%;
+}
+
+.sel-list .placed-main:hover {
+  background: var(--hover);
+}
+
+.sel-meta {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* A group in the room list: a disclosure button, the group, its members indented below. */
+.group-row .icon-btn.expand {
+  flex: none;
+}
+
+.group-count {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.group-members {
+  margin: 0 0 0 18px;
+  padding: 0 0 0 6px;
+  border-left: 1px solid var(--line);
+  list-style: none;
+}
+
+.placed-row.in-selection:not(.on) {
+  background: rgb(47 111 214 / 0.07);
+}

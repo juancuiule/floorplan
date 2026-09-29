@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { create } from 'zustand'
+import type { Vec3 } from '../model/types'
 import type { SnapFace, SurfaceHit } from './placement'
 
 // Transient editing state: what the pointer is over, what a drag is snapping to.
@@ -16,7 +17,19 @@ export interface EditState {
   rotating: boolean
   /** The pointer is over the rotate handle. */
   handleHover: boolean
+  /** Smart guides for the current drag, in world space (null: none showing). */
+  guides: Guides | null
+  /** Shift-drag rubber band over the canvas, in client pixels. */
+  marquee: { x0: number; y0: number; x1: number; y1: number } | null
   set: (patch: Partial<Omit<EditState, 'set'>>) => void
+}
+
+export interface Guides {
+  /** Line segments as pairs of points, by kind. */
+  align: Vec3[]
+  gallery: Vec3[]
+  spacing: Vec3[]
+  labels: { at: Vec3; text: string; kind: 'gallery' | 'spacing' }[]
 }
 
 export const useEdit = create<EditState>((set) => ({
@@ -25,6 +38,8 @@ export const useEdit = create<EditState>((set) => ({
   snap: [],
   rotating: false,
   handleHover: false,
+  guides: null,
+  marquee: null,
   set: (patch) => set(patch),
 }))
 

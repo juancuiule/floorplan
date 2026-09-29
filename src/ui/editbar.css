@@ -128,3 +128,23 @@
     animation: none;
   }
 }
+
+/* Multi-selection tools: separate the align and distribute sets a little more. */
+.editbar-count {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.editbar button.on {
+  background: rgb(59 130 246 / 0.12);
+  color: #1d4ed8;
+}
+
+/* Shift-drag selection rectangle. */
+.marquee {
+  position: fixed;
+  z-index: 30;
+  border: 1px solid #3b82f6;
+  background: rgb(59 130 246 / 0.1);
+  pointer-events: none;
+}

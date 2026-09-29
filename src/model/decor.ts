@@ -6,10 +6,15 @@ import type { Vec3 } from './types'
 /** Which way a wall-mounted item faces: the outward normal of the surface it hangs on. */
 export type Facing = 'x+' | 'x-' | 'z+' | 'z-'
 
+/** Items grouped together (a gallery wall, a desk setup) share a group id; clicking one selects them all. */
+export interface Groupable {
+  groupId?: string
+}
+
 export type SizePreset = 'A5' | 'A4' | 'A3' | 'A2' | '50x70' | 'custom'
 export type FrameStyle = 'none' | 'thin' | 'classic' | 'box' | 'float' | 'canvas'
 
-export interface ArtworkItem {
+export interface ArtworkItem extends Groupable {
   kind: 'artwork'
   id: string
   /** URL under /artwork. */
@@ -51,7 +56,7 @@ export type PotStyle = 'terracotta' | 'ceramic' | 'concrete' | 'basket' | 'black
 /** Standard clay pot diameters in cm; 'auto' keeps the species' own pot. */
 export type PotSize = 'auto' | 6 | 8 | 12
 
-export interface PlantItem {
+export interface PlantItem extends Groupable {
   kind: 'plant'
   id: string
   species: PlantSpecies
@@ -76,7 +81,7 @@ export interface PlantItem {
 export type LampType = 'arc' | 'tripod' | 'table' | 'mushroom' | 'flowerpot' | 'pendant' | 'globe' | 'lantern' | 'sconce' | 'exit' | 'exitCeiling' | 'string'
 export type Warmth = 2700 | 3000 | 4000
 
-export interface LampItem {
+export interface LampItem extends Groupable {
   kind: 'lamp'
   id: string
   type: LampType
@@ -144,7 +149,7 @@ export type FurnitureType =
 
 export type FurnitureOption = number | boolean | string
 
-export interface FurnitureItem {
+export interface FurnitureItem extends Groupable {
   kind: 'furniture'
   id: string
   type: FurnitureType
@@ -172,5 +177,7 @@ export interface DecorFile {
   name?: string
   /** Floors, paint and tiles for this layout; omitted when they are the defaults. */
   finishes?: Partial<Finishes>
+  /** Names given to groups (by groupId); groups without one get a default name. */
+  groups?: Record<string, { name: string }>
   items: DecorItem[]
 }

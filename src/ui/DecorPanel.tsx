@@ -8,6 +8,7 @@ import { Inspector } from './Inspector'
 import { CatalogLibrary, LIBRARY_ENTRIES } from './Libraries'
 import { LayoutMenu } from './LayoutMenu'
 import { RoomList, useRoomCounts } from './RoomList'
+import { SelectionInspector } from './SelectionInspector'
 import { useUi } from './uiStore'
 
 // The right-hand panel: tabs per kind, a searchable library or the inspector
@@ -47,6 +48,7 @@ function PanelBody() {
   }
 
   const showInspector = !!current && !!selectedId && selectedKind === current.kind
+  const many = useDecor((s) => s.selectedIds.length > 1)
 
   return (
     <aside
@@ -89,6 +91,8 @@ function PanelBody() {
         )}
         {!current ? (
           <FinishesPanel />
+        ) : many && showInspector ? (
+          <SelectionInspector />
         ) : showInspector ? (
           <Inspector id={selectedId!} />
         ) : (

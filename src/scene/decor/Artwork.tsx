@@ -128,10 +128,4 @@ function ImagePlane({ size, z, material }: { size: [number, number]; z: number; 
   )
 }
 
-/** Overall outer size of a framed artwork, for selection bounds and panel readouts. */
-export function artworkOuterSize(item: ArtworkItem): [number, number] {
-  const style = FRAME_STYLES.find((s) => s.id === item.frame.style) ?? FRAME_STYLES[1]
-  const framed = style.id !== 'none' && style.id !== 'canvas'
-  const mat = framed ? item.frame.mat : 0
-  return [item.size.w + (mat + style.width) * 2, item.size.h + (mat + style.width) * 2]
-}
+export { artworkOuterSize } from '../../decor/extent'

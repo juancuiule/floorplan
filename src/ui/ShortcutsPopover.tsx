@@ -9,7 +9,8 @@ const GROUPS: { title: string; items: [keys: string[][], what: string][] }[] = [
     title: 'Placing and editing',
     items: [
       [[['Esc']], 'Cancel placing, or deselect'],
-      [[['Alt']], 'Hold while placing to skip wall snapping'],
+      [[['Alt']], 'Hold while placing to skip wall snapping and guides'],
+      [[[MOD]], 'Hold while dragging to skip the smart guides'],
       [[['R'], ['Shift', 'R']], 'Rotate the selection, either way'],
       [[['←', '↑', '→', '↓']], 'Nudge the selection'],
       [[['Delete']], 'Delete the selection'],
@@ -17,6 +18,21 @@ const GROUPS: { title: string; items: [keys: string[][], what: string][] }[] = [
       [[[MOD, 'C'], [MOD, 'V']], 'Copy and paste'],
       [[[MOD, 'Z']], 'Undo'],
       [[['Shift', MOD, 'Z']], 'Redo'],
+    ],
+  },
+  {
+    title: 'Selecting and arranging',
+    items: [
+      [[['Shift', 'Click']], 'Add to or remove from the selection'],
+      [[['Shift', 'Drag']], 'Select with a rectangle (drag on the room)'],
+      [[[MOD, 'A']], 'Select everything on the same wall (or of the same kind)'],
+      [[[MOD, 'G'], ['Shift', MOD, 'G']], 'Group, ungroup'],
+      [[['Alt', 'Click']], 'Pick one piece of a group (or double-click it)'],
+      [[['Alt', 'A'], ['Alt', 'D']], 'Align left, right'],
+      [[['Alt', 'H']], 'Align centers'],
+      [[['Alt', 'W'], ['Alt', 'S']], 'Align tops, bottoms'],
+      [[['Alt', 'V']], 'Align middles'],
+      [[['Alt', 'Shift', 'H'], ['Alt', 'Shift', 'V']], 'Distribute across, or up and down, with equal gaps'],
     ],
   },
   {

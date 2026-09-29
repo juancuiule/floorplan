@@ -2,7 +2,9 @@ import { create } from 'zustand'
 import type { DecorFile, DecorItem, DecorKind } from '../model/decor'
 import { DEFAULT_FINISHES, isDefaultFinishes, normalizeFinishes, type Finishes } from '../model/finishes'
 import type { Vec3 } from '../model/types'
+import { copyOffset, followLead, rotateAround, sameWall, type Patches } from './arrange'
 import { editRefs } from './edit'
+import { isWallItem, translated } from './extent'
 import { isFloorPiece, mountOf, placeAt } from './placement'
 
 export interface LibraryImage {
@@ -15,7 +17,14 @@ export type PanelTab = 'furniture' | 'artwork' | 'plants' | 'lights' | 'room'
 interface DecorState {
   items: DecorItem[]
   loaded: boolean
+  /** The primary selected item: the one last clicked, shown in the inspector. */
   selectedId: string | null
+  /** Every selected item (includes selectedId); more than one is a multi-selection. */
+  selectedIds: string[]
+  /** Names given to groups, by groupId (saved in the layout file, not part of undo). */
+  groupNames: Record<string, string>
+  /** Originals of the other selected items that move along with movingId in a drag. */
+  followers: DecorItem[]
   /** Item following the pointer: a new draft being placed, or an existing one being dragged. */
   movingId: string | null
   /** True while movingId is a new item that has not been dropped yet. */
@@ -65,6 +74,27 @@ interface DecorState {
   canUndo: boolean
   canRedo: boolean
   select: (id: string | null) => void
+  /** Selects these items; `primary` (default: the last) is the one the inspector follows. */
+  selectMany: (ids: string[], primary?: string | null) => void
+  /** Shift+click: adds or removes an item (its whole group unless `single`). */
+  toggleSelect: (id: string, opts?: { single?: boolean }) => void
+  /** Click: selects an item's whole group (unless `single`), or keeps a multi-selection it is part of. */
+  pick: (id: string, opts?: { single?: boolean }) => void
+  /** Cmd+A: everything on the selected item's wall, or everything of its kind (or of `kind`). */
+  selectAllLike: (kind?: DecorKind) => void
+  /** Patches several items at once (one undo step, or part of the current gesture). */
+  applyPatches: (patches: Patches, key?: string | null) => void
+  removeMany: (ids: string[]) => void
+  /** Duplicates the selection: one item follows the pointer; several are placed next to their originals. */
+  duplicateSelection: () => void
+  /** Moves each item by its own offset; a burst of nudges is one undo step. */
+  nudgeMany: (deltas: Record<string, Vec3>) => void
+  /** Turns the selection's floor and surface pieces together about their center. */
+  rotateSelection: (deg: number) => void
+  /** Groups the selection (Cmd+G), ungroups it (Shift+Cmd+G). */
+  group: () => void
+  ungroup: () => void
+  renameGroup: (groupId: string, name: string) => void
   setTab: (tab: PanelTab) => void
   setFinishes: (patch: Partial<Finishes>) => void
   /** Saves what is pending, then loads another layout (fresh undo history). The URL follows. */
@@ -94,6 +124,9 @@ export const useDecor = create<DecorState>((set, get) => ({
   items: [],
   loaded: false,
   selectedId: null,
+  selectedIds: [],
+  groupNames: {},
+  followers: [],
   movingId: null,
   isDraft: false,
   backup: null,
@@ -118,14 +151,21 @@ export const useDecor = create<DecorState>((set, get) => ({
       const items = data.items ?? []
       const finishes = normalizeFinishes(data.finishes)
       const layoutName = typeof data.name === 'string' ? data.name : ''
-      lastSaved = serialize(items, finishes, layoutName)
+      const groupNames = namesOf(data.groups)
+      lastSaved = serialize(items, finishes, layoutName, groupNames)
+      lastGroups = groupNames
       lastFinishes = finishes
       lastName = layoutName
       // Keep the item under the pointer when the file is reloaded mid-placement.
       const { movingId, isDraft } = get()
       const moving = isDraft ? get().items.find((i) => i.id === movingId) : undefined
       applying = true
-      set({ items: moving ? [...items.filter((i) => i.id !== moving.id), moving] : items, loaded: true, finishes, layoutName, layout: file })
+      const next = moving ? [...items.filter((i) => i.id !== moving.id), moving] : items
+      const ids = new Set(next.map((i) => i.id))
+      const { selectedId: prevId, selectedIds: prevIds } = get()
+      const selectedIds = prevIds.filter((id) => ids.has(id))
+      const selectedId = prevId && ids.has(prevId) ? prevId : (selectedIds.at(-1) ?? null)
+      set({ items: next, loaded: true, finishes, layoutName, groupNames, layout: file, selectedIds, selectedId })
       applying = false
       // A file loaded from disk starts a fresh history: undo never reverts someone else's edit.
       past.length = 0
@@ -159,31 +199,35 @@ export const useDecor = create<DecorState>((set, get) => ({
 
   startPlacing: (item) => {
     get().cancelPlacing()
-    set((s) => ({ items: [...s.items, item], movingId: item.id, isDraft: true, backup: null, selectedId: item.id }))
+    set((s) => ({ items: [...s.items, item], movingId: item.id, isDraft: true, backup: null, selectedId: item.id, selectedIds: [item.id] }))
   },
   startDragging: (id) => {
     // Keep the item itself (not a copy) so Esc can put back exactly what was there.
-    const item = get().items.find((i) => i.id === id) ?? null
+    const s = get()
+    const item = s.items.find((i) => i.id === id) ?? null
+    const selectedIds = s.selectedIds.includes(id) ? s.selectedIds : [id]
+    const followers = selectedIds.flatMap((x) => (x === id ? [] : s.items.filter((i) => i.id === x)))
     get().beginGesture()
-    set({ movingId: id, isDraft: false, backup: item, selectedId: id })
+    set({ movingId: id, isDraft: false, backup: item, selectedId: id, selectedIds, followers })
   },
   startRelocating: (id) => {
     get().cancelPlacing()
     const item = get().items.find((i) => i.id === id)
-    if (item) set({ movingId: id, isDraft: true, backup: structuredClone(item), selectedId: id })
+    if (item) set({ movingId: id, isDraft: true, backup: structuredClone(item), selectedId: id, selectedIds: [id] })
   },
   stopMoving: () => {
-    set({ movingId: null, isDraft: false, backup: null })
+    set({ movingId: null, isDraft: false, backup: null, followers: [] })
     get().endGesture()
   },
   cancelPlacing: () => {
-    const { movingId, backup } = get()
+    const { movingId, backup, followers } = get()
     if (movingId) {
       // A draft (new item or relocation) or a drag: put back what was there, or drop the new item.
-      if (backup) set((s) => ({ items: s.items.map((i) => (i.id === movingId ? backup : i)), movingId: null, isDraft: false, backup: null }))
-      else if (get().isDraft) set((s) => ({ items: s.items.filter((i) => i.id !== movingId), selectedId: null, movingId: null, isDraft: false, backup: null }))
+      const originals = new Map([...(backup ? [backup] : []), ...followers].map((i) => [i.id, i]))
+      if (backup) set((s) => ({ items: s.items.map((i) => originals.get(i.id) ?? i), movingId: null, isDraft: false, backup: null }))
+      else if (get().isDraft) set((s) => ({ items: s.items.filter((i) => i.id !== movingId), selectedId: null, selectedIds: [], movingId: null, isDraft: false, backup: null }))
     }
-    set({ movingId: null, isDraft: false, backup: null })
+    set({ movingId: null, isDraft: false, backup: null, followers: [] })
     get().endGesture()
   },
 
@@ -193,11 +237,11 @@ export const useDecor = create<DecorState>((set, get) => ({
   },
   remove: (id) => {
     if (get().movingId === id) get().cancelPlacing()
-    set((s) => ({ items: s.items.filter((i) => i.id !== id), selectedId: s.selectedId === id ? null : s.selectedId }))
+    get().removeMany([id])
   },
   duplicate: (id) => {
     const src = get().items.find((i) => i.id === id)
-    if (src) placeCopy(src)
+    if (src) placeCopy(cloneSet([src], get().items)[0])
   },
   nudge: (id, [dx, dy, dz]) => {
     const item = get().items.find((i) => i.id === id)
@@ -215,13 +259,19 @@ export const useDecor = create<DecorState>((set, get) => ({
     set((s) => ({ items: s.items.map((i) => (i.id === id ? ({ ...i, rotation } as DecorItem) : i)) }))
   },
   copy: (id) => {
-    const item = get().items.find((i) => i.id === id)
-    if (!item) return
-    clipboard = structuredClone(item)
+    const s = get()
+    const ids = s.selectedIds.includes(id) ? s.selectedIds : [id]
+    const items = s.items.filter((i) => ids.includes(i.id))
+    if (!items.length) return
+    // Keeps the group ids of groups copied whole, so a pasted gallery is a group again.
+    clipboard = cloneSet(items, s.items, false)
     set({ hasClipboard: true })
   },
   paste: () => {
-    if (clipboard) placeCopy(clipboard)
+    if (!clipboard?.length) return
+    const copies = cloneSet(clipboard, clipboard)
+    if (copies.length === 1) return placeCopy(copies[0])
+    pasteSet(copies)
   },
   beginGesture: () => {
     gestureKey = `g:${++gestureN}`
@@ -243,7 +293,121 @@ export const useDecor = create<DecorState>((set, get) => ({
     past.push(e)
     applyItems(e.after, e.before)
   },
-  select: (id) => set({ selectedId: id }),
+  select: (id) => set({ selectedId: id, selectedIds: id ? [id] : [] }),
+  selectMany: (ids, primary) => {
+    const have = new Set(get().items.map((i) => i.id))
+    const selectedIds = [...new Set(ids)].filter((id) => have.has(id))
+    const selectedId = primary && selectedIds.includes(primary) ? primary : (selectedIds.at(-1) ?? null)
+    set({ selectedIds, selectedId })
+  },
+  toggleSelect: (id, opts = {}) => {
+    const s = get()
+    const item = s.items.find((i) => i.id === id)
+    if (!item) return
+    const unit = !opts.single && item.groupId ? membersOf(s.items, item.groupId) : [id]
+    if (unit.every((u) => s.selectedIds.includes(u))) {
+      const rest = s.selectedIds.filter((x) => !unit.includes(x))
+      get().selectMany(rest, s.selectedId && rest.includes(s.selectedId) ? s.selectedId : null)
+    } else get().selectMany([...s.selectedIds, ...unit], id)
+  },
+  pick: (id, opts = {}) => {
+    const s = get()
+    const item = s.items.find((i) => i.id === id)
+    if (!item) return
+    if (opts.single) return get().selectMany([id], id)
+    if (s.selectedIds.length > 1 && s.selectedIds.includes(id)) return set({ selectedId: id })
+    get().selectMany(item.groupId ? membersOf(s.items, item.groupId) : [id], id)
+  },
+  selectAllLike: (kind) => {
+    const s = get()
+    const prim = s.items.find((i) => i.id === s.selectedId)
+    const placed = s.items.filter((i) => i.at[1] > -50)
+    let ids: string[]
+    if (prim && isWallItem(prim)) ids = placed.filter((i) => i.id === prim.id || sameWall(i, prim)).map((i) => i.id)
+    else if (prim) ids = placed.filter((i) => i.kind === prim.kind && !isWallItem(i)).map((i) => i.id)
+    else ids = placed.filter((i) => i.kind === kind).map((i) => i.id)
+    get().selectMany(ids, prim?.id ?? null)
+  },
+  applyPatches: (patches, key = null) => {
+    if (!Object.keys(patches).length) return
+    pendingKey = key
+    set((s) => ({ items: s.items.map((i) => (patches[i.id] ? ({ ...i, ...patches[i.id] } as DecorItem) : i)) }))
+  },
+  removeMany: (ids) => {
+    const s = get()
+    if (s.movingId && ids.includes(s.movingId)) s.cancelPlacing()
+    const gone = new Set(ids)
+    set((st) => {
+      const selectedIds = st.selectedIds.filter((x) => !gone.has(x))
+      return {
+        items: st.items.filter((i) => !gone.has(i.id)),
+        selectedIds,
+        selectedId: st.selectedId && !gone.has(st.selectedId) ? st.selectedId : (selectedIds.at(-1) ?? null),
+      }
+    })
+  },
+  duplicateSelection: () => {
+    const s = get()
+    const items = s.items.filter((i) => s.selectedIds.includes(i.id))
+    if (items.length <= 1) {
+      if (s.selectedId) s.duplicate(s.selectedId)
+      return
+    }
+    const copies = cloneSet(items, s.items).map((c) => ({ ...c, at: translated(c.at, copyOffset(c)) }) as DecorItem)
+    pendingKey = null
+    set((st) => ({ items: [...st.items, ...copies] }))
+    get().selectMany(
+      copies.map((c) => c.id),
+      copies[copies.length - 1].id,
+    )
+  },
+  nudgeMany: (deltas) => {
+    const ids = Object.keys(deltas)
+    if (!ids.length) return
+    pendingKey = `nudge:${ids.sort().join(',')}`
+    set((s) => ({
+      items: s.items.map((i) => {
+        const d = deltas[i.id]
+        if (!d) return i
+        const at = translated(i.at, d)
+        at[1] = Math.max(0, at[1])
+        return { ...i, at } as DecorItem
+      }),
+    }))
+  },
+  rotateSelection: (deg) => {
+    const s = get()
+    get().applyPatches(rotateAround(s.items.filter((i) => s.selectedIds.includes(i.id)), deg))
+  },
+  group: () => {
+    const s = get()
+    if (s.selectedIds.length < 2) return
+    const groupId = newGroupId()
+    const ids = new Set(s.selectedIds)
+    pendingKey = null
+    set({ items: s.items.map((i) => (ids.has(i.id) ? ({ ...i, groupId } as DecorItem) : i)) })
+  },
+  ungroup: () => {
+    const s = get()
+    const ids = new Set(s.selectedIds)
+    if (!s.items.some((i) => ids.has(i.id) && i.groupId)) return
+    pendingKey = null
+    set({
+      items: s.items.map((i) => {
+        if (!ids.has(i.id) || !i.groupId) return i
+        const rest = { ...i }
+        delete rest.groupId
+        return rest
+      }),
+    })
+  },
+  renameGroup: (groupId, name) => {
+    const groupNames = { ...get().groupNames }
+    const n = name.trim()
+    if (n) groupNames[groupId] = n
+    else delete groupNames[groupId]
+    set({ groupNames })
+  },
   setTab: (tab) => set({ tab }),
   setFinishes: (patch) => set((s) => ({ finishes: { ...s.finishes, ...patch } })),
   switchLayout: async (slug) => {
@@ -270,20 +434,61 @@ export const useDecor = create<DecorState>((set, get) => ({
     }
     // The server already wrote the new name: do not write it again.
     lastName = name
-    lastSaved = serialize(committedOf(get()), get().finishes, name)
+    lastSaved = serialize(committedOf(get()), get().finishes, name, get().groupNames)
     set({ layout: slug, layoutName: name })
   },
 }))
 
 // ---------- copy / duplicate ----------
 
-let clipboard: DecorItem | null = null
+let clipboard: DecorItem[] | null = null
 
-/** Starts placing a copy of `src`, under the pointer when it is over the scene. */
-function placeCopy(src: DecorItem) {
-  const copy = { ...structuredClone(src), id: newId(src.kind) } as DecorItem
-  // Plants lay out their leaves from the seed (the id by default): keep the copy identical.
-  if (copy.kind === 'plant' && src.kind === 'plant') copy.seed = src.seed ?? src.id
+const newGroupId = () => `g-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
+const membersOf = (items: DecorItem[], groupId: string) => items.filter((i) => i.groupId === groupId).map((i) => i.id)
+
+/**
+ * Copies of a set of items, with fresh ids unless `fresh` is false. A group
+ * copied whole becomes a new group; a lone member of a group is copied ungrouped.
+ */
+export function cloneSet(src: DecorItem[], all: DecorItem[], fresh = true): DecorItem[] {
+  const ids = new Set(src.map((i) => i.id))
+  const regroup = new Map<string, string>()
+  return src.map((s) => {
+    const copy = structuredClone(s) as DecorItem
+    if (fresh) copy.id = newId(s.kind)
+    // Plants lay out their leaves from the seed (the id by default): keep the copy identical.
+    if (copy.kind === 'plant' && s.kind === 'plant') copy.seed = s.seed ?? s.id
+    const g = s.groupId
+    const whole = !!g && src.filter((o) => o.groupId === g).length > 1 && all.filter((o) => o.groupId === g).every((o) => ids.has(o.id))
+    if (g && whole) {
+      if (!regroup.has(g)) regroup.set(g, fresh ? newGroupId() : g)
+      copy.groupId = regroup.get(g)
+    } else delete copy.groupId
+    return copy
+  })
+}
+
+/** Pastes several items at once: under the pointer when it is over a fitting surface, else next to the originals. */
+function pasteSet(copies: DecorItem[]) {
+  const lead = copies[0]
+  const hit = editRefs.pointerInCanvas ? (isFloorPiece(lead) ? editRefs.lastFloorHit : editRefs.lastHit) : null
+  const patch = hit && placeAt(lead, { ...hit, point: hit.point.clone() }, { free: true })
+  let placed: DecorItem[]
+  if (patch) {
+    const leadTo = { ...lead, ...patch } as DecorItem
+    placed = copies.map((c) => (c === lead ? leadTo : ({ ...c, ...followLead(lead, leadTo, c) } as DecorItem)))
+  } else placed = copies.map((c) => ({ ...c, at: translated(c.at, copyOffset(c)) }) as DecorItem)
+  pendingKey = null
+  useDecor.setState((s) => ({ items: [...s.items, ...placed] }))
+  useDecor.getState().selectMany(
+    placed.map((c) => c.id),
+    placed[0].id,
+  )
+}
+
+/** Starts placing a copy (with its own id already), under the pointer when it is over the scene. */
+function placeCopy(copy: DecorItem) {
+  const src = copy
   const hit = editRefs.pointerInCanvas ? (isFloorPiece(src) ? editRefs.lastFloorHit : editRefs.lastHit) : null
   const patch = hit && placeAt(copy, hit)
   useDecor.getState().startPlacing(patch ? ({ ...copy, ...patch } as DecorItem) : copy)
@@ -334,10 +539,15 @@ function syncFlags() {
 function applyItems(target: DecorItem[], from: DecorItem[]) {
   const fromById = new Map(from.map((i) => [i.id, i]))
   const changed = target.filter((i) => fromById.get(i.id) !== i).map((i) => i.id)
-  const { selectedId } = useDecor.getState()
-  const stillThere = selectedId && target.some((i) => i.id === selectedId)
+  const { selectedId, selectedIds } = useDecor.getState()
+  const ids = new Set(target.map((i) => i.id))
+  const kept = selectedIds.filter((id) => ids.has(id))
   applying = true
-  useDecor.setState({ items: target, selectedId: changed.length ? changed[changed.length - 1] : stillThere ? selectedId : null })
+  useDecor.setState(
+    changed.length
+      ? { items: target, selectedIds: changed, selectedId: selectedId && changed.includes(selectedId) ? selectedId : changed[changed.length - 1] }
+      : { items: target, selectedIds: kept, selectedId: selectedId && ids.has(selectedId) ? selectedId : (kept.at(-1) ?? null) },
+  )
   applying = false
   syncFlags()
 }
@@ -373,15 +583,30 @@ let lastSaved = ''
 let lastItems: DecorItem[] | null = null
 let lastFinishes: Finishes | null = null
 let lastName = ''
+let lastGroups: Record<string, string> = {}
 /** Bodies this tab wrote recently: their file-change echoes must not trigger a reload. */
 const written: string[] = []
 /** The layout file: name and finishes only when there is something to say, so untouched files keep their shape. */
-export const serialize = (items: DecorItem[], finishes: Finishes = DEFAULT_FINISHES, name = '') =>
-  JSON.stringify(
-    { version: 1, ...(name ? { name } : {}), ...(isDefaultFinishes(finishes) ? {} : { finishes }), items } satisfies DecorFile,
-    null,
-    2,
-  ) + '\n'
+export const serialize = (items: DecorItem[], finishes: Finishes = DEFAULT_FINISHES, name = '', groupNames: Record<string, string> = {}) => {
+  // Names only for groups that still exist.
+  const live = new Set(items.map((i) => i.groupId).filter(Boolean))
+  const named = Object.entries(groupNames).filter(([g, n]) => live.has(g) && n)
+  const groups = named.length ? Object.fromEntries(named.map(([g, n]) => [g, { name: n }])) : undefined
+  return (
+    JSON.stringify(
+      { version: 1, ...(name ? { name } : {}), ...(isDefaultFinishes(finishes) ? {} : { finishes }), ...(groups ? { groups } : {}), items } satisfies DecorFile,
+      null,
+      2,
+    ) + '\n'
+  )
+}
+
+/** Group names from a layout file. */
+export function namesOf(groups: DecorFile['groups']): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const [g, v] of Object.entries(groups ?? {})) if (v && typeof v.name === 'string' && v.name) out[g] = v.name
+  return out
+}
 
 /** Writes a pending (debounced) save right away; resolves once it is on disk. */
 export async function flushSave() {
@@ -394,11 +619,12 @@ export async function flushSave() {
 useDecor.subscribe((s) => {
   if (!s.loaded || s.error?.startsWith('Saving')) return
   const items = committedOf(s)
-  if (items === lastItems && s.finishes === lastFinishes && s.layoutName === lastName) return
+  if (items === lastItems && s.finishes === lastFinishes && s.layoutName === lastName && s.groupNames === lastGroups) return
   lastItems = items
   lastFinishes = s.finishes
   lastName = s.layoutName
-  const body = serialize(items, s.finishes, s.layoutName)
+  lastGroups = s.groupNames
+  const body = serialize(items, s.finishes, s.layoutName, s.groupNames)
   clearTimeout(saveTimer)
   pendingSave = null
   // Back to what is on disk (a cancelled drag, an undo): drop the pending save too.

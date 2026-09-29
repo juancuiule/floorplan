@@ -32,6 +32,8 @@ Coordinates: `x` runs from the inner face of the entry wall (0) to the balcony w
 - **Lights:** arc, tripod, table, mushroom and flowerpot lamps, dome, globe and paper-lantern pendants, a wall sconce, a red EXIT cube, a milk-glass EXIT sign for the ceiling, and string lights. Set on/off, brightness, warmth (2700–4000 K) and color.
 - **Sun study** (the clock button in the toolbar): the real sun over Buenos Aires (UTC−3) for any date and time, through the balcony door. Scrub the time (sunrise and sunset are marked), pick a date or a solstice/equinox, set which way the balcony faces (N, NE… or any bearing; saved in the browser), or play a whole day in 12 s. Once the sun is 4° below the horizon it's night and the lamps and ceiling downlights take over. **Day / Evening** jump to today at 15:00 and 21:00. `src/sun/solar.ts` has the solar math; `src/scene/SunOccluders.tsx` adds shadow-only roof and walls so sunlight only enters through the balcony door even in dollhouse views (the balcony's side walls are assumed).
 - Click to select, drag to move (a footprint turns red on overlaps; the wall it snaps to lights up), or turn it with the ring. The edit bar at the bottom has rotate, duplicate, delete, undo and redo.
+- **Smart guides:** while dragging or placing, a piece's edges and center snap (within 3 cm) to those of other pieces on the same wall, or on the floor, with thin red guide lines; it also snaps to equal gaps along a row (the gaps show in cm), and artwork is pulled to the 150 cm gallery line (amber). Hold `Alt` or `Cmd/Ctrl` to drag freely. `src/decor/guides.ts` has the math.
+- **Selections and groups:** `Shift`+click (or `Shift`+drag a rectangle over the room) selects several pieces; dragging any of them moves them all (wall pieces stay on their wall, and move to another wall together). The edit bar then has align (left, center, right, top, middle, bottom), distribute with equal gaps, match size and frame (artwork), group and ungroup; delete, duplicate, copy/paste, nudge and rotate act on the whole selection, and each is one undo step. `Cmd/Ctrl+G` groups: clicking a grouped piece picks up the group, `Alt`+click or a double-click picks one piece. Groups are saved in the layout file (`groupId` on items, names under `groups`) and show at the top of *In the room*, where they can be expanded; name one in the panel. **Hang as a gallery** (panel, for selected artwork on one wall) arranges them in a row or a grid with a 5, 8 or 10 cm gap, centered on a chosen line (150 cm by default).
 
 ## Layouts and finishes
 
@@ -58,7 +60,14 @@ Coordinates: `x` runs from the inner face of the entry wall (0) to the balcony w
 | `PageUp`/`PageDown` or `[` `]` | Raise / lower wall items |
 | `R` / `Shift+R` | Rotate (quarter turns for furniture) |
 | `Delete` · `Esc` | Remove · cancel a placement or drag |
-| `Alt` while placing | Skip wall snapping |
+| `Alt` while placing · `Cmd/Ctrl` while dragging | Skip wall snapping and smart guides · skip smart guides |
+| `Shift`+click · `Shift`+drag on the room | Add to / remove from the selection · rubber-band select |
+| `Cmd/Ctrl+A` | Select everything on the selected piece's wall (or everything of its kind) |
+| `Cmd/Ctrl+G` · `Shift+Cmd/Ctrl+G` | Group · ungroup the selection |
+| `Alt`+click (or double-click) | Pick one piece inside a group |
+| `Alt+A` · `Alt+H` · `Alt+D` | Align left · centers · right (along the wall, or left to right on screen) |
+| `Alt+W` · `Alt+V` · `Alt+S` | Align tops · middles · bottoms (height on a wall, far to near on the floor) |
+| `Alt+Shift+H` · `Alt+Shift+V` | Distribute with equal gaps across · up and down |
 
 ## Screenshots
 

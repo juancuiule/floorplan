@@ -2,8 +2,11 @@ import type { CameraControls } from '@react-three/drei'
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Suspense, useEffect, useMemo, useRef, type ReactNode } from 'react'
 import * as THREE from 'three'
+import { followLead } from '../../decor/arrange'
 import { editRefs, useEdit } from '../../decor/edit'
-import { facingOf, facingRotation, facingVector, mountOf, placeAt, readIntersection, type SurfaceHit } from '../../decor/placement'
+import { translated } from '../../decor/extent'
+import { buildGuideCtx, guideMove, worldGuides, type GuideCtx } from '../../decor/guides'
+import { facingOf, facingRotation, facingVector, mountOf, placeAt, readIntersection, type SnapFace, type SurfaceHit } from '../../decor/placement'
 import { useDecor } from '../../decor/store'
 import type { DecorItem } from '../../model/decor'
 import { useView } from '../../store'
@@ -55,11 +58,11 @@ export function firstSolid(list: THREE.Intersection[]) {
 }
 
 /** First hit that is a usable surface, ignoring decor if asked (floor pieces slide on the floor). */
-function surfaceUnder(list: THREE.Intersection[], opts: { skipId?: string | null; skipDecor?: boolean }) {
+function surfaceUnder(list: THREE.Intersection[], opts: { skipIds?: Set<string>; skipDecor?: boolean }) {
   for (const i of list) {
     if (!i.face || i.object.userData.editHelper || hidden(i.object)) continue
     const id = decorIdOf(i.object)
-    if (id && (id === opts.skipId || opts.skipDecor)) continue
+    if (id && (opts.skipIds?.has(id) || opts.skipDecor)) continue
     const hit = readIntersection(i)
     if (hit || !id) return { hit, intersection: i }
   }
@@ -77,12 +80,57 @@ interface Grab {
   x: number
   y: number
   armed: boolean
+  /** Selection to narrow to if the press ends without a drag. */
+  narrow: string[] | null
   offset: THREE.Vector3
   wall: boolean
 }
 let grab: Grab | null = null
 let lastMoveEvent: Event | null = null
 let lastClickEvent: Event | null = null
+/** What the current drag snaps to, built on its first move. */
+let guideCtx: GuideCtx | null = null
+let guideCtxFor: string | null = null
+/** The last press on an item, to tell a double-click (select one member of a group). */
+let lastPress: { id: string; t: number } | null = null
+const DOUBLE_MS = 400
+
+export function clearGuides() {
+  guideCtx = null
+  guideCtxFor = null
+  if (useEdit.getState().guides) useEdit.getState().set({ guides: null })
+}
+
+/** A floor piece backed onto a wall only slides along it: no guide may pull it off. */
+function locksOf(faces: SnapFace[]) {
+  return { lockU: faces.some((f) => f.axis === 'x'), lockV: faces.some((f) => f.axis === 'z') }
+}
+
+/**
+ * Moves the dragged (or placed) item to its new spot, brings the rest of the
+ * selection along, and snaps the lot to smart guides unless `free`.
+ */
+function moveSelection(item: DecorItem, patch: Partial<DecorItem>, faces: SnapFace[], free: boolean) {
+  const s = useDecor.getState()
+  const leadTo = { ...item, ...patch } as DecorItem
+  const leadFrom = s.backup ?? item
+  const moved: DecorItem[] = [leadTo, ...s.followers.map((f) => ({ ...f, ...followLead(leadFrom, leadTo, f) }) as DecorItem)]
+  let guides = null
+  if (!free) {
+    if (!guideCtx || guideCtxFor !== item.id) {
+      guideCtx = buildGuideCtx(s.items, new Set(moved.map((m) => m.id)))
+      guideCtxFor = item.id
+    }
+    const g = guideMove(guideCtx, leadTo, moved, locksOf(faces))
+    if (g) {
+      if (g.result.du || g.result.dv) for (let i = 0; i < moved.length; i++) moved[i] = { ...moved[i], at: translated(moved[i].at, g.delta) } as DecorItem
+      guides = worldGuides(g)
+    }
+  }
+  s.applyPatches(Object.fromEntries(moved.map((m) => [m.id, m])))
+  const edit = useEdit.getState()
+  if (guides || edit.guides) edit.set({ guides })
+}
 
 const plane = new THREE.Plane()
 const tmp = new THREE.Vector3()
@@ -125,19 +173,79 @@ function applyGrab(item: DecorItem, hit: SurfaceHit) {
  */
 export function SurfaceEvents({ children }: { children: ReactNode }) {
   const controls = useThree((s) => s.controls) as unknown as CameraControls | null
+  const camera = useThree((s) => s.camera)
+  const gl = useThree((s) => s.gl)
+
+  /** Shift-drag on the room: a rubber band that adds what it covers to the selection. */
+  const startMarquee = (e: ThreeEvent<PointerEvent>) => {
+    const x0 = e.nativeEvent.clientX
+    const y0 = e.nativeEvent.clientY
+    if (controls) controls.enabled = false
+    const move = (ev: PointerEvent) => useEdit.getState().set({ marquee: { x0, y0, x1: ev.clientX, y1: ev.clientY } })
+    const up = () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      if (controls) controls.enabled = true
+      const m = useEdit.getState().marquee
+      useEdit.getState().set({ marquee: null })
+      if (!m || Math.abs(m.x1 - m.x0) < DRAG_THRESHOLD || Math.abs(m.y1 - m.y0) < DRAG_THRESHOLD) return
+      const [l, r] = [Math.min(m.x0, m.x1), Math.max(m.x0, m.x1)]
+      const [t, b] = [Math.min(m.y0, m.y1), Math.max(m.y0, m.y1)]
+      const rect = gl.domElement.getBoundingClientRect()
+      const s = useDecor.getState()
+      const v = new THREE.Vector3()
+      const inside = s.items.filter((i) => {
+        if (i.at[1] <= UNPLACED_Y) return false
+        const host = 'host' in i ? i.host : undefined
+        if (host && cutWalls.has(host)) return false
+        const lift = i.kind === 'furniture' && mountOf(i) !== 'ceiling' ? i.size[1] / 2 : 0
+        v.set(i.at[0], i.at[1] + lift, i.at[2]).project(camera)
+        if (v.z > 1) return false
+        const x = rect.left + ((v.x + 1) / 2) * rect.width
+        const y = rect.top + ((1 - v.y) / 2) * rect.height
+        return x >= l && x <= r && y >= t && y <= b
+      })
+      // Whole groups: a band over one member takes the group.
+      const groups = new Set(inside.map((i) => i.groupId).filter(Boolean))
+      const ids = s.items.filter((i) => inside.includes(i) || (i.groupId && groups.has(i.groupId))).map((i) => i.id)
+      if (ids.length) s.selectMany([...s.selectedIds, ...ids], s.selectedId ?? ids[ids.length - 1])
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
 
   const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
     const s = useDecor.getState()
     if (s.movingId || e.button !== 0 || sceneTakenOver()) return
     const first = firstSolid(e.intersections)
     const id = first ? decorIdOf(first.object) : null
-    // Architecture under the pointer: leave the press to the camera.
-    if (!id) return
+    // Architecture under the pointer: leave the press to the camera (Shift: rubber band).
+    if (!id) {
+      if (e.nativeEvent.shiftKey) {
+        e.stopPropagation()
+        startMarquee(e)
+      }
+      return
+    }
     e.stopPropagation()
     const item = s.items.find((i) => i.id === id)
     if (!item) return
+    const now = performance.now()
+    const double = !!lastPress && lastPress.id === id && now - lastPress.t < DOUBLE_MS
+    lastPress = { id, t: now }
+    // Shift+click adds to (or takes out of) the selection; no drag.
+    if (e.nativeEvent.shiftKey) {
+      s.toggleSelect(id, { single: e.nativeEvent.altKey })
+      return
+    }
+    // A click takes the item's whole group; Alt+click or a double-click just the one piece.
+    const single = e.nativeEvent.altKey || double
+    // Pressing a piece of a larger selection keeps it (to drag it all); a click without a drag narrows it.
+    const unit = !single && item.groupId ? s.items.filter((i) => i.groupId === item.groupId).map((i) => i.id) : [id]
+    const narrow = s.selectedIds.length > unit.length && s.selectedIds.includes(id) ? unit : null
+    s.pick(id, { single })
     s.startDragging(id)
-    grab = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY, armed: false, ...grabOffset(item, e.ray) }
+    grab = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY, armed: false, narrow, ...grabOffset(item, e.ray) }
     if (controls) controls.enabled = false
   }
 
@@ -169,16 +277,20 @@ export function SurfaceEvents({ children }: { children: ReactNode }) {
     // Floor furniture slides along the floor, wall pieces along walls: neither climbs onto other decor.
     const mount = mountOf(item)
     const skipDecor = mount === 'wall' || (item.kind === 'furniture' && mount === 'surface')
-    const under = surfaceUnder(e.intersections, { skipId: item.id, skipDecor })
+    const moving = new Set([item.id, ...s.followers.map((f) => f.id)])
+    const under = surfaceUnder(e.intersections, { skipIds: moving, skipDecor })
     if (!under) return
     const hit = under.hit
     const report = { snap: [] as ReturnType<typeof useEdit.getState>['snap'] }
-    const patch = hit && (applyGrab(item, hit), placeAt(item, hit, { free: e.nativeEvent.altKey, report }))
+    const ev = e.nativeEvent
+    // A selection moves rigidly: no turning to back onto a wall.
+    const patch = hit && (applyGrab(item, hit), placeAt(item, hit, { free: ev.altKey || s.followers.length > 0, report }))
     if (patch) {
-      s.update(item.id, patch)
+      // Alt (like wall snapping) or Cmd/Ctrl turn the smart guides off.
+      moveSelection(item, patch, report.snap, ev.altKey || ev.metaKey || ev.ctrlKey)
       edit.set({ invalid: null, snap: report.snap })
     } else {
-      edit.set({ invalid: { point: under.intersection.point.clone(), normal: hit?.normal ?? new THREE.Vector3(0, 1, 0) }, snap: [] })
+      edit.set({ invalid: { point: under.intersection.point.clone(), normal: hit?.normal ?? new THREE.Vector3(0, 1, 0) }, snap: [], guides: null })
     }
   }
 
@@ -193,12 +305,13 @@ export function SurfaceEvents({ children }: { children: ReactNode }) {
       if (item && item.at[1] > UNPLACED_Y && !useEdit.getState().invalid) {
         s.stopMoving()
         useEdit.getState().set({ snap: [], invalid: null })
+        clearGuides()
       }
       return
     }
-    // A click on the room (not on an item) clears the selection.
+    // A click on the room (not on an item) clears the selection; Shift keeps it.
     const first = firstSolid(e.intersections)
-    if (!first || !decorIdOf(first.object)) s.select(null)
+    if ((!first || !decorIdOf(first.object)) && !e.nativeEvent.shiftKey) s.select(null)
   }
 
   const onPointerLeave = () => {
@@ -216,7 +329,8 @@ export function SurfaceEvents({ children }: { children: ReactNode }) {
 
 export function DecorLayer() {
   const items = useDecor((s) => s.items)
-  const selectedId = useDecor((s) => s.selectedId)
+  const selectedIds = useDecor((s) => s.selectedIds)
+  const selected = useMemo(() => new Set(selectedIds), [selectedIds])
   const controls = useThree((s) => s.controls) as unknown as CameraControls | null
   const gl = useThree((s) => s.gl)
   useEffect(() => requestShadowUpdate(), [items])
@@ -228,6 +342,8 @@ export function DecorLayer() {
       if (s.movingId && !s.isDraft) {
         s.stopMoving()
         useEdit.getState().set({ snap: [], invalid: null })
+        clearGuides()
+        if (grab && !grab.armed && grab.narrow) s.selectMany(grab.narrow, s.selectedId)
       }
       grab = null
       if (controls) controls.enabled = true
@@ -247,13 +363,16 @@ export function DecorLayer() {
     gl.domElement.style.cursor = c
   }, [gl, hoverId, handleHover, rotating, invalid, moving])
   useEffect(() => {
-    if (!moving) useEdit.getState().set({ snap: [], invalid: null })
+    if (!moving) {
+      useEdit.getState().set({ snap: [], invalid: null })
+      clearGuides()
+    }
   }, [moving])
 
   return (
     <group>
       {items.map((item) => (
-        <DecorNode key={item.id} item={item} selected={item.id === selectedId} />
+        <DecorNode key={item.id} item={item} selected={selected.has(item.id)} />
       ))}
       <EditOverlays />
     </group>
