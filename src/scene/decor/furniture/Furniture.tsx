@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
 import type { FurnitureItem, FurnitureType } from '../../../model/decor'
+import { Merged } from '../../Merged'
 import { Daybed, MurphyBed, PlatformBed } from './Sleep'
 import { ButterflyChair, ChairItem, DiningTable, Sofa, StandingDesk } from './SitWork'
 import { BlockShelf, Bookshelf, Rug, Sideboard, Wardrobe } from './Storage'
@@ -29,8 +30,32 @@ const VIEWS: Record<FurnitureType, (p: { item: FurnitureItem }) => ReactNode> = 
   hangingRack: HangingRack,
 }
 
-/** A furniture piece in local space (see FurnitureItem.at for where the origin sits). */
-export function Furniture({ item }: { item: FurnitureItem }) {
-  const View = VIEWS[item.type]
-  return <View item={item} />
+/** Only these fields change the model; moving or rotating a piece does not rebuild it. */
+function sameModel(a: FurnitureItem, b: FurnitureItem): boolean {
+  if (a === b) return true
+  return (
+    a.id === b.id &&
+    a.type === b.type &&
+    a.size.every((v, i) => v === b.size[i]) &&
+    a.finish.body === b.finish.body &&
+    a.finish.metal === b.finish.metal &&
+    a.finish.fabric === b.finish.fabric &&
+    JSON.stringify(a.options) === JSON.stringify(b.options)
+  )
 }
+
+/**
+ * A furniture piece in local space (see FurnitureItem.at for where the origin sits).
+ * Its boxes and outlines are merged into one mesh per material (see Merged).
+ */
+export const Furniture = memo(
+  function Furniture({ item }: { item: FurnitureItem }) {
+    const View = VIEWS[item.type]
+    return (
+      <Merged>
+        <View item={item} />
+      </Merged>
+    )
+  },
+  (a, b) => sameModel(a.item, b.item),
+)

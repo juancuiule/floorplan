@@ -350,10 +350,10 @@ export function StationClock({ item }: { item: FurnitureItem }) {
           </mesh>
           {/* hands pivot in the face plane: rotate around the face normal */}
           <group position={[0, 0, 0.004]} rotation={[0, -sx * (Math.PI / 2), 0]}>
-            <group ref={(el) => void (el && !hands.current.some((x) => x.o === el) && hands.current.push({ o: el, sx, hour: true }))}>
+            <group userData={{ noMerge: true }} ref={(el) => void (el && !hands.current.some((x) => x.o === el) && hands.current.push({ o: el, sx, hour: true }))}>
               <B s={[0.003, 0.045, 0.008]} p={[0, 0.022, 0]} m={mat('#111', 'matte')} edges={false} />
             </group>
-            <group ref={(el) => void (el && !hands.current.some((x) => x.o === el) && hands.current.push({ o: el, sx, hour: false }))}>
+            <group userData={{ noMerge: true }} ref={(el) => void (el && !hands.current.some((x) => x.o === el) && hands.current.push({ o: el, sx, hour: false }))}>
               <B s={[0.003, 0.065, 0.005]} p={[0, 0.032, 0]} m={mat('#111', 'matte')} edges={false} />
             </group>
           </group>

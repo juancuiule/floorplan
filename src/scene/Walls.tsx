@@ -6,6 +6,7 @@ import type { Bulge, Opening, Vec2, Vec3, Wall } from '../model/types'
 import { project } from '../project'
 import { useView } from '../store'
 import { Box } from './Box'
+import { Merged } from './Merged'
 import { applyFade, faceDims, makeEdgeMaterial, makeMaterial } from './materials'
 import { requestShadowUpdate } from './shadows'
 
@@ -149,23 +150,26 @@ function WallView({ wall, bulges }: { wall: Wall; bulges: Bulge[] }) {
 
   return (
     <group ref={groupRef} userData={{ host: wall.id }}>
-      <group position={[frame.origin[0], 0, frame.origin[1]]} rotation={[0, frame.rotY, 0]}>
-        {pieces.map((p, i) => (
-          <Box
-            key={i}
-            size={[p.s1 - p.s0, p.y1 - p.y0, wall.thickness]}
-            position={[(p.s0 + p.s1) / 2, (p.y0 + p.y1) / 2, 0]}
-            material={p.stub ? mats.stub : mats.upper}
-            edgeMaterial={p.stub ? mats.stubEdge : mats.upperEdge}
-          />
+      {/* One draw call per material instead of one per box and outline. */}
+      <Merged>
+        <group position={[frame.origin[0], 0, frame.origin[1]]} rotation={[0, frame.rotY, 0]}>
+          {pieces.map((p, i) => (
+            <Box
+              key={i}
+              size={[p.s1 - p.s0, p.y1 - p.y0, wall.thickness]}
+              position={[(p.s0 + p.s1) / 2, (p.y0 + p.y1) / 2, 0]}
+              material={p.stub ? mats.stub : mats.upper}
+              edgeMaterial={p.stub ? mats.stubEdge : mats.upperEdge}
+            />
+          ))}
+          {wall.openings?.map((o) => (
+            <OpeningView key={o.id} opening={o} wall={wall} get={mats.get} edge={mats.upperEdge} />
+          ))}
+        </group>
+        {mats.bulgePieces.map((p) => (
+          <Box key={p.key} size={p.size} position={p.position} material={p.material} edgeMaterial={p.stub ? mats.stubEdge : mats.upperEdge} />
         ))}
-        {wall.openings?.map((o) => (
-          <OpeningView key={o.id} opening={o} wall={wall} get={mats.get} edge={mats.upperEdge} />
-        ))}
-      </group>
-      {mats.bulgePieces.map((p) => (
-        <Box key={p.key} size={p.size} position={p.position} material={p.material} edgeMaterial={p.stub ? mats.stubEdge : mats.upperEdge} />
-      ))}
+      </Merged>
     </group>
   )
 }

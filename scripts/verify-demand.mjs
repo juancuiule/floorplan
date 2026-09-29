@@ -65,9 +65,9 @@ await shot('desk-down')
 
 // Orbit drag with the mouse.
 f = await frames()
-await page.mouse.move(700, 450)
+await page.mouse.move(120, 700) // empty background, not a piece of furniture
 await page.mouse.down()
-await page.mouse.move(500, 430, { steps: 20 })
+await page.mouse.move(40, 690, { steps: 20 })
 await page.mouse.up()
 await page.waitForTimeout(1500)
 console.log('frames during orbit:', (await frames()) - f)

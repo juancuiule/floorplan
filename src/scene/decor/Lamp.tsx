@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { LAMPS, warmthColor } from '../../decor/catalog'
 import type { LampItem } from '../../model/decor'
 import { useView } from '../../store'
+import { Merged } from '../Merged'
 
 const metal = new THREE.MeshStandardMaterial({ color: '#b9bbbd', roughness: 0.3, metalness: 0.8 })
 const wood = new THREE.MeshStandardMaterial({ color: '#b08557', roughness: 0.7 })
@@ -56,6 +57,15 @@ function Bulb({ position, item, scale = 1 }: { position: [number, number, number
 
 /** A lamp in local space. Surface lamps stand on the origin; ceiling lamps hang from it; wall lamps face +z. */
 export function Lamp({ item }: { item: LampItem }) {
+  // Static parts merged per material; lights and the multi-material EXIT cube stay as they are.
+  return (
+    <Merged>
+      <LampModel item={item} />
+    </Merged>
+  )
+}
+
+function LampModel({ item }: { item: LampItem }) {
   const m = useLampMaterials(item)
 
   switch (item.type) {

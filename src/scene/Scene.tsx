@@ -21,6 +21,8 @@ declare global {
     /** Renderer counters for the last rendered frame (all passes, shadows included). */
     /** Requests one render (the canvas renders on demand). */
     __invalidate?: () => void
+    /** Dev only: the scene graph, for scripts that inspect it. */
+    __scene?: THREE.Scene
     __stats?: { calls: number; triangles: number; lines: number; points: number; programs: number; geometries: number; textures: number }
   }
 }
@@ -34,14 +36,16 @@ const WARMUP_FRAMES = 60
 function FrameCounter() {
   const gl = useThree((s) => s.gl)
   const invalidate = useThree((s) => s.invalidate)
+  const scene = useThree((s) => s.scene)
   useEffect(() => {
     gl.info.autoReset = false
     window.__invalidate = () => invalidate()
+    if (import.meta.env.DEV) window.__scene = scene
     return () => {
       gl.info.autoReset = true
       delete window.__invalidate
     }
-  }, [gl, invalidate])
+  }, [gl, invalidate, scene])
   useFrame(() => {
     const n = (window.__frames = (window.__frames ?? 0) + 1)
     // Warm up: render continuously for the first frames while programs

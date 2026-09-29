@@ -4,19 +4,20 @@ import * as THREE from 'three'
 import type { SceneObject, Vec3 } from '../model/types'
 import { project } from '../project'
 import { Box } from './Box'
+import { Merged } from './Merged'
 import { sharedEdgeMaterial, sharedMaterial } from './materials'
 
 const m = sharedMaterial
 
 export function Fixtures() {
   return (
-    <group>
+    <Merged>
       {project.objects.map((o) => (
         <group key={o.id} position={o.position} rotation={[0, THREE.MathUtils.degToRad(o.rotation ?? 0), 0]}>
           <Fixture object={o} />
         </group>
       ))}
-    </group>
+    </Merged>
   )
 }
 
@@ -27,7 +28,7 @@ function Downlight({ ceilingY }: { ceilingY: number }) {
     if (ref.current) ref.current.visible = camera.position.y < ceilingY - 0.01
   })
   return (
-    <mesh ref={ref} position={[0, -0.004, 0]} material={m('downlight')}>
+    <mesh ref={ref} position={[0, -0.004, 0]} material={m('downlight')} userData={{ noMerge: true }}>
       <cylinderGeometry args={[0.045, 0.045, 0.008, 24]} />
     </mesh>
   )

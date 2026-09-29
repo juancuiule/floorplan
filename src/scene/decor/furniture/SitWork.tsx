@@ -3,6 +3,7 @@ import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { FurnitureItem } from '../../../model/decor'
 import { requestShadowUpdate } from '../../shadows'
+import { Merged } from '../../Merged'
 import { B, mat, Rod } from './common'
 
 export function Sofa({ item }: { item: FurnitureItem }) {
@@ -152,38 +153,40 @@ export function StandingDesk({ item }: { item: FurnitureItem }) {
         <group key={sx}>
           <B s={[0.07, 0.03, d - 0.06]} p={[sx * legX, 0.015, 0]} m={steel} />
           <B s={[0.08, baseCol - 0.03, 0.06]} p={[sx * legX, 0.03 + (baseCol - 0.03) / 2, 0]} m={steel} />
-          <group ref={(el) => void (uppers.current[i] = el)} position={[sx * legX, baseCol, 0]}>
+          <group ref={(el) => void (uppers.current[i] = el)} position={[sx * legX, baseCol, 0]} userData={{ noMerge: true }}>
             <B s={[0.065, upperLen, 0.05]} p={[0, upperLen / 2, 0]} m={steel} />
           </group>
         </group>
       ))}
       <group ref={lift}>
-        <B s={[w - 0.3, 0.04, 0.05]} p={[0, target - topT - 0.02, 0]} m={steel} />
-        <B s={[w, topT, d]} p={[0, target - topT / 2, 0]} m={top} />
-        {/* up/down control under the front edge */}
-        <B s={[0.1, 0.02, 0.05]} p={[w / 2 - 0.16, target - topT - 0.01, d / 2 - 0.04]} m={mat('#2a2a2a', 'matte')} />
-        {item.options.monitor !== false && (
-          <group position={[0, target, 0]}>
-            <B s={[0.8, 0.003, 0.33]} p={[0, 0.0015, 0.09]} m={mat('#1e1f21', 'matte')} edges={false} />
-            <B s={[0.36, 0.018, 0.12]} p={[0, 0.012, 0.12]} m={mat('#3a3b3e', 'matte')} />
-            <B s={[0.06, 0.02, 0.1]} p={[0.3, 0.012, 0.12]} m={mat('#2a2b2e', 'matte')} />
-          </group>
-        )}
-        {item.options.riser !== false && (
-          <group position={[0, target, -d / 2 + 0.16]}>
-            {[-1, 1].flatMap((sx) =>
-              [-1, 1].map((sz) => <Rod key={`${sx}${sz}`} a={[sx * (w * 0.36 - 0.03), 0, sz * 0.09]} b={[sx * (w * 0.36 - 0.03), 0.1, sz * 0.09]} radius={0.01} m={brass} />),
-            )}
-            <B s={[w * 0.76, 0.022, 0.24]} p={[0, 0.111, 0]} m={top} />
-          </group>
-        )}
-        {item.options.monitor !== false && (
-          <group position={[0, target + (item.options.riser !== false ? 0.122 : 0), -d / 2 + 0.16]}>
-            <B s={[0.28, 0.01, 0.2]} p={[0, 0.005, 0]} m={mat('#b9bbbe', 'metal')} />
-            <B s={[0.04, 0.16, 0.02]} p={[0, 0.08, -0.03]} m={mat('#b9bbbe', 'metal')} />
-            <Screen />
-          </group>
-        )}
+        <Merged>
+          <B s={[w - 0.3, 0.04, 0.05]} p={[0, target - topT - 0.02, 0]} m={steel} />
+          <B s={[w, topT, d]} p={[0, target - topT / 2, 0]} m={top} />
+          {/* up/down control under the front edge */}
+          <B s={[0.1, 0.02, 0.05]} p={[w / 2 - 0.16, target - topT - 0.01, d / 2 - 0.04]} m={mat('#2a2a2a', 'matte')} />
+          {item.options.monitor !== false && (
+            <group position={[0, target, 0]}>
+              <B s={[0.8, 0.003, 0.33]} p={[0, 0.0015, 0.09]} m={mat('#1e1f21', 'matte')} edges={false} />
+              <B s={[0.36, 0.018, 0.12]} p={[0, 0.012, 0.12]} m={mat('#3a3b3e', 'matte')} />
+              <B s={[0.06, 0.02, 0.1]} p={[0.3, 0.012, 0.12]} m={mat('#2a2b2e', 'matte')} />
+            </group>
+          )}
+          {item.options.riser !== false && (
+            <group position={[0, target, -d / 2 + 0.16]}>
+              {[-1, 1].flatMap((sx) =>
+                [-1, 1].map((sz) => <Rod key={`${sx}${sz}`} a={[sx * (w * 0.36 - 0.03), 0, sz * 0.09]} b={[sx * (w * 0.36 - 0.03), 0.1, sz * 0.09]} radius={0.01} m={brass} />),
+              )}
+              <B s={[w * 0.76, 0.022, 0.24]} p={[0, 0.111, 0]} m={top} />
+            </group>
+          )}
+          {item.options.monitor !== false && (
+            <group position={[0, target + (item.options.riser !== false ? 0.122 : 0), -d / 2 + 0.16]}>
+              <B s={[0.28, 0.01, 0.2]} p={[0, 0.005, 0]} m={mat('#b9bbbe', 'metal')} />
+              <B s={[0.04, 0.16, 0.02]} p={[0, 0.08, -0.03]} m={mat('#b9bbbe', 'metal')} />
+              <Screen />
+            </group>
+          )}
+        </Merged>
       </group>
     </group>
   )
