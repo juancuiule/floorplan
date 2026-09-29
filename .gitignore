@@ -28,3 +28,6 @@ data/decor.*.json
 
 # Test output (screenshots from pnpm test:e2e)
 test-results
+
+# Agent worktrees
+.claude/worktrees/
