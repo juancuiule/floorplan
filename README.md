@@ -43,3 +43,13 @@ CHROME_PATH=/path/to/chrome node scripts/e2e-decor.mjs shots   # clicks through 
 ```
 
 Test runs use `?decor=<name>`, which reads and writes `data/decor.<name>.json` (git-ignored) instead of your layout.
+
+## Tests
+
+```sh
+pnpm test           # unit tests (vitest + jsdom): geometry, placement, store, catalogs, plants, dev API
+pnpm test:types     # type-checks the tests
+BASE_URL=http://localhost:5184 CHROME_PATH=/path/to/chrome pnpm test:e2e   # needs a running dev server
+```
+
+Unit tests live in `tests/unit`. The e2e smoke test (`tests/e2e/smoke.mjs`) switches views, opens each panel tab and places an artwork, a plant, lamps and a desk through the UI, then checks `data/decor.e2e-smoke.json` through the dev API. Screenshots go to `test-results/e2e/` (git-ignored).
