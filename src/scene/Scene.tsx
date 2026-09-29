@@ -13,10 +13,13 @@ import { requestShadowUpdate, shadowOnly, takeShadowUpdate } from './shadows'
 import { SunOccluders } from './SunOccluders'
 import { daylight } from '../sun/daylight'
 import { sunDirection, type SunPosition } from '../sun/solar'
+import { Clearances } from './Clearances'
 import { DecorLayer, SurfaceEvents } from './decor/DecorLayer'
 import { Ceilings, Floors } from './Floors'
 import { Fixtures } from './Fixtures'
 import { Labels } from './Labels'
+import { Measure } from './Measure'
+import { Walk } from './Walk'
 import { Walls } from './Walls'
 
 declare global {
@@ -214,7 +217,8 @@ export function Scene() {
     <Canvas
       onPointerMissed={() => {
         const d = useDecor.getState()
-        if (!d.movingId) d.select(null)
+        const v = useView.getState()
+        if (!d.movingId && !v.walking && !v.tool) d.select(null)
       }}
       frameloop="demand"
       shadows="soft"
@@ -237,6 +241,9 @@ export function Scene() {
       </SurfaceEvents>
       <Labels />
       <CameraRig />
+      <Walk />
+      <Measure />
+      <Clearances />
       <FrameCounter />
       <Effects />
     </Canvas>

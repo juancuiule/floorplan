@@ -3,9 +3,12 @@ import { screenAxes, useEdit } from './decor/edit'
 import { alongWall, mountOf } from './decor/placement'
 import { useDecor } from './decor/store'
 import type { Vec3 } from './model/types'
+import { useMeasure } from './plan/measureStore'
 import { Scene } from './scene/Scene'
+import { useView } from './store'
 import { DecorPanel } from './ui/DecorPanel'
 import { EditBar } from './ui/EditBar'
+import { SpaceHud } from './ui/SpaceTools'
 import { Toolbar } from './ui/Toolbar'
 
 const HINTS = {
@@ -42,6 +45,26 @@ function useShortcuts() {
         if (key === 'y' || e.shiftKey) s.redo()
         else s.undo()
         return
+      }
+
+      // Walk mode and the measure tool: Esc steps out, Delete drops a measurement,
+      // and the arrows walk instead of nudging the selection.
+      const v = useView.getState()
+      if (!mod && (v.walking || v.tool) && !isTextField(e.target)) {
+        if (e.key === 'Escape') {
+          e.preventDefault()
+          const m = useMeasure.getState()
+          if (v.tool === 'measure' && m.start) m.cancel()
+          else if (v.tool) v.setTool(null)
+          else v.exitWalk()
+          return
+        }
+        if (v.tool === 'measure' && (e.key === 'Delete' || e.key === 'Backspace')) {
+          e.preventDefault()
+          useMeasure.getState().removeOne()
+          return
+        }
+        if (v.walking && e.key.startsWith('Arrow')) return
       }
 
       const t = e.target as HTMLElement
@@ -121,6 +144,7 @@ export default function App() {
       <Toolbar />
       <DecorPanel />
       <EditBar />
+      <SpaceHud />
       {moving && (
         <div className="hint" role="status">
           {invalid ? INVALID_HINTS[mountOf(moving)] : HINTS[mountOf(moving)]} · <kbd>Esc</kbd> to cancel

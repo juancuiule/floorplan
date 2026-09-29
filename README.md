@@ -49,6 +49,9 @@ Coordinates: `x` runs from the inner face of the entry wall (0) to the balcony w
 | `,` · `.` | Sun 15 minutes earlier · later |
 | `B` | Flip A/B between two layouts |
 | `\` · `?` · `/` | Toggle panel · shortcuts · search |
+| `W` · `T` · `C` | Walk mode (or double-click the floor) · measure · clearances around the selection |
+| `WASD` / arrows (`Shift` = faster), drag | Walk mode: move, look around; `Esc` goes back to the orbit view |
+| Click, click (`Shift` = straight) · `Delete` | Measure tool: take a dimension (snaps to edges within 5 cm) · remove the hovered or last one |
 | `Cmd/Ctrl+Z` · `Shift+Cmd/Ctrl+Z` (or `Ctrl+Y`) | Undo · redo |
 | `Cmd/Ctrl+C` · `V` · `D` | Copy · paste at the pointer · duplicate |
 | Arrows (`Shift` = 10 cm) | Nudge 1 cm; wall items slide along their wall |
@@ -76,4 +79,4 @@ pnpm test:types     # type-checks the tests
 BASE_URL=http://localhost:5184 CHROME_PATH=/path/to/chrome pnpm test:e2e   # needs a running dev server
 ```
 
-Unit tests live in `tests/unit`. The e2e smoke test (`tests/e2e/smoke.mjs`) switches views, opens each panel tab and places an artwork, a plant, lamps and a desk through the UI, then checks `data/decor.e2e-smoke.json` through the dev API. Screenshots go to `test-results/e2e/` (git-ignored).
+Unit tests live in `tests/unit`. The e2e smoke test (`tests/e2e/smoke.mjs`) switches views, opens each panel tab and places an artwork, a plant, lamps and a desk through the UI, then checks `data/decor.e2e-smoke.json` through the dev API. `tests/e2e/walk-measure.mjs` walks through the flat (entry, passage, balcony, walls), measures on the floor and checks the clearance overlay. Screenshots go to `test-results/e2e/` (ignored by version control).

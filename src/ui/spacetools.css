@@ -1,0 +1,180 @@
+/* Walk and measure HUD: bottom left of the canvas, clear of the edit bar and the panel. */
+.space-hud {
+  position: absolute;
+  left: var(--gutter);
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 264px;
+  pointer-events: none;
+}
+
+.space-hud section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  /* Opaque: a backdrop blur over the live canvas would re-blur every frame. */
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  font-size: 12px;
+  color: var(--ink);
+  pointer-events: auto;
+  animation: hud-in 140ms ease-out;
+}
+
+@keyframes hud-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .space-hud section {
+    animation: none;
+  }
+}
+
+.hud-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hud-row strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hud-row.eye label {
+  color: var(--muted);
+}
+
+.hud-row.eye input {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--ink);
+}
+
+.hud-row.eye output {
+  min-width: 48px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-row.presets {
+  justify-content: flex-start;
+  gap: 4px;
+}
+
+.space-hud button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.space-hud button:hover {
+  background: var(--hover);
+}
+
+.space-hud button[aria-pressed='true'] {
+  background: var(--accent);
+  box-shadow: none;
+  color: var(--accent-ink);
+}
+
+.space-hud button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.space-hud kbd {
+  padding: 0 4px;
+  font-size: 11px;
+}
+
+.hud-hint {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* Tape measurements and clearance dimensions: small tags on the line. */
+.measure-label span,
+.clearance-label span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #2f6fd6;
+  color: #fff;
+  font:
+    600 11px/1.4 ui-sans-serif,
+    system-ui,
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  user-select: none;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
+}
+
+.measure-label span {
+  pointer-events: auto;
+}
+
+.measure-label.preview span {
+  background: rgb(47 111 214 / 0.85);
+  pointer-events: none;
+}
+
+.measure-label button {
+  display: none;
+  width: 16px;
+  height: 16px;
+  margin-right: -3px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.22);
+  color: #fff;
+  font: inherit;
+  line-height: 16px;
+  cursor: pointer;
+}
+
+.measure-label span:hover button,
+.measure-label button:focus-visible {
+  display: inline-block;
+}
+
+.clearance-label span {
+  pointer-events: none;
+}
+
+.clearance-label.tight span {
+  background: #d97706;
+}
+
+.clearance-label.blocked span {
+  background: #e5484d;
+}
+
+@media (max-width: 800px) {
+  .space-hud {
+    bottom: calc(min(52dvh, 560px) + 32px);
+  }
+}
