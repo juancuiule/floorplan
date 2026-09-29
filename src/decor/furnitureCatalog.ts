@@ -126,7 +126,7 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     note: 'Box cushions, slim legs',
     group: 'Sit',
     mount: 'surface',
-    size: [1.9, 0.7, 0.88],
+    size: [1.6, 0.7, 0.88],
     presets: [
       { label: '2 seats', size: [1.6, 0.7, 0.88] },
       { label: '3 seats', size: [2.1, 0.7, 0.88] },
