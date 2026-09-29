@@ -1,5 +1,6 @@
 {
   "version": 1,
+  "name": "Full",
   "finishes": {
     "floors": {
       "main": "oakLight",
@@ -425,7 +426,7 @@
       "rotation": 0,
       "size": [
         1.4,
-        0.93,
+        0.72,
         0.7
       ],
       "finish": {
@@ -601,7 +602,7 @@
       "id": "furniture-mum991u3ixdt",
       "type": "bookshelf",
       "at": [
-        3.68,
+        3.55,
         0,
         2.83
       ],
@@ -796,8 +797,8 @@
       "id": "artwork-mum9q22w3y0m",
       "image": "/artwork/image%2065.png",
       "at": [
-        4.84,
-        1.57,
+        5.24,
+        1.58,
         3
       ],
       "facing": "z-",
@@ -1003,11 +1004,11 @@
       "id": "artwork-muma5x62zu5f",
       "image": "/artwork/img_2197-61676a700d9101809317290255807040-1024-1024.webp",
       "at": [
-        2.83,
-        1.7,
-        0
+        6.02,
+        2.01,
+        3
       ],
-      "facing": "z+",
+      "facing": "z-",
       "size": {
         "preset": "custom",
         "w": 0.51,
@@ -1019,7 +1020,7 @@
         "color": "#1f1e1c",
         "mat": 0
       },
-      "host": "side-bath"
+      "host": "side-kitchen"
     },
     {
       "kind": "furniture",
