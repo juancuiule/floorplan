@@ -175,6 +175,8 @@ export interface DecorFile {
   version: 1
   /** Display name in the layouts menu; the file name (slug) when missing. */
   name?: string
+  /** The plan (src/plans/<id>.plan.json) this layout furnishes; missing means the default plan. */
+  plan?: string
   /** Floors, paint and tiles for this layout; omitted when they are the defaults. */
   finishes?: Partial<Finishes>
   /** Names given to groups (by groupId); groups without one get a default name. */

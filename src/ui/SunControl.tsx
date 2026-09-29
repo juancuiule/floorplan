@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { plan } from '../project/plan'
 import { useView } from '../store'
 import { compassBearing, compassName, formatMinutes, sunTimes, todayIn, type Compass } from '../sun/solar'
 import { Icon } from './icons'
@@ -116,9 +117,9 @@ function SunPopover({ onClose, triggerRef }: { onClose: () => void; triggerRef: 
   const solar = useView((s) => s.solar)
   const night = useView((s) => s.lighting === 'evening')
   const { setSun, setPlaying } = useView.getState()
-  const times = sunTimes(sun.date)
+  const times = sunTimes(sun.date, plan.location)
   const year = sun.date.slice(0, 4)
-  const today = todayIn()
+  const today = todayIn(plan.location)
   const facingName = compassName(sun.facing)
 
   useEffect(() => {

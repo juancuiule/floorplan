@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { FLOOR_ORIGIN_Z } from '../project/derived'
 import type { MaterialDef, PatternDef } from '../model/types'
 
 // Procedural canvas textures, kept pale on purpose. Each texture covers a
@@ -499,4 +500,4 @@ export function hexScatter(def: MaterialDef, rect: [number, number, number, numb
 }
 
 /** Plan z of the kitchen-side edge of the floors: world-aligned floor patterns start there (see Floors). */
-export const FLOOR_Z1 = 3.0
+export const FLOOR_Z1 = FLOOR_ORIGIN_Z

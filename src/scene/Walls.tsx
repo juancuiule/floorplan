@@ -2,7 +2,8 @@ import { invalidate, useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { outwardNormal, wallFrame, wallPieces } from '../geometry/walls'
-import type { Bulge, Opening, Shell, Vec2, Vec3, Wall } from '../model/types'
+import type { Bulge, Opening, Shell, Vec3, Wall } from '../model/types'
+import { INSIDE } from '../project/derived'
 import { useActiveShell, useStructure } from '../project/structure'
 import { useView } from '../store'
 import { Box } from './Box'
@@ -14,7 +15,6 @@ import { requestShadowUpdate } from './shadows'
 export const STUB_HEIGHT = 0.3
 const XRAY_ALPHA = 0.14
 const FADE_SPEED = 9
-const INSIDE: Vec2 = [3.45, 1.5]
 
 /** Walls currently cut away by dollhouse mode; decor hosted on them hides too. */
 export const cutWalls = new Set<string>()

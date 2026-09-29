@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import { DEFAULT_STRUCTURE, isRemovableWall, type RemovableWall, type Structure } from '../model/structure'
 import type { Bulge, Ceiling, MaterialId, Rect, Shell, Vec3, Wall } from '../model/types'
-import { shell } from '.'
+import type { RemovalDef } from '../model/plan'
+import { plan, shell } from '.'
+import { CEILING_TOP } from './derived'
 
 // The shell as the open layout has it: shell.ts minus the partitions the owner
 // took out (src/model/structure.ts), with what they carried (tiles, doors,
@@ -19,60 +21,22 @@ export interface FloorFill {
   material: MaterialId
 }
 
-interface Removal {
-  label: string
-  /** What goes with it, for the Room tab. */
-  note: string
-  /** Stretch of the wall (distance from wall.a) that stays standing. */
-  keep?: [number, number]
-  /**
-   * Floor under the old wall, in the finish of the room that owned that side, up
-   * to the wall's centerline (the base floor already runs under every wall, so the
-   * other side needs nothing). `with`: only when those walls are gone too.
-   */
-  floors: { rect: Rect; material: MaterialId; with?: RemovableWall[] }[]
-}
+type Removal = RemovalDef
 
-export const REMOVALS: Record<RemovableWall, Removal> = {
-  'bath-hall': {
-    label: 'Bathroom ↔ hall',
-    note: 'Takes the bathroom door and the tiles around it.',
-    floors: [{ rect: [0, 1.3, 1.25, 1.35], material: 'bathFloor' }],
-  },
-  'bath-niche': {
-    label: 'Bathroom ↔ niche',
-    note: 'Opens the bathroom onto the niche; its tiles go.',
-    floors: [{ rect: [1.25, 0.7, 1.3, 1.3], material: 'bathFloor' }],
-  },
-  'shower-niche': {
-    label: 'Shower ↔ niche',
-    note: 'Opens the shower onto the niche; its tiles go.',
-    floors: [
-      { rect: [1.35, 0.7, 2.1, 0.75], material: 'bathFloor' },
-      { rect: [1.3, 0.7, 1.35, 0.75], material: 'bathFloor', with: ['bath-niche'] },
-    ],
-  },
-  'entry-main': {
-    label: 'Hall ↔ main room',
-    note: 'The passage and its header go. The shower’s back wall (the plumbing wall) stays.',
-    // z 0–0.8: behind the shower and the end of the shower–niche partition.
-    keep: [0, 0.8],
-    floors: [],
-  },
-}
+/** What each removable partition takes with it, from the plan (src/plans/*.plan.json). */
+export const REMOVALS: Record<RemovableWall, Removal> = plan.walls.removable ?? {}
 
 /** Every wall in the plan, for the Room tab's list and diagram. */
 export const WALL_LABELS: Record<string, string> = {
-  entry: 'Entry wall',
-  'side-bath': 'Party wall, bathroom side',
-  'side-kitchen': 'Party wall, kitchen side',
-  facade: 'Facade',
+  ...Object.fromEntries(shell.walls.map((w) => [w.id, w.id])),
+  ...plan.walls.labels,
   ...Object.fromEntries(Object.entries(REMOVALS).map(([id, r]) => [id, r.label])),
 }
 
 /** Height of the slab above the dropped ceiling, where the entry ceiling goes when raised. */
-export const SLAB_CEILING = 2.6
-const DROPPED = 'entry-dropped'
+export const SLAB_CEILING = plan.droppedCeiling?.raiseTo ?? CEILING_TOP
+const DROPPED = plan.droppedCeiling?.id
+const BULKHEAD_WALL = plan.droppedCeiling?.bulkheadWall
 /** Drywall edge that closes the dropped ceiling where the hall–main wall was. */
 const BULKHEAD_T = 0.02
 
@@ -177,11 +141,11 @@ export function activeShell(s: Structure = currentStructure()): ActiveShell {
 
   // The dropped ceiling stays (it hides services) unless raised; where the
   // hall–main wall held its edge, a bulkhead closes the step up to the slab.
-  const dropped = shell.ceilings.find((c) => c.id === DROPPED)!
+  const dropped = shell.ceilings.find((c) => c.id === DROPPED)
   const ceilings = shell.ceilings.map((c) => (c.id === DROPPED && s.raiseEntryCeiling ? { ...c, height: SLAB_CEILING } : c))
-  if (removed.has('entry-main') && !s.raiseEntryCeiling) {
-    const w = shell.walls.find((x) => x.id === 'entry-main')!
-    const keep = REMOVALS['entry-main'].keep!
+  if (dropped && BULKHEAD_WALL && removed.has(BULKHEAD_WALL) && !s.raiseEntryCeiling) {
+    const w = shell.walls.find((x) => x.id === BULKHEAD_WALL)!
+    const keep = REMOVALS[BULKHEAD_WALL].keep ?? [0, 0]
     const [lo, hi] = axisRange(w, keep[1], wallLength(w))
     const x = dropped.rect[2] + BULKHEAD_T / 2
     soffits.push({

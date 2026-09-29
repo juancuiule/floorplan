@@ -2,14 +2,17 @@
 // raised, per layout. Saved inside the layout's `finishes` as `structure`, and
 // only when something differs from the built flat, so old files keep their shape.
 
-/** Partitions that carry no load and can come out. Exterior, party walls, the facade, columns and beams stay. */
-export const REMOVABLE_WALLS = ['bath-hall', 'bath-niche', 'shower-niche', 'entry-main'] as const
-export type RemovableWall = (typeof REMOVABLE_WALLS)[number]
+import { plan } from '../project/plan'
+
+/** Partitions that carry no load and can come out, from the plan. Exterior, party walls, the facade, columns and beams stay. */
+export const REMOVABLE_WALLS: readonly string[] = Object.keys(plan.walls.removable ?? {})
+/** A wall id listed in the plan's `walls.removable`. */
+export type RemovableWall = string
 
 export interface Structure {
   /** Partitions taken out, in REMOVABLE_WALLS order. */
   removedWalls: RemovableWall[]
-  /** The 2.40 services ceiling over the entry zone raised to the slab (2.60). */
+  /** The plan's dropped (services) ceiling raised to the slab. */
   raiseEntryCeiling: boolean
 }
 

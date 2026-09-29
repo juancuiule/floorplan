@@ -7,11 +7,16 @@ pnpm install
 pnpm dev            # http://localhost:5173
 ```
 
+## Plans
+
+Each apartment is a plan file in `src/plans/<id>.plan.json` (type in `src/model/plan.ts`): its walls and openings, rooms, floors and ceilings, fixed fittings, materials, where it is (for the sun), and design rules: which partitions can come out, which walls take an accent color, which wall is the facade, a raisable dropped ceiling, and optional camera presets. Anything the file leaves out is derived from its geometry (`src/project/derived.ts`).
+
+- `?plan=<id>` opens another plan; the default is `monoambiente`. `loft` is a small test plan in Madrid.
+- Each plan has its own layouts: another plan's main layout is `data/decor.plan-<id>.json`, and layout files record their `plan`, so the layouts menu only lists the open plan's.
+
 ## Where things live
 
-- `src/project/shell.ts`: walls, openings (doors, the balcony slider, the passage), columns, beams, bathroom tiles, rooms and ceilings. All in meters.
-- `src/project/objects.ts`: fixtures and, later, furniture and decor.
-- `src/project/materials.ts`: named colors, plus plank and tile patterns.
+- `src/plans/monoambiente.plan.json`: this apartment (see Plans above).
 - `data/decor.json`: artwork, plants and lights you place in the app. The panel saves every change here, and editing the file by hand (or asking Claude to) updates open tabs live.
 - `public/artwork/`: the image library. Uploads from the panel land here.
 

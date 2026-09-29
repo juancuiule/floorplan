@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { isDefaultPlan, plan } from '../project/plan'
 import type { DecorFile, DecorItem, DecorKind } from '../model/decor'
 import { DEFAULT_FINISHES, isDefaultFinishes, normalizeFinishes, type Finishes } from '../model/finishes'
 import type { Vec3 } from '../model/types'
@@ -107,7 +108,11 @@ interface DecorState {
 }
 
 /** Which decor file this tab edits: data/decor.json, or data/decor.<name>.json with ?decor=<name>. */
-let decorFile = new URLSearchParams(window.location.search).get('decor')
+/** The main layout file of a plan other than the default one. */
+export const planMainSlug = (id: string) => `plan-${id}`
+
+// Another plan's main layout lives in data/decor.plan-<id>.json, so it never opens the default plan's layouts.
+let decorFile = new URLSearchParams(window.location.search).get('decor') ?? (isDefaultPlan ? null : planMainSlug(plan.id))
 const decorUrl = () => `/api/decor${decorFile ? `?file=${encodeURIComponent(decorFile)}` : ''}`
 
 /** Keeps ?decor= in the address bar in step with the open layout, without a reload. */
@@ -594,7 +599,7 @@ export const serialize = (items: DecorItem[], finishes: Finishes = DEFAULT_FINIS
   const groups = named.length ? Object.fromEntries(named.map(([g, n]) => [g, { name: n }])) : undefined
   return (
     JSON.stringify(
-      { version: 1, ...(name ? { name } : {}), ...(isDefaultFinishes(finishes) ? {} : { finishes }), ...(groups ? { groups } : {}), items } satisfies DecorFile,
+      { version: 1, ...(name ? { name } : {}), ...(isDefaultPlan ? {} : { plan: plan.id }), ...(isDefaultFinishes(finishes) ? {} : { finishes }), ...(groups ? { groups } : {}), items } satisfies DecorFile,
       null,
       2,
     ) + '\n'

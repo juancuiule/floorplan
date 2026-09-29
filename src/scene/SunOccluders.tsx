@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
+import { plan } from '../project/plan'
 import * as THREE from 'three'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { wallFrame, wallPieces } from '../geometry/walls'
@@ -54,11 +55,11 @@ function buildGeometry(): THREE.BufferGeometry {
 
   if (BALCONY_SIDE_WALLS) {
     const balcony = rooms.find((r) => r.id === 'balcony')
-    const facade = walls.find((w) => w.id === 'facade')
+    const facade = walls.find((w) => plan.walls.roles?.[w.id] === 'facade')
     if (balcony && facade) {
       const start = facade.a[0] + facade.thickness / 2
       const len = balcony.rect[2] - start
-      for (const side of walls.filter((w) => w.id === 'side-bath' || w.id === 'side-kitchen')) {
+      for (const side of walls.filter((w) => plan.walls.roles?.[w.id] === 'party')) {
         box([len, side.height, side.thickness], [start + len / 2, side.height / 2, side.a[1]])
       }
     }

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { plan } from './project/plan'
 import { duskLevel, NIGHT_BELOW } from './sun/daylight'
 import { isIsoDate, parseClock, parseFacing, solarPosition, todayIn, type SunPosition } from './sun/solar'
 import type { Vec2 } from './model/types'
@@ -90,13 +91,13 @@ function initialSun(): SunSettings {
   const urlDate = params.get('date')
   return {
     facing: parseFacing(params.get('facing')) ?? saved.facing ?? 0,
-    date: isIsoDate(urlDate) ? urlDate : urlMinutes !== null ? todayIn() : (saved.date ?? todayIn()),
+    date: isIsoDate(urlDate) ? urlDate : urlMinutes !== null ? todayIn(plan.location) : (saved.date ?? todayIn(plan.location)),
     minutes: urlMinutes ?? saved.minutes ?? LIGHTING_PRESETS.day,
   }
 }
 
 function derive(sun: SunSettings) {
-  const solar = solarPosition(sun.date, sun.minutes)
+  const solar = solarPosition(sun.date, sun.minutes, plan.location)
   return { solar, lighting: (solar.elevation < NIGHT_BELOW ? 'evening' : 'day') as Lighting, dusk: duskLevel(solar.elevation) }
 }
 
@@ -113,7 +114,7 @@ export const useView = create<ViewState>((set) => ({
   downlights: params.get('downlights') !== '0',
   setLighting: (lighting) =>
     set((s) => {
-      const sun = { ...s.sun, date: todayIn(), minutes: LIGHTING_PRESETS[lighting] }
+      const sun = { ...s.sun, date: todayIn(plan.location), minutes: LIGHTING_PRESETS[lighting] }
       return { sun, ...derive(sun), playing: false }
     }),
   setSun: (patch) =>

@@ -1,4 +1,5 @@
 import type { AccentWall, Finishes, FloorId, FloorZone, TileLayout } from '../model/finishes'
+import { plan } from './plan'
 import type { MaterialDef } from '../model/types'
 
 // What each finish looks like, as material definitions the scene can build.
@@ -77,12 +78,7 @@ export const ZONE_LABELS: Record<FloorZone, string> = {
   balcony: 'Balcony',
 }
 
-export const ACCENT_LABELS: Record<AccentWall, string> = {
-  none: 'None',
-  'side-bath': 'Bath side',
-  'side-kitchen': 'Kitchen side',
-  'entry-main': 'Entry wall',
-}
+export const ACCENT_LABELS: Record<AccentWall, string> = { none: 'None', ...plan.walls.accent }
 
 export const PAINTS = [
   { label: 'Warm white', color: '#f3f1ec' },

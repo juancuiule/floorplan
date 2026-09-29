@@ -1,22 +1,28 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import { useDecor } from '../decor/store'
+import { plan } from '../project'
 import type { ShowerFittings, ShowerScreen } from '../model/finishes'
 import type { Vec3 } from '../model/types'
 import { Box } from './Box'
 import { Merged } from './Merged'
 import { sharedEdgeMaterial, sharedMaterial } from './materials'
 
-// The shower in the bathroom corner, over the tray at x 1.35–2.10, z 0–0.70.
-// Walls around it are tiled (10 mm cladding): back face at x = 2.09, side
-// faces at z = 0.01 (bath-side wall) and z = 0.69 (shower-niche wall). The
-// open side, toward the rest of the bathroom, is the plane x = 1.35.
+// The shower over the plan's shower tray. In the tray's frame the back wall
+// (with the mixer and the rain head) is on +x and the open side, toward the
+// rest of the bathroom, on −x; the walls around it carry 10 mm of tiles.
 
-const X0 = 1.35
-const BACK = 2.09
-const Z0 = 0.01
-const Z1 = 0.69
-const TRAY_TOP = 0.06
+// Built in the tray's own frame (origin at its center, the back wall on +x),
+// so a plan can put its shower anywhere: the tray fixture places it.
+const TRAY = plan.fixtures.find((o) => o.type === 'showerTray')
+const [TW, TH, TD] = TRAY?.size ?? [0.75, 0.06, 0.7]
+/** Tiles on the walls around the tray. */
+const CLAD = 0.01
+const X0 = -TW / 2
+const BACK = TW / 2 - CLAD
+const Z0 = -TD / 2 + CLAD
+const Z1 = TD / 2 - CLAD
+const TRAY_TOP = TH
 const ZC = (Z0 + Z1) / 2
 
 const FITTINGS: Record<ShowerFittings, THREE.MeshStandardMaterial> = {
@@ -60,8 +66,8 @@ function Fittings({ m }: { m: THREE.Material }) {
     const curve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(BACK - 0.03, 1.02, ZC + 0.06),
       new THREE.Vector3(BACK - 0.06, 0.62, ZC + 0.12),
-      new THREE.Vector3(BACK - 0.05, 0.75, 0.52),
-      new THREE.Vector3(BACK - 0.06, 1.55, 0.53),
+      new THREE.Vector3(BACK - 0.05, 0.75, Z1 - 0.17),
+      new THREE.Vector3(BACK - 0.06, 1.55, Z1 - 0.16),
     ])
     return new THREE.TubeGeometry(curve, 32, 0.007, 6, false)
   }, [])
@@ -79,11 +85,11 @@ function Fittings({ m }: { m: THREE.Material }) {
       <Pipe a={[BACK, 1.02, ZC + 0.06]} b={[BACK - 0.035, 1.02, ZC + 0.06]} r={0.012} m={m} />
 
       {/* slide bar with the hand shower resting in its holder */}
-      <Pipe a={[BACK - 0.035, 1.15, 0.53]} b={[BACK - 0.035, 1.9, 0.53]} r={0.011} m={m} />
-      <Pipe a={[BACK, 1.15, 0.53]} b={[BACK - 0.035, 1.15, 0.53]} r={0.01} m={m} />
-      <Pipe a={[BACK, 1.9, 0.53]} b={[BACK - 0.035, 1.9, 0.53]} r={0.01} m={m} />
-      <Pipe a={[BACK - 0.06, 1.55, 0.53]} b={[BACK - 0.1, 1.72, 0.53]} r={0.013} m={m} />
-      <mesh position={[BACK - 0.11, 1.76, 0.53]} rotation={[0, 0, 0.9]} material={m} castShadow>
+      <Pipe a={[BACK - 0.035, 1.15, Z1 - 0.16]} b={[BACK - 0.035, 1.9, Z1 - 0.16]} r={0.011} m={m} />
+      <Pipe a={[BACK, 1.15, Z1 - 0.16]} b={[BACK - 0.035, 1.15, Z1 - 0.16]} r={0.01} m={m} />
+      <Pipe a={[BACK, 1.9, Z1 - 0.16]} b={[BACK - 0.035, 1.9, Z1 - 0.16]} r={0.01} m={m} />
+      <Pipe a={[BACK - 0.06, 1.55, Z1 - 0.16]} b={[BACK - 0.1, 1.72, Z1 - 0.16]} r={0.013} m={m} />
+      <mesh position={[BACK - 0.11, 1.76, Z1 - 0.16]} rotation={[0, 0, 0.9]} material={m} castShadow>
         <cylinderGeometry args={[0.045, 0.04, 0.02, 24]} />
       </mesh>
       <mesh geometry={hose} material={m} />
@@ -160,10 +166,13 @@ export function Shower() {
   const fittings = useDecor((s) => s.finishes.shower.fittings)
   const m = FITTINGS[fittings]
   // Remount (and re-merge) only when the choice changes.
+  if (!TRAY) return null
   return (
-    <Merged key={`${screen}|${curtainColor}|${fittings}`}>
-      <Fittings m={m} />
-      <ScreenFor screen={screen} curtainColor={curtainColor} m={m} />
-    </Merged>
+    <group position={TRAY.position} rotation={[0, THREE.MathUtils.degToRad(TRAY.rotation ?? 0), 0]}>
+      <Merged key={`${screen}|${curtainColor}|${fittings}`}>
+        <Fittings m={m} />
+        <ScreenFor screen={screen} curtainColor={curtainColor} m={m} />
+      </Merged>
+    </group>
   )
 }

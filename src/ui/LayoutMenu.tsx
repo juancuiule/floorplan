@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { MAIN_NAME, useLayouts, type LayoutInfo } from '../decor/layouts'
+import { plan } from '../project/plan'
 import { useDecor } from '../decor/store'
 import { Icon } from './icons'
 import './layoutMenu.css'
@@ -118,9 +119,9 @@ function LayoutsPopover({ onClose }: { onClose: () => void }) {
   const [mode, setMode] = useState<Mode>({ kind: 'idle' })
   const [busy, setBusy] = useState(false)
 
-  // The open layout and the compare target show even when the list hides them (test files).
-  const rows: LayoutInfo[] = [...list]
-  if (!rows.some((l) => l.slug === layout)) rows.push({ slug: layout, name: displayName(layout, layoutName), items: itemCount, updated: '' })
+  // Only this plan's layouts. The open layout shows even when the list hides it (test files).
+  const rows: LayoutInfo[] = list.filter((l) => l.plan === plan.id)
+  if (!rows.some((l) => l.slug === layout)) rows.push({ slug: layout, name: displayName(layout, layoutName), items: itemCount, updated: '', plan: plan.id })
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true)

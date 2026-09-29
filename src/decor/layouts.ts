@@ -9,6 +9,8 @@ export interface LayoutInfo {
   name: string
   items: number
   updated: string
+  /** The plan it furnishes. */
+  plan: string
 }
 
 export const MAIN_NAME = 'Current'

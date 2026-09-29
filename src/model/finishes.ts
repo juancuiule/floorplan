@@ -2,6 +2,8 @@
 // in the layout file next to the decor items. Every field has a default that
 // reproduces the original look, so a file without `finishes` renders as before.
 
+import { plan } from '../project/plan'
+
 import { DEFAULT_STRUCTURE, isDefaultStructure, normalizeStructure, type Structure } from './structure'
 
 /** Floor finishes, see src/project/finishes.ts for how each one looks. */
@@ -32,8 +34,9 @@ export const ZONE_FLOORS: Record<FloorZone, readonly FloorId[]> = {
 }
 
 /** Main-room walls that can take an accent color. */
-export const ACCENT_WALLS = ['none', 'side-bath', 'side-kitchen', 'entry-main'] as const
-export type AccentWall = (typeof ACCENT_WALLS)[number]
+export const ACCENT_WALLS: readonly string[] = ['none', ...Object.keys(plan.walls.accent ?? {})]
+/** 'none' or a wall id from the plan's `walls.accent`. */
+export type AccentWall = string
 
 export const TILE_LAYOUTS = ['stack', 'subway', 'square', 'vertical'] as const
 export type TileLayout = (typeof TILE_LAYOUTS)[number]

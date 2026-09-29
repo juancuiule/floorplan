@@ -3,18 +3,18 @@ import { useThree } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import type { Vec3 } from '../model/types'
+import { CAMERAS } from '../project/derived'
 import { useView, type ViewPreset } from '../store'
 
 const WIDE = 38
 const EYE = 64
 
-export const PRESETS: Record<ViewPreset, { label: string; position: Vec3; target: Vec3; fov: number }> = {
-  'iso-balcony': { label: 'Iso · balcony', position: [11.2, 7.6, -4.6], target: [4.0, 0.4, 1.5], fov: WIDE },
-  'iso-entry': { label: 'Iso · entry', position: [-3.8, 7.6, 7.4], target: [4.0, 0.4, 1.5], fov: WIDE },
-  top: { label: 'Top', position: [4.1, 13.5, 1.5001], target: [4.1, 0, 1.5], fov: WIDE },
-  'from-balcony': { label: 'From balcony', position: [8.2, 1.55, 1.5], target: [0, 1.2, 1.6], fov: EYE },
-  'from-entry': { label: 'From entry', position: [0.9, 1.6, 1.95], target: [6.9, 1.1, 1.3], fov: EYE },
-}
+const FOV: Record<ViewPreset, number> = { 'iso-balcony': WIDE, 'iso-entry': WIDE, top: WIDE, 'from-balcony': EYE, 'from-entry': EYE }
+
+/** The open plan's camera presets (src/project/derived.ts), with a lens each. */
+export const PRESETS: Record<ViewPreset, { label: string; position: Vec3; target: Vec3; fov: number }> = Object.fromEntries(
+  (Object.keys(FOV) as ViewPreset[]).map((id) => [id, { ...CAMERAS[id], fov: FOV[id] }]),
+) as Record<ViewPreset, { label: string; position: Vec3; target: Vec3; fov: number }>
 
 /** ?cam=x,y,z,tx,ty,tz[,fov] opens at an exact camera, for screenshots. */
 const camParam = new URLSearchParams(window.location.search).get('cam')?.split(',').map(Number)

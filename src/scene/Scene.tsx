@@ -7,6 +7,7 @@ import { useDecor } from '../decor/store'
 import type { Vec3 } from '../model/types'
 import { structureOf, type Finishes } from '../model/finishes'
 import { project } from '../project'
+import { ROOM_CENTER as PLAN_CENTER, SCENE_BOX } from '../project/derived'
 import { ceilingFitting, setStructure, useStructure } from '../project/structure'
 import { useView } from '../store'
 import { CameraRig } from './CameraRig'
@@ -115,8 +116,8 @@ function ShadowController() {
 }
 
 /** The sun aims here; the shadow camera is fitted around BOUNDS (the unit and its balcony). */
-const ROOM_CENTER = new THREE.Vector3(3.9, 1.2, 1.5)
-const BOUNDS = new THREE.Box3(new THREE.Vector3(-0.3, -0.1, -0.4), new THREE.Vector3(8.5, 2.95, 3.4))
+const ROOM_CENTER = new THREE.Vector3(...PLAN_CENTER)
+const BOUNDS = new THREE.Box3(new THREE.Vector3(...SCENE_BOX.min), new THREE.Vector3(...SCENE_BOX.max))
 const SUN_DISTANCE = 20
 
 /** Fits the orthographic shadow camera tightly around BOUNDS as seen from the sun, for sharp shadows. */

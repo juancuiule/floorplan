@@ -70,7 +70,14 @@ describe('slugify', () => {
 
 describe('GET /api/layouts', () => {
   it('always lists the main layout, as Current, even without a file', async () => {
-    expect(await list()).toEqual([{ slug: null, name: 'Current', items: 0, updated: new Date(0).toISOString() }])
+    expect(await list()).toEqual([{ slug: null, name: 'Current', items: 0, updated: new Date(0).toISOString(), plan: 'monoambiente' }])
+  })
+
+  it('says which plan each layout furnishes (the default plan when the file does not say)', async () => {
+    await writeLayout(null, { version: 1, items: [plant] })
+    await writeLayout('plan-loft', { version: 1, plan: 'loft', items: [] })
+    const byslug = Object.fromEntries((await list()).map((l) => [String(l.slug), l.plan]))
+    expect(byslug).toEqual({ null: 'monoambiente', 'plan-loft': 'loft' })
   })
 
   it('lists names, item counts and update times; main first, then by name; hides test files', async () => {

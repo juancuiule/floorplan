@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { plan } from '../project/plan'
 import { PRESETS } from '../scene/CameraRig'
 import { useView, type ViewMode, type ViewPreset } from '../store'
 import { onRadioKeys } from './controlUtils'
@@ -64,8 +65,8 @@ export function Toolbar() {
   return (
     <div className="toolbar">
       <div className="title">
-        <h1>Monoambiente</h1>
-        <span>6.90 × 3.00 m + 1.30 m balcony</span>
+        <h1>{plan.name}</h1>
+        {plan.subtitle && <span>{plan.subtitle}</span>}
       </div>
 
       <div className="tb-main">

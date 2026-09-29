@@ -2,7 +2,7 @@ import { invalidate, useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { Ceiling, Rect } from '../model/types'
-import { project } from '../project'
+import { plan, project } from '../project'
 import { useActiveShell } from '../project/structure'
 import { requestShadowUpdate } from './shadows'
 import { Box } from './Box'
@@ -41,7 +41,7 @@ export function Floors() {
       {floorFills.map((f) => (
         <FloorBox key={f.id} rect={f.rect} y0={0} y1={INLAY_T} material={f.material} />
       ))}
-      <HexBlend />
+      {BLEND && <HexBlend />}
     </group>
   )
 }
@@ -49,19 +49,21 @@ export function Floors() {
 function FloorBox({ rect, y0, y1, material }: { rect: Rect; y0: number; y1: number; material: string }) {
   const { box, mat } = useMemo(() => {
     const box = rectBox(rect, y0, y1)
-    // Patterns are anchored to the plan (x = 0, z = FLOOR_Z1), so they run on across neighboring floors.
+    // Patterns are anchored to the plan (x = 0, z = FLOOR_Z1, the far edge of the base floors), so they run on across neighboring floors.
     return { box, mat: makeMaterial(material, faceDims(box.size), [rect[0], FLOOR_Z1 - rect[3]]) }
   }, [rect, y0, y1, material])
   return <Box {...box} material={mat} castShadow={false} />
 }
 
-/** Where the hall's hexagons spill into the main room: around the passage (x 2.15, z 1.4–2.4). */
-const BLEND_RECT: Rect = [2.15, 0, 3.55, 3.0]
+/** Where the hall's hexagons spill into the next room, from the plan (none: the option does nothing). */
+const BLEND = plan.hexBlend
+const BLEND_RECT: Rect = BLEND?.rect ?? [0, 0, 0, 0]
 
 /** Density of scattered hexagons: solid at the passage, thinning out into the room. */
 function blendKeep(x: number, z: number, col: number, row: number) {
-  const dz = Math.max(0, Math.abs(z - 1.9) - 0.35)
-  const d = Math.hypot(x - 2.15, dz * 1.6)
+  const [fx, fz] = BLEND!.focus
+  const dz = Math.max(0, Math.abs(z - fz) - BLEND!.halfSpan)
+  const d = Math.hypot(x - fx, dz * 1.6)
   const p = Math.min(1, Math.max(0, 1 - (d - 0.12) / 1.05)) ** 1.6
   return hash(col, row, 91) < p
 }
