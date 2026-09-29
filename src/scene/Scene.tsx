@@ -18,13 +18,42 @@ import { Walls } from './Walls'
 declare global {
   interface Window {
     __frames?: number
+    /** Renderer counters for the last rendered frame (all passes, shadows included). */
+    /** Requests one render (the canvas renders on demand). */
+    __invalidate?: () => void
+    __stats?: { calls: number; triangles: number; lines: number; points: number; programs: number; geometries: number; textures: number }
   }
 }
 
+/**
+ * Counts rendered frames (scripts wait on window.__frames) and publishes
+ * renderer.info for the whole frame. Runs after the EffectComposer (priority 1).
+ */
 function FrameCounter() {
+  const gl = useThree((s) => s.gl)
+  const invalidate = useThree((s) => s.invalidate)
+  useEffect(() => {
+    gl.info.autoReset = false
+    window.__invalidate = () => invalidate()
+    return () => {
+      gl.info.autoReset = true
+      delete window.__invalidate
+    }
+  }, [gl, invalidate])
   useFrame(() => {
     window.__frames = (window.__frames ?? 0) + 1
-  })
+    const { render, memory, programs } = gl.info
+    window.__stats = {
+      calls: render.calls,
+      triangles: render.triangles,
+      lines: render.lines,
+      points: render.points,
+      programs: programs?.length ?? 0,
+      geometries: memory.geometries,
+      textures: memory.textures,
+    }
+    gl.info.reset()
+  }, 2)
   return null
 }
 
