@@ -1,14 +1,17 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { EffectComposer, N8AO, SMAA, ToneMapping } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useDecor } from '../decor/store'
 import type { Vec3 } from '../model/types'
 import { project } from '../project'
 import { useView } from '../store'
 import { CameraRig } from './CameraRig'
-import { requestShadowUpdate, takeShadowUpdate } from './shadows'
+import { requestShadowUpdate, shadowOnly, takeShadowUpdate } from './shadows'
+import { SunOccluders } from './SunOccluders'
+import { daylight } from '../sun/daylight'
+import { sunDirection, type SunPosition } from '../sun/solar'
 import { DecorLayer, SurfaceEvents } from './decor/DecorLayer'
 import { Ceilings, Floors } from './Floors'
 import { Fixtures } from './Fixtures'
@@ -76,45 +79,107 @@ function ShadowController() {
   }, [gl])
   useEffect(() => requestShadowUpdate(), [lighting])
   useFrame(() => {
-    if (takeShadowUpdate()) gl.shadowMap.needsUpdate = true
+    if (!takeShadowUpdate()) return
+    gl.shadowMap.needsUpdate = true
+    shadowOnly.forEach((o) => (o.visible = true))
   })
+  // After the frame is drawn (the composer renders at priority 1).
+  useFrame(() => shadowOnly.forEach((o) => (o.visible = false)), 3)
   return null
 }
 
+/** The sun aims here; the shadow camera is fitted around BOUNDS (the unit and its balcony). */
+const ROOM_CENTER = new THREE.Vector3(3.9, 1.2, 1.5)
+const BOUNDS = new THREE.Box3(new THREE.Vector3(-0.3, -0.1, -0.4), new THREE.Vector3(8.5, 2.95, 3.4))
+const SUN_DISTANCE = 20
+
+/** Fits the orthographic shadow camera tightly around BOUNDS as seen from the sun, for sharp shadows. */
+function fitShadowCamera(light: THREE.DirectionalLight) {
+  const view = new THREE.Matrix4().lookAt(light.position, ROOM_CENTER, THREE.Object3D.DEFAULT_UP).setPosition(light.position).invert()
+  const min = new THREE.Vector3(Infinity, Infinity, Infinity)
+  const max = new THREE.Vector3(-Infinity, -Infinity, -Infinity)
+  const p = new THREE.Vector3()
+  for (let i = 0; i < 8; i++) {
+    p.set(i & 1 ? BOUNDS.max.x : BOUNDS.min.x, i & 2 ? BOUNDS.max.y : BOUNDS.min.y, i & 4 ? BOUNDS.max.z : BOUNDS.min.z).applyMatrix4(view)
+    min.min(p)
+    max.max(p)
+  }
+  const cam = light.shadow.camera
+  const pad = 0.1
+  cam.left = min.x - pad
+  cam.right = max.x + pad
+  cam.bottom = min.y - pad
+  cam.top = max.y + pad
+  cam.near = Math.max(0.1, -max.z - pad)
+  cam.far = -min.z + pad
+  cam.updateProjectionMatrix()
+}
+
+/**
+ * Sun, sky and fill, driven by the time of day (store.sun). Updated in place
+ * from a store subscription, so scrubbing the time re-renders no React
+ * components, only the frames it needs (one shadow re-render per frame at most).
+ */
 function Lights() {
   const scene = useThree((s) => s.scene)
+  const invalidate = useThree((s) => s.invalidate)
   const evening = useView((s) => s.lighting === 'evening')
   const downlights = useView((s) => s.downlights)
+  const sunRef = useRef<THREE.DirectionalLight>(null)
+  const hemiRef = useRef<THREE.HemisphereLight>(null)
+  const ambientRef = useRef<THREE.AmbientLight>(null)
   const target = useMemo(() => new THREE.Object3D(), [])
+
   useEffect(() => {
-    target.position.set(3.8, 0, 1.5)
+    target.position.copy(ROOM_CENTER)
     scene.add(target)
-    return () => void scene.remove(target)
-  }, [scene, target])
+    const background = new THREE.Color()
+    scene.background = background
+    const d = daylight(0)
+    const apply = ({ solar, sun: { facing } }: { solar: SunPosition; sun: { facing: number } }) => {
+      daylight(solar.elevation, d)
+      background.copy(d.background)
+      const hemi = hemiRef.current!
+      hemi.color.copy(d.skyColor)
+      hemi.groundColor.copy(d.groundColor)
+      hemi.intensity = d.hemiIntensity
+      ambientRef.current!.intensity = d.ambient
+      const light = sunRef.current!
+      light.intensity = d.sunIntensity
+      light.color.copy(d.sunColor)
+      const [x, y, z] = sunDirection(solar, facing)
+      if (y > 0) {
+        light.position.set(x, y, z).multiplyScalar(SUN_DISTANCE).add(ROOM_CENTER)
+        fitShadowCamera(light)
+        requestShadowUpdate(1)
+      }
+      invalidate()
+    }
+    apply(useView.getState())
+    const unsubscribe = useView.subscribe((s, prev) => {
+      if (s.solar !== prev.solar || s.sun.facing !== prev.sun.facing) apply(s)
+    })
+    return () => {
+      unsubscribe()
+      scene.remove(target)
+      scene.background = null
+    }
+  }, [scene, target, invalidate])
 
   return (
     <>
-      <color attach="background" args={[evening ? '#1d1f24' : '#ecebe7']} />
-      <hemisphereLight args={evening ? ['#9fb2d6', '#2a2622', 0.12] : ['#ffffff', '#d9cfc0', 1.5]} />
-      <ambientLight intensity={evening ? 0.04 : 0.6} />
-      {/* Afternoon sun coming in low through the balcony opening */}
+      <hemisphereLight ref={hemiRef} />
+      <ambientLight ref={ambientRef} />
       <directionalLight
-        position={[13, 7.5, -2.5]}
+        ref={sunRef}
         target={target}
-        intensity={evening ? 0 : 2.4}
-        color="#fff4e2"
         castShadow={!evening}
         shadow-mapSize={[2048, 2048]}
         shadow-bias={-0.0004}
         shadow-normalBias={0.02}
-        shadow-camera-left={-7}
-        shadow-camera-right={7}
-        shadow-camera-top={7}
-        shadow-camera-bottom={-7}
-        shadow-camera-near={0.5}
-        shadow-camera-far={30}
       />
       {evening && downlights && project.objects.filter((o) => o.type === 'downlight').map((o) => <Downlight key={o.id} at={o.position} />)}
+      <SunOccluders />
     </>
   )
 }

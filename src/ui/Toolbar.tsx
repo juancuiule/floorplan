@@ -4,6 +4,7 @@ import { useView, type ViewMode, type ViewPreset } from '../store'
 import { onRadioKeys } from './controlUtils'
 import { Icon, type IconName } from './icons'
 import { ShortcutsPopover } from './ShortcutsPopover'
+import { SunControl } from './SunControl'
 import { useUi } from './uiStore'
 
 const MODES: { id: ViewMode; label: string; icon: IconName; tip: string }[] = [
@@ -121,7 +122,7 @@ export function Toolbar() {
                 role="radio"
                 aria-checked={lighting === l}
                 tabIndex={lighting === l ? 0 : -1}
-                data-tip={l === 'day' ? 'Daylight (L)' : 'Evening, lamps on (L)'}
+                data-tip={l === 'day' ? 'Today at 15:00 (L)' : 'Today at 21:00, lamps on (L)'}
                 aria-keyshortcuts="L"
                 onClick={() => setLighting(l)}
               >
@@ -137,6 +138,7 @@ export function Toolbar() {
             </button>
           )}
         </div>
+        <SunControl />
       </div>
 
       <div className="tb-end">

@@ -1,0 +1,233 @@
+/* ---------- sun study ---------- */
+
+.sun-wrap {
+  position: relative;
+}
+
+.sun-trigger .sun-clock {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.sun-trigger .sun-date {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.sun-trigger[aria-expanded='true'] {
+  background: var(--press);
+}
+
+.popover.sun-pop {
+  left: 0;
+  right: auto;
+  width: min(320px, calc(100vw - 2 * var(--gutter)));
+}
+
+.sun-pop .group-label {
+  margin: 0;
+}
+
+.sun-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.sun-now {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The track shows night, day and the sunrise/sunset edges. */
+.sun-slider {
+  position: relative;
+  margin: 8px 0 0;
+  padding-bottom: 18px;
+}
+
+.sun-slider input[type='range'] {
+  display: block;
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.sun-slider input[type='range']::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    #2c3040 0,
+    #6b6f8c calc(var(--rise) - 2%),
+    #f3c98f var(--rise),
+    #fbeccb calc(var(--rise) + 8%),
+    #fdf6e6 50%,
+    #fbeccb calc(var(--set) - 8%),
+    #f0b27a var(--set),
+    #6b6f8c calc(var(--set) + 2%),
+    #2c3040 100%
+  );
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.sun-slider input[type='range']::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2c3040 0, #f3c98f var(--rise), #fdf6e6 50%, #f0b27a var(--set), #2c3040 100%);
+}
+
+.sun-slider input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -5px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+}
+
+.sun-slider input[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.sun-slider input[type='range']:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.sun-mark {
+  position: absolute;
+  bottom: 0;
+  translate: -50% 0;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.sun-mark::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 1px);
+  width: 1px;
+  height: 5px;
+  background: var(--line-strong);
+}
+
+.sun-status {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.sun-date-input {
+  min-height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.sun-chips {
+  margin-top: 8px;
+}
+
+.sun-chips button[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: none;
+}
+
+.sun-facing {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sun-hint {
+  margin: 4px 0 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.sun-pop > .sun-hint {
+  margin-top: 14px;
+}
+
+.rose {
+  display: grid;
+  grid-template-columns: repeat(3, 36px);
+  grid-template-rows: repeat(3, 30px);
+  gap: 3px;
+  flex: none;
+}
+
+.rose button {
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--hover);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+@media (hover: hover) {
+  .rose button:hover {
+    background: var(--press);
+  }
+}
+
+.rose button[aria-checked='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.rose-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  background: var(--surface);
+  font-size: 11px;
+}
+
+.rose-center input {
+  width: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.rose-center input::-webkit-inner-spin-button,
+.rose-center input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.rose-center:focus-within {
+  outline: 2px solid var(--focus);
+}

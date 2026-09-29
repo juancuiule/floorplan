@@ -19,7 +19,8 @@ const ARC_CURVE = new THREE.CatmullRomCurve3([
 ])
 
 function useLampMaterials(item: LampItem) {
-  const evening = useView((s) => s.lighting === 'evening')
+  // Shades glow brighter as the daylight fades (0.1 steps, so few re-renders).
+  const dusk = useView((s) => s.dusk)
   const glowColor = warmthColor(item.warmth)
   const mats = useMemo(() => {
     const shade = new THREE.MeshStandardMaterial({ color: item.color, roughness: 0.6, side: THREE.DoubleSide })
@@ -29,7 +30,7 @@ function useLampMaterials(item: LampItem) {
   }, [item.color])
   useEffect(() => {
     const on = item.on ? 1 : 0
-    const level = on * item.brightness * (evening ? 1 : 0.25)
+    const level = on * item.brightness * (0.25 + 0.75 * dusk)
     mats.glow.emissive.set(glowColor)
     mats.glow.emissiveIntensity = level * 1.4
     mats.bulb.emissive.set(glowColor)
@@ -37,7 +38,7 @@ function useLampMaterials(item: LampItem) {
     // Translucent fabric shades glow faintly from inside.
     mats.shade.emissive.set(glowColor)
     mats.shade.emissiveIntensity = item.type === 'tripod' || item.type === 'table' ? level * 0.9 : 0
-  }, [mats, glowColor, item.on, item.brightness, item.type, evening])
+  }, [mats, glowColor, item.on, item.brightness, item.type, dusk])
   useEffect(() => () => Object.values(mats).forEach((m) => m.dispose()), [mats])
   return mats
 }
@@ -265,7 +266,8 @@ function exitTexture() {
 /** Red glass EXIT cube on a chrome wall plate, lettered on its sides. */
 function ExitCube({ item }: { item: LampItem }) {
   const evening = useView((s) => s.lighting === 'evening')
-  const lit = item.on ? item.brightness * (evening ? 1 : 0.3) : 0
+  const dusk = useView((s) => s.dusk)
+  const lit = item.on ? item.brightness * (0.3 + 0.7 * dusk) : 0
   const mats = useMemo(() => {
     const map = exitTexture()
     const face = new THREE.MeshStandardMaterial({ map, emissiveMap: map, emissive: '#ffffff', roughness: 0.25 })
