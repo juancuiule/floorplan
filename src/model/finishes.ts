@@ -2,6 +2,8 @@
 // in the layout file next to the decor items. Every field has a default that
 // reproduces the original look, so a file without `finishes` renders as before.
 
+import { DEFAULT_STRUCTURE, isDefaultStructure, normalizeStructure, type Structure } from './structure'
+
 /** Floor finishes, see src/project/finishes.ts for how each one looks. */
 export const FLOOR_IDS = [
   'oakLight',
@@ -45,6 +47,8 @@ export interface Finishes {
   accentWall: AccentWall
   accentColor: string
   bathTile: { layout: TileLayout; color: string }
+  /** Walls taken out and the entry ceiling raised (src/model/structure.ts). Absent: the flat as built. */
+  structure?: Structure
 }
 
 export const DEFAULT_FINISHES: Finishes = {
@@ -70,6 +74,7 @@ export function normalizeFinishes(raw: unknown): Finishes {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
   const floors = (r.floors && typeof r.floors === 'object' ? r.floors : {}) as Record<string, unknown>
   const tile = (r.bathTile && typeof r.bathTile === 'object' ? r.bathTile : {}) as Record<string, unknown>
+  const structure = normalizeStructure(r.structure)
   return {
     floors: {
       main: oneOf(floors.main, ZONE_FLOORS.main, d.floors.main),
@@ -82,7 +87,18 @@ export function normalizeFinishes(raw: unknown): Finishes {
     accentWall: oneOf(r.accentWall, ACCENT_WALLS, d.accentWall),
     accentColor: color(r.accentColor, d.accentColor),
     bathTile: { layout: oneOf(tile.layout, TILE_LAYOUTS, d.bathTile.layout), color: color(tile.color, d.bathTile.color) },
+    ...(isDefaultStructure(structure) ? {} : { structure }),
   }
+}
+
+/** The layout's structure, the built flat when it has none. */
+export const structureOf = (f: Finishes): Structure => f.structure ?? DEFAULT_STRUCTURE
+
+/** Finishes with a new structure; the key is dropped when it is back to the built flat. */
+export function withStructure(f: Finishes, s: Structure): Finishes {
+  const { structure: _old, ...rest } = f
+  void _old
+  return isDefaultStructure(s) ? rest : { ...rest, structure: s }
 }
 
 export const sameFinishes = (a: Finishes, b: Finishes) => JSON.stringify(a) === JSON.stringify(b)

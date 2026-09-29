@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { outwardNormal, wallFrame, wallPieces } from '../geometry/walls'
 import type { Bulge, Opening, Shell, Vec2, Vec3, Wall } from '../model/types'
-import { project } from '../project'
+import { useActiveShell, useStructure } from '../project/structure'
 import { useView } from '../store'
 import { Box } from './Box'
 import { Merged } from './Merged'
@@ -23,16 +23,66 @@ export const cutWalls = new Set<string>()
 const MAX_DT = 1 / 30
 
 export function Walls() {
-  const { walls, bulges, accentPanels } = project.shell
+  // Partitions taken out in this layout are not mounted at all: no meshes, no draw calls.
+  const { walls, soffits, parts } = useActiveShell()
   // The fade runs in useFrame; a mode switch has to wake the render loop.
   useEffect(() => useView.subscribe((s, prev) => void ((s.mode !== prev.mode || s.walking !== prev.walking) && invalidate())), [])
+  // Walls came or went: the shadow maps are stale.
+  useEffect(() => {
+    requestShadowUpdate()
+    invalidate()
+  }, [walls, soffits])
   return (
     <group>
-      {walls.map((w) => (
-        <WallView key={w.id} wall={w} bulges={bulges.filter((b) => b.host === w.id)} accents={accentPanels.filter((a) => a.wall === w.id)} />
-      ))}
+      {[...walls, ...soffits].map((w) => {
+        const p = parts.get(w.id)
+        return <WallView key={w.id} wall={w} bulges={p?.bulges ?? NONE} accents={p?.accents ?? NONE} />
+      })}
+      <WallGhosts />
     </group>
   )
+}
+
+const NONE: never[] = []
+
+/**
+ * A dashed outline on the floor where removed walls stood, to compare with the
+ * plan as built. One line mesh for all of them; nothing when no wall is removed.
+ */
+function WallGhosts() {
+  const { ghosts } = useActiveShell()
+  const on = useStructure((s) => s.ghosts)
+  const lines = useMemo(() => {
+    if (!ghosts.length) return null
+    const pts: number[] = []
+    const y = 0.008
+    for (const { rect: [x0, z0, x1, z1] } of ghosts) {
+      const c = [
+        [x0, z0],
+        [x1, z0],
+        [x1, z1],
+        [x0, z1],
+      ]
+      for (let i = 0; i < 4; i++) pts.push(c[i][0], y, c[i][1], c[(i + 1) % 4][0], y, c[(i + 1) % 4][1])
+    }
+    const geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(pts, 3))
+    const material = new THREE.LineDashedMaterial({ color: '#8a8378', dashSize: 0.05, gapSize: 0.035, transparent: true, opacity: 0.75 })
+    const obj = new THREE.LineSegments(geometry, material)
+    obj.computeLineDistances()
+    obj.raycast = () => {}
+    obj.userData.wallGhosts = true
+    return obj
+  }, [ghosts])
+  useEffect(() => {
+    invalidate()
+    return () => {
+      if (!lines) return
+      lines.geometry.dispose()
+      ;(lines.material as THREE.Material).dispose()
+    }
+  }, [lines])
+  useEffect(() => void invalidate(), [on])
+  return lines && on ? <primitive object={lines} /> : null
 }
 
 type MatPool = (id: string) => THREE.MeshStandardMaterial
@@ -110,6 +160,24 @@ function WallView({ wall, bulges, accents }: { wall: Wall; bulges: Bulge[]; acce
     }
     return { stub, stubEdge, upper, upperEdge, get, stubSet, upperSet, bulgePieces }
   }, [wall, bulges, accents])
+
+  // A wall taken out (or shortened) in the open layout: free what it built.
+  // Deferred a tick so a StrictMode remount (same materials) keeps them.
+  const live = useRef<unknown>(null)
+  useEffect(() => {
+    live.current = mats
+    return () => {
+      live.current = null
+      setTimeout(() => {
+        if (live.current === mats) return
+        if (!live.current) cutWalls.delete(wall.id)
+        for (const m of [...mats.stubSet, ...mats.upperSet]) {
+          ;(m as THREE.MeshStandardMaterial).map?.dispose()
+          m.dispose()
+        }
+      }, 0)
+    }
+  }, [mats, wall.id])
 
   const alpha = useRef({ stub: 1, upper: 1, shadows: true })
 

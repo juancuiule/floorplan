@@ -2,7 +2,7 @@ import type { ThreeEvent } from '@react-three/fiber'
 import * as THREE from 'three'
 import type { DecorItem, Facing, FurnitureItem } from '../model/decor'
 import type { Vec3 } from '../model/types'
-import { project } from '../project'
+import { activeBulges, activeCeilings, activeWalls, onStructure } from '../project/structure'
 import { LAMPS, PLANTS, type Mount } from './catalog'
 import { FURNITURE } from './furnitureCatalog'
 
@@ -63,7 +63,7 @@ export function alongWall(f: Facing): [number, number] {
 }
 
 export function ceilingAt(x: number, z: number): number {
-  for (const c of project.shell.ceilings) {
+  for (const c of activeCeilings()) {
     const [x0, z0, x1, z1] = c.rect
     if (x >= x0 && x <= x1 && z >= z0 && z <= z1) return c.height
   }
@@ -142,10 +142,15 @@ interface Face {
 }
 
 let faces: Face[] | null = null
+// Walls taken out or put back: wall faces and solids are rebuilt from the active walls.
+onStructure(() => {
+  faces = null
+  solids = null
+})
 function wallFaces(): Face[] {
   if (faces) return faces
   faces = []
-  for (const w of project.shell.walls) {
+  for (const w of activeWalls()) {
     const alongZ = Math.abs(w.a[0] - w.b[0]) < 1e-6
     const t = w.thickness / 2
     if (alongZ) {
@@ -289,7 +294,7 @@ let solids: Footprint[] | null = null
 function solidRects(): Footprint[] {
   if (solids) return solids
   solids = []
-  for (const w of project.shell.walls) {
+  for (const w of activeWalls()) {
     const dx = w.b[0] - w.a[0]
     const dz = w.b[1] - w.a[1]
     const len = Math.hypot(dx, dz)
@@ -312,7 +317,7 @@ function solidRects(): Footprint[] {
       solids.push({ cx: w.a[0] + ux * mid, cz: w.a[1] + uz * mid, hw: (s1 - s0) / 2, hd: w.thickness / 2, rotation })
     }
   }
-  for (const b of project.shell.bulges) {
+  for (const b of activeBulges()) {
     const sx = b.max[0] - b.min[0]
     const sz = b.max[2] - b.min[2]
     if (b.min[1] > 0.1 || Math.min(sx, sz) < 0.05) continue

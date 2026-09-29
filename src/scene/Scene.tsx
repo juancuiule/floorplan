@@ -5,7 +5,9 @@ import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useDecor } from '../decor/store'
 import type { Vec3 } from '../model/types'
+import { structureOf, type Finishes } from '../model/finishes'
 import { project } from '../project'
+import { ceilingFitting, setStructure, useStructure } from '../project/structure'
 import { useView } from '../store'
 import { CameraRig } from './CameraRig'
 import { setFinishes } from './materials'
@@ -73,13 +75,21 @@ function FrameCounter() {
   return null
 }
 
-/** Pushes the layout's finishes into the materials: in place, no remount, one render. */
+/**
+ * Pushes the layout's finishes into the materials: in place, no remount, one
+ * render. Its structure (walls taken out) goes to the active shell, which
+ * remounts only the walls, floors and ceilings it changes.
+ */
 function FinishesSync() {
   const invalidate = useThree((s) => s.invalidate)
   useEffect(() => {
-    if (setFinishes(useDecor.getState().finishes)) invalidate()
+    const apply = (f: Finishes) => {
+      const walls = setStructure(structureOf(f))
+      if (setFinishes(f) || walls) invalidate()
+    }
+    apply(useDecor.getState().finishes)
     return useDecor.subscribe((s, prev) => {
-      if (s.finishes !== prev.finishes && setFinishes(s.finishes)) invalidate()
+      if (s.finishes !== prev.finishes) apply(s.finishes)
     })
   }, [invalidate])
   return null
@@ -141,6 +151,7 @@ function Lights() {
   const invalidate = useThree((s) => s.invalidate)
   const evening = useView((s) => s.lighting === 'evening')
   const downlights = useView((s) => s.downlights)
+  const structure = useStructure((s) => s.structure)
   const sunRef = useRef<THREE.DirectionalLight>(null)
   const hemiRef = useRef<THREE.HemisphereLight>(null)
   const ambientRef = useRef<THREE.AmbientLight>(null)
@@ -194,7 +205,7 @@ function Lights() {
         shadow-bias={-0.0004}
         shadow-normalBias={0.02}
       />
-      {evening && downlights && project.objects.filter((o) => o.type === 'downlight').map((o) => <Downlight key={o.id} at={o.position} />)}
+      {evening && downlights && project.objects.filter((o) => o.type === 'downlight').map((o) => <Downlight key={o.id} at={ceilingFitting(o.position, structure)} />)}
       <SunOccluders />
     </>
   )

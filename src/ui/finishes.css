@@ -81,3 +81,191 @@
 .check-row .hint-text {
   color: var(--muted);
 }
+
+.accent-gone {
+  margin: 6px 0 0;
+  color: var(--warn);
+  font-size: 12px;
+}
+
+/* ---------- Room tab: walls (what if) ---------- */
+
+.walls-intro {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.plan-diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  /* Plan units are meters: keep hairlines hairlines. */
+  --pd-wall: #2b2925;
+}
+
+.plan-diagram rect {
+  vector-effect: non-scaling-stroke;
+}
+
+.pd-floor {
+  fill: #efe9df;
+}
+
+.pd-wet {
+  fill: #e2e4e4;
+}
+
+.pd-balcony {
+  fill: #e7e6e2;
+}
+
+.pd-fixed rect {
+  fill: #8f8a82;
+  cursor: not-allowed;
+}
+
+.pd-fixed .pd-glass {
+  fill: #9cc3d8;
+}
+
+.pd-wall {
+  cursor: pointer;
+  outline: none;
+}
+
+.pd-wall .pd-hit {
+  fill: transparent;
+}
+
+.pd-wall .pd-solid {
+  fill: var(--pd-wall);
+}
+
+.pd-wall .pd-ghost {
+  fill: none;
+  stroke: #8a8378;
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+}
+
+@media (hover: hover) {
+  .pd-wall:hover .pd-hit,
+  .pd-wall.hover .pd-hit {
+    fill: rgb(47 111 214 / 0.12);
+  }
+
+  .pd-wall:hover .pd-solid,
+  .pd-wall.hover .pd-solid {
+    fill: var(--focus);
+  }
+
+  .pd-wall:hover .pd-ghost,
+  .pd-wall.hover .pd-ghost {
+    stroke: var(--focus);
+  }
+}
+
+.pd-wall:focus-visible .pd-hit {
+  fill: rgb(47 111 214 / 0.12);
+  stroke: var(--focus);
+  stroke-width: 2;
+}
+
+.wall-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wall-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  column-gap: 10px;
+  padding: 6px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.wall-row.hover {
+  background: var(--selected);
+}
+
+.wall-name {
+  min-width: 0;
+  font-size: 13px;
+}
+
+.wall-state {
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.wall-row.removed .wall-state {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.wall-note {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.wall-row.fixed {
+  cursor: not-allowed;
+}
+
+.wall-row.fixed .wall-name {
+  color: var(--muted);
+}
+
+.wall-row.fixed .switch:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.wall-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Inspector and room list: decor hung on a wall this layout removes. */
+.lost-wall-note {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: #fbf1df;
+  color: var(--warn);
+  font-size: 12.5px;
+}
+
+.lost-wall-note p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.wall-lost-badge {
+  flex: none;
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #fbf1df;
+  color: var(--warn);
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}

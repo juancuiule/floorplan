@@ -4,7 +4,9 @@ import { BODY_FINISHES, FABRIC_FINISHES, FURNITURE, METAL_FINISHES, type OptionS
 import { mountOf } from '../decor/placement'
 import { useDecor } from '../decor/store'
 import type { ArtworkItem, DecorItem, FurnitureItem, LampItem, PlantItem, PlantSpecies, PotSize, SizePreset } from '../model/decor'
+import { structureOf } from '../model/finishes'
 import type { Vec3 } from '../model/types'
+import { lostWallOf, WALL_LABELS, type HungItem } from '../project/structure'
 import { artworkOuterSize } from '../scene/decor/Artwork'
 import { Chips, Field, NumberInput, Section, Slider, Swatches, Switch, useFieldControlId } from './controls'
 import { colorName } from './controlUtils'
@@ -20,6 +22,7 @@ export function Inspector({ id }: { id: string }) {
   return (
     <div className="inspector">
       <InspectorHeader item={item} />
+      <LostWallNote item={item} />
       {item.kind === 'artwork' && <ArtworkControls item={item} />}
       {item.kind === 'plant' && <PlantControls item={item} />}
       {item.kind === 'lamp' && <LampControls item={item} />}
@@ -42,6 +45,24 @@ function InspectorHeader({ item }: { item: DecorItem }) {
         Done
       </button>
     </header>
+  )
+}
+
+/** A piece hung on a wall this layout takes out: it stays where it was, floating, until moved. */
+function LostWallNote({ item }: { item: DecorItem }) {
+  const structure = useDecor((s) => structureOf(s.finishes))
+  const relocate = useDecor((s) => s.startRelocating)
+  const wall = lostWallOf(item as HungItem, structure)
+  if (!wall) return null
+  return (
+    <div className="lost-wall-note" role="status" data-lost-wall={wall}>
+      <p>
+        <strong>Wall removed.</strong> This hangs on the {WALL_LABELS[wall]} wall, which this layout takes out. It stays here until you move it.
+      </p>
+      <button type="button" className="btn" onClick={() => relocate(item.id)}>
+        <Icon name="move" size={14} /> Move to a wall
+      </button>
+    </div>
   )
 }
 

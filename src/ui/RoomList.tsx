@@ -1,6 +1,8 @@
 import { memo, useEffect, useMemo, useRef } from 'react'
 import { useDecor } from '../decor/store'
 import type { DecorKind } from '../model/decor'
+import { structureOf } from '../model/finishes'
+import { lostWallOf, WALL_LABELS, type HungItem } from '../project/structure'
 import { isPlaced, itemLabel, TABS } from './format'
 import { Icon, itemIcon, type IconName } from './icons'
 import { useUi } from './uiStore'
@@ -14,6 +16,8 @@ interface Row {
   label: string
   icon: IconName
   image?: string
+  /** Hung on a wall this layout takes out. */
+  lostWall?: string
 }
 
 const SEP = '\u0001'
@@ -25,7 +29,7 @@ const SEP = '\u0001'
 const rowsSignature = (s: ReturnType<typeof useDecor.getState>) =>
   s.items
     .filter(isPlaced)
-    .map((i) => [i.id, i.kind, itemLabel(i), itemIcon(i), i.kind === 'artwork' ? i.image : ''].join(SEP))
+    .map((i) => [i.id, i.kind, itemLabel(i), itemIcon(i), i.kind === 'artwork' ? i.image : '', lostWallOf(i as HungItem, structureOf(s.finishes)) ?? ''].join(SEP))
     .join('\n')
 
 export function useRoomCounts() {
@@ -46,8 +50,8 @@ export function RoomList() {
     () =>
       sig
         ? sig.split('\n').map((line) => {
-            const [id, kind, label, icon, image] = line.split(SEP)
-            return { id, kind: kind as DecorKind, label, icon: icon as IconName, image: image || undefined }
+            const [id, kind, label, icon, image, lostWall] = line.split(SEP)
+            return { id, kind: kind as DecorKind, label, icon: icon as IconName, image: image || undefined, lostWall: lostWall || undefined }
           })
         : [],
     [sig],
@@ -114,6 +118,11 @@ const PlacedRow = memo(function PlacedRow({
       <button type="button" className="placed-main" aria-pressed={selected} onClick={() => onSelect(selected ? null : row.id)}>
         <span className="tile small">{row.image ? <img src={row.image} alt="" loading="lazy" decoding="async" /> : <Icon name={row.icon} size={16} />}</span>
         <span className="placed-name">{row.label}</span>
+        {row.lostWall && (
+          <span className="wall-lost-badge" data-lost-wall={row.lostWall} title={`Hung on the ${WALL_LABELS[row.lostWall] ?? row.lostWall} wall, which this layout removes. Move it to another wall.`}>
+            Wall removed
+          </span>
+        )}
       </button>
       <button type="button" className="icon-btn danger" aria-label={`Delete ${row.label}`} title="Delete" onClick={() => onDelete(row.id)}>
         <Icon name="trash" size={14} />

@@ -1,10 +1,12 @@
 import { useDecor } from '../decor/store'
-import { ACCENT_WALLS, TILE_LAYOUTS, ZONE_FLOORS, type FloorId, type FloorZone } from '../model/finishes'
+import { ACCENT_WALLS, structureOf, TILE_LAYOUTS, ZONE_FLOORS, type FloorId, type FloorZone } from '../model/finishes'
+import type { RemovableWall } from '../model/structure'
 import { ACCENT_LABELS, ACCENTS, bathTileDef, FLOORS, PAINTS, TILE_COLORS, TILE_LAYOUT_LABELS, ZONE_LABELS } from '../project/finishes'
 import { patternThumb } from '../scene/patterns'
 import { Chips, Field, Section, Swatches } from './controls'
 import { onRadioKeys } from './controlUtils'
 import './finishes.css'
+import { WallsSection } from './WallsSection'
 
 // The Room tab: floors per zone, wall paint with an optional accent wall, and
 // the bathroom wall tiles. Changes apply live and are saved in the open
@@ -23,9 +25,11 @@ export function FinishesPanel() {
       <div className="finishes-head">
         <div className="i-title">
           <h2>Finishes</h2>
-          <p>Floors, paint and tiles for this layout</p>
+          <p>Walls, floors, paint and tiles for this layout</p>
         </div>
       </div>
+
+      <WallsSection />
 
       <Section title="Floors">
         {ZONES.map((zone) => (
@@ -53,12 +57,15 @@ export function FinishesPanel() {
         ))}
       </Section>
 
-      <Section title="Walls">
-        <Field label="Paint" value={PAINTS.find((p) => p.color === f.wallPaint)?.label ?? 'Custom'}>
+      <Section title="Paint">
+        <Field label="Wall color" value={PAINTS.find((p) => p.color === f.wallPaint)?.label ?? 'Custom'}>
           <Swatches value={f.wallPaint} colors={PAINTS} onChange={(wallPaint) => set({ wallPaint })} />
         </Field>
         <Field label="Accent wall">
           <Chips value={f.accentWall} options={ACCENT_WALLS.map((id) => ({ id, label: ACCENT_LABELS[id] }))} onChange={(accentWall) => set({ accentWall })} />
+          {f.accentWall !== 'none' && structureOf(f).removedWalls.includes(f.accentWall as RemovableWall) && (
+            <p className="hint-text accent-gone">That wall is removed in this layout, so the accent doesn’t show.</p>
+          )}
         </Field>
         {f.accentWall !== 'none' && (
           <Field label="Accent color" value={ACCENTS.find((p) => p.color === f.accentColor)?.label ?? 'Custom'}>

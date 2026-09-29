@@ -6,6 +6,7 @@ import { useDecor } from '../decor/store'
 import type { Vec2 } from '../model/types'
 import type { Obstacle } from '../plan/obstacles'
 import { ENTRY_SPOT, insideFlat, resolve, walk, walkObstacles } from '../plan/walk'
+import { onStructure } from '../project/structure'
 import { useView } from '../store'
 import { pick, worldNormal } from './pick'
 
@@ -69,12 +70,17 @@ export function Walk() {
   const fovTarget = useRef<number | null>(null)
   const obstacles = useRef<Obstacle[]>([])
 
-  // Furniture is in the way too; follow edits.
+  // Furniture is in the way too; follow edits, and walls taken out or put back.
   useEffect(() => {
     obstacles.current = walkObstacles(useDecor.getState().items)
-    return useDecor.subscribe((s, p) => {
+    const offStructure = onStructure(() => (obstacles.current = walkObstacles(useDecor.getState().items)))
+    const offDecor = useDecor.subscribe((s, p) => {
       if (s.items !== p.items) obstacles.current = walkObstacles(s.items)
     })
+    return () => {
+      offStructure()
+      offDecor()
+    }
   }, [])
 
   const apply = (transition: boolean) => {

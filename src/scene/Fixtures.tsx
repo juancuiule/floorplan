@@ -3,6 +3,7 @@ import { useRef, type ReactNode } from 'react'
 import * as THREE from 'three'
 import type { SceneObject, Vec3 } from '../model/types'
 import { project } from '../project'
+import { ceilingFitting, useActiveShell } from '../project/structure'
 import { Box } from './Box'
 import { Merged } from './Merged'
 import { sharedEdgeMaterial, sharedMaterial } from './materials'
@@ -10,13 +11,18 @@ import { sharedEdgeMaterial, sharedMaterial } from './materials'
 const m = sharedMaterial
 
 export function Fixtures() {
+  // Downlights sit in whatever ceiling is over them (the entry one can be raised).
+  const { structure } = useActiveShell()
   return (
     <Merged>
-      {project.objects.map((o) => (
-        <group key={o.id} position={o.position} rotation={[0, THREE.MathUtils.degToRad(o.rotation ?? 0), 0]}>
-          <Fixture object={o} />
-        </group>
-      ))}
+      {project.objects.map((o) => {
+        const at = o.type === 'downlight' ? ceilingFitting(o.position, structure) : o.position
+        return (
+          <group key={o.id} position={at} rotation={[0, THREE.MathUtils.degToRad(o.rotation ?? 0), 0]}>
+            <Fixture object={o} ceilingY={at[1]} />
+          </group>
+        )
+      })}
     </Merged>
   )
 }
@@ -34,7 +40,7 @@ function Downlight({ ceilingY }: { ceilingY: number }) {
   )
 }
 
-function Fixture({ object: o }: { object: SceneObject }): ReactNode {
+function Fixture({ object: o, ceilingY }: { object: SceneObject; ceilingY: number }): ReactNode {
   const edge = sharedEdgeMaterial()
   const size: Vec3 = o.size ?? [0.5, 0.5, 0.5]
   const [w, h, d] = size
@@ -137,7 +143,7 @@ function Fixture({ object: o }: { object: SceneObject }): ReactNode {
       )
 
     case 'downlight':
-      return <Downlight ceilingY={o.position[1]} />
+      return <Downlight ceilingY={ceilingY} />
 
 
     case 'railing':
