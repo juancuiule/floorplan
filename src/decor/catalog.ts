@@ -94,6 +94,7 @@ export const LAMPS: Record<LampType, { label: string; note: string; mount: Mount
   lantern: { label: 'Paper lantern', note: 'Large rice-paper globe', mount: 'ceiling', color: '#f6ead8', power: 6 },
   sconce: { label: 'Wall sconce', note: 'Up-light on a wall', mount: 'wall', color: '#2b2a28', power: 2.5 },
   exit: { label: 'EXIT cube', note: 'Red glass cube on a wall', mount: 'wall', color: '#d42a1e', power: 1.2 },
+  exitCeiling: { label: 'EXIT ceiling sign', note: 'Milk-glass box, red letters', mount: 'ceiling', color: '#d42a1e', power: 1.5 },
   string: { label: 'String lights', note: 'Festoon along a wall', mount: 'wall', color: '#2b2a28', power: 0.5 },
 }
 
@@ -147,5 +148,6 @@ export const LAMP_KEYWORDS: Partial<Record<LampType, string>> = {
   lantern: 'ceiling noguchi',
   sconce: 'wall',
   exit: 'wall sign',
+  exitCeiling: 'sign vintage milk glass ceiling',
   string: 'festoon fairy wall',
 }

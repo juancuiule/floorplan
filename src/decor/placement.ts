@@ -108,7 +108,7 @@ export function placeAt(item: DecorItem, hit: SurfaceHit, opts: { free?: boolean
 // ---------- wall snapping for floor furniture ----------
 
 /** Pieces that belong against a wall. Tables, chairs and rugs stay free. */
-const SNAPS = new Set<FurnitureItem['type']>(['platformBed', 'murphyBed', 'daybed', 'sofa', 'standingDesk', 'bookshelf', 'wardrobe', 'sideboard', 'blockShelf'])
+const SNAPS = new Set<FurnitureItem['type']>(['platformBed', 'murphyBed', 'daybed', 'sofa', 'standingDesk', 'bookshelf', 'wardrobe', 'sideboard', 'blockShelf', 'loftBed', 'windowBench', 'balconyBench', 'planterWall'])
 const SNAP_REACH = 0.45
 const GAP = 0.004
 

@@ -68,6 +68,26 @@ describe('furniture catalog', () => {
     for (const f of [...BODY_FINISHES, ...METAL_FINISHES, ...FABRIC_FINISHES]) expect(f.color).toMatch(HEX)
   })
 
+  it('every furniture type and lamp has a line icon', async () => {
+    const { FURNITURE_ICON, LAMP_ICON } = await import('../../src/ui/icons')
+    for (const t of TYPES) expect(FURNITURE_ICON[t], t).toBeTruthy()
+    for (const t of Object.keys(LAMPS)) expect(LAMP_ICON[t as keyof typeof LAMP_ICON], t).toBeTruthy()
+  })
+
+  it('wall-backed floor pieces snap to walls; free-standing ones do not', async () => {
+    const { placeAt } = await import('../../src/decor/placement')
+    const THREE = await import('three')
+    const hit = { point: new THREE.Vector3(4.5, 0, 0.3), normal: new THREE.Vector3(0, 1, 0), kind: 'up' as const }
+    const piece = (type: FurnitureType) => ({ kind: 'furniture' as const, id: 'x', type, at: [0, 0, 0] as [number, number, number], rotation: 0, size: [...FURNITURE[type].size] as [number, number, number], finish: FURNITURE[type].finish, options: {} })
+    for (const t of ['loftBed', 'windowBench', 'balconyBench', 'planterWall'] as FurnitureType[]) {
+      const patch = placeAt(piece(t), hit) as { at: number[] }
+      // Snapped flush against the bathroom-side wall (z = 0): the back sits on it.
+      expect(patch.at[2], t).toBeCloseTo(FURNITURE[t].size[2] / 2, 1)
+    }
+    const free = placeAt(piece('officeChair'), hit) as { at: number[] }
+    expect(free.at[2]).toBeCloseTo(0.3)
+  })
+
   it('groups the panel shows are all in use', () => {
     for (const g of FURNITURE_GROUPS) expect(TYPES.some((t) => FURNITURE[t].group === g), g).toBe(true)
   })
@@ -116,6 +136,7 @@ describe('decor catalog', () => {
     expect(LAMPS.sconce.mount).toBe('wall')
     expect(LAMPS.string.mount).toBe('wall')
     expect(LAMPS.pendant.mount).toBe('ceiling')
+    expect(LAMPS.exitCeiling.mount).toBe('ceiling')
   })
 
   it('warmthColor maps each warmth and falls back for unknown values', () => {

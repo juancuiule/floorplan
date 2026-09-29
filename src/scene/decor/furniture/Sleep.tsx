@@ -5,7 +5,7 @@ const MATTRESS = '#f5f4f0'
 const PILLOW = '#fbfaf7'
 
 /** Mattress, duvet and pillows on a sleeping area centered at (cx, cz), top of base at y. */
-function Bedding({ w, d, y, cx = 0, cz = 0, fabric }: { w: number; d: number; y: number; cx?: number; cz?: number; fabric: string }) {
+export function Bedding({ w, d, y, cx = 0, cz = 0, fabric }: { w: number; d: number; y: number; cx?: number; cz?: number; fabric: string }) {
   const mh = 0.2
   const duvetD = d * 0.72
   const pillows = w > 1.1 ? 2 : 1

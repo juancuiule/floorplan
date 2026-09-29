@@ -241,9 +241,84 @@ function LampModel({ item }: { item: LampItem }) {
     case 'exit':
       return <ExitCube item={item} />
 
+    case 'exitCeiling':
+      return <ExitCeiling item={item} />
+
     case 'string':
       return <StringLights item={item} bulb={m.bulb} />
   }
+}
+
+function exitSignTexture(letters: string) {
+  const c = document.createElement('canvas')
+  c.width = 512
+  c.height = 256
+  const g = c.getContext('2d')!
+  g.fillStyle = '#f7f3ea'
+  g.fillRect(0, 0, 512, 256)
+  // Milk glass is brighter toward the middle, where the tubes are.
+  const glow = g.createRadialGradient(256, 128, 20, 256, 128, 280)
+  glow.addColorStop(0, 'rgba(255,255,255,0.9)')
+  glow.addColorStop(1, 'rgba(226,220,206,0.6)')
+  g.fillStyle = glow
+  g.fillRect(0, 0, 512, 256)
+  g.fillStyle = letters
+  g.font = 'bold 150px "Arial Narrow", "Helvetica Neue", Arial, sans-serif'
+  g.textAlign = 'center'
+  g.textBaseline = 'middle'
+  g.fillText('EXIT', 256, 138, 440)
+  const t = new THREE.CanvasTexture(c)
+  t.colorSpace = THREE.SRGBColorSpace
+  return t
+}
+
+/**
+ * A vintage ceiling EXIT fixture: a milk-glass box with red letters on both
+ * faces, between an enameled cap and base, hanging from a stem and canopy.
+ */
+function ExitCeiling({ item }: { item: LampItem }) {
+  const evening = useView((s) => s.lighting === 'evening')
+  const lit = item.on ? item.brightness * (evening ? 1 : 0.3) : 0
+  const mats = useMemo(() => {
+    const map = exitSignTexture(item.color)
+    const face = new THREE.MeshStandardMaterial({ map, emissiveMap: map, emissive: '#ffffff', roughness: 0.35 })
+    const milk = new THREE.MeshStandardMaterial({ color: '#f5f1e8', emissive: '#fff4e2', roughness: 0.35 })
+    const cap = new THREE.MeshStandardMaterial({ color: '#eeebe4', roughness: 0.4, metalness: 0.2 })
+    return { face, milk, cap }
+  }, [item.color])
+  useEffect(() => {
+    mats.face.emissiveIntensity = 0.12 + lit * 0.85
+    mats.milk.emissiveIntensity = 0.1 + lit * 0.7
+  }, [mats, lit])
+  useEffect(() => () => (mats.face.map?.dispose(), Object.values(mats).forEach((m) => m.dispose())), [mats])
+  const W = 0.36
+  const H = 0.18
+  const D = 0.08
+  const stem = 0.22
+  const y = -stem - 0.02 - H / 2
+  // Box face order: +x, -x, +y, -y, +z, -z. Letters on both broad faces.
+  const faces = [mats.milk, mats.milk, mats.milk, mats.milk, mats.face, mats.face]
+  return (
+    <group>
+      <mesh position={[0, -0.012, 0]} material={mats.cap} castShadow>
+        <cylinderGeometry args={[0.055, 0.065, 0.024, 24]} />
+      </mesh>
+      <mesh position={[0, -stem / 2 - 0.02, 0]} material={metal}>
+        <cylinderGeometry args={[0.008, 0.008, stem, 8]} />
+      </mesh>
+      {/* enameled top housing and bottom rim */}
+      <mesh position={[0, -stem - 0.02 + 0.02, 0]} material={mats.cap} castShadow>
+        <boxGeometry args={[W + 0.03, 0.04, D + 0.03]} />
+      </mesh>
+      <mesh position={[0, y, 0]} material={faces} castShadow>
+        <boxGeometry args={[W, H, D]} />
+      </mesh>
+      <mesh position={[0, y - H / 2 - 0.008, 0]} material={mats.cap}>
+        <boxGeometry args={[W + 0.02, 0.016, D + 0.02]} />
+      </mesh>
+      {item.on && evening && <pointLight position={[0, y - 0.1, 0]} intensity={LAMPS.exitCeiling.power * item.brightness} distance={3.5} decay={2} color="#ffe6d6" />}
+    </group>
+  )
 }
 
 function exitTexture() {
