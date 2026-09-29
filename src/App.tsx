@@ -1,7 +1,10 @@
 import { useEffect } from 'react'
-import { screenAxes, useEdit } from './decor/edit'
-import { alongWall, mountOf } from './decor/placement'
+import type { AlignMode } from './decor/arrange'
+import { useEdit } from './decor/edit'
+import { mountOf } from './decor/placement'
+import { alignSelection, distributeSelection, nudgeDelta, selectedItems } from './decor/selection'
 import { useDecor } from './decor/store'
+import { TABS } from './ui/format'
 import type { Vec3 } from './model/types'
 import { useMeasure } from './plan/measureStore'
 import { Scene } from './scene/Scene'
@@ -21,6 +24,16 @@ const INVALID_HINTS = {
   wall: 'Only walls can take this',
   surface: 'Needs a floor or a flat surface',
   ceiling: 'Point below a ceiling',
+}
+
+/** Alt+key align shortcuts (by physical key, since Alt changes the character on a Mac). */
+const ALIGN_KEYS: Record<string, AlignMode> = {
+  KeyA: 'left',
+  KeyH: 'hcenter',
+  KeyD: 'right',
+  KeyW: 'top',
+  KeyV: 'vmiddle',
+  KeyS: 'bottom',
 }
 
 /** Typing fields keep their own keys; sliders, checkboxes and buttons do not need Cmd+Z etc. */
@@ -70,6 +83,8 @@ function useShortcuts() {
       const t = e.target as HTMLElement
       if (t.closest?.('input, select, textarea')) return
       const sel = s.items.find((i) => i.id === s.selectedId)
+      const many = s.selectedIds.length > 1
+      const busy = !!s.movingId || useEdit.getState().rotating
 
       if (mod && key === 'c' && sel) {
         if (window.getSelection()?.toString()) return
@@ -80,52 +95,65 @@ function useShortcuts() {
         s.paste()
       } else if (mod && key === 'd' && sel) {
         e.preventDefault()
-        s.duplicate(sel.id)
+        s.duplicateSelection()
+      } else if (mod && key === 'a' && !busy) {
+        // Everything on the selected piece's wall, or everything of its kind (or of the open tab).
+        e.preventDefault()
+        s.selectAllLike(TABS.find((t) => t.id === s.tab)?.kind)
+      } else if (mod && key === 'g' && !busy) {
+        e.preventDefault()
+        if (e.shiftKey) s.ungroup()
+        else s.group()
       } else if (mod) {
         return
       } else if (e.key === 'Escape') {
         if (s.movingId) s.cancelPlacing()
         else s.select(null)
-      } else if (s.movingId || useEdit.getState().rotating) {
+      } else if (busy) {
         // Keys below edit a placed item; not while it is following the pointer.
         return
+      } else if (e.altKey && many && ALIGN_KEYS[e.code]) {
+        // Align (Alt+A/H/D, W/V/S) and distribute (Alt+Shift+H/V) the selection.
+        e.preventDefault()
+        const k = ALIGN_KEYS[e.code]
+        if (e.shiftKey && (e.code === 'KeyH' || e.code === 'KeyV')) distributeSelection(e.code === 'KeyH' ? 'u' : 'v')
+        else if (!e.shiftKey) alignSelection(k)
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && sel) {
         e.preventDefault()
-        s.remove(sel.id)
-      } else if (key === 'r' && sel && 'rotation' in sel && mountOf(sel) !== 'wall') {
-        // Furniture turns in quarter turns; plants and lamps in small steps.
-        s.rotateBy(sel.id, (sel.kind === 'furniture' ? 90 : 15) * (e.shiftKey ? -1 : 1))
+        s.removeMany(many ? s.selectedIds : [sel.id])
+      } else if (key === 'r' && !e.altKey && sel && selectedItems(s).some((i) => 'rotation' in i && mountOf(i) !== 'wall')) {
+        // Furniture turns in quarter turns; plants and lamps in small steps. A selection turns as one.
+        const furniture = selectedItems(s).some((i) => i.kind === 'furniture')
+        s.rotateSelection((furniture ? 90 : 15) * (e.shiftKey ? -1 : 1))
       } else if (sel && (e.key.startsWith('Arrow') || e.key === 'PageUp' || e.key === 'PageDown' || e.key === '[' || e.key === ']')) {
         const d = e.shiftKey ? 0.1 : 0.01
-        const wall = mountOf(sel) === 'wall' && 'facing' in sel && sel.facing
-        let delta: Vec3 | null = null
-        if (e.key === 'PageUp' || e.key === ']') delta = wall ? [0, d, 0] : null
-        else if (e.key === 'PageDown' || e.key === '[') delta = wall ? [0, -d, 0] : null
-        else if (wall) {
-          // Along the wall, left/right as seen on screen; up/down is height.
-          if (e.key === 'ArrowUp') delta = [0, d, 0]
-          else if (e.key === 'ArrowDown') delta = [0, -d, 0]
-          else {
-            const [ax, az] = alongWall(sel.facing!)
-            const { right } = screenAxes()
-            const sign = (ax * right[0] + az * right[1] >= 0 ? 1 : -1) * (e.key === 'ArrowRight' ? 1 : -1)
-            delta = [ax * d * sign, 0, az * d * sign]
-          }
-        } else {
-          // On the floor: arrows follow the screen, snapped to the room's axes.
-          const { right, away } = screenAxes()
-          const v = e.key === 'ArrowRight' ? right : e.key === 'ArrowLeft' ? [-right[0], -right[1]] : e.key === 'ArrowUp' ? away : [-away[0], -away[1]]
-          delta = [v[0] * d, 0, v[1] * d]
+        const deltas: Record<string, Vec3> = {}
+        for (const i of selectedItems(s)) {
+          const delta = nudgeDelta(i, e.key, d)
+          if (delta) deltas[i.id] = delta
         }
-        if (delta) {
+        if (Object.keys(deltas).length) {
           e.preventDefault()
-          s.nudge(sel.id, delta)
+          s.nudgeMany(deltas)
         }
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
+}
+
+/** The Shift-drag rubber band over the canvas. */
+function Marquee() {
+  const m = useEdit((s) => s.marquee)
+  if (!m) return null
+  return (
+    <div
+      className="marquee"
+      aria-hidden="true"
+      style={{ left: Math.min(m.x0, m.x1), top: Math.min(m.y0, m.y1), width: Math.abs(m.x1 - m.x0), height: Math.abs(m.y1 - m.y0) }}
+    />
+  )
 }
 
 export default function App() {
@@ -145,6 +173,7 @@ export default function App() {
       <DecorPanel />
       <EditBar />
       <SpaceHud />
+      <Marquee />
       {moving && (
         <div className="hint" role="status">
           {invalid ? INVALID_HINTS[mountOf(moving)] : HINTS[mountOf(moving)]} · <kbd>Esc</kbd> to cancel
