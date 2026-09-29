@@ -4,6 +4,7 @@ import { useView, type ViewMode, type ViewPreset } from '../store'
 import { onRadioKeys } from './controlUtils'
 import { Icon, type IconName } from './icons'
 import { ShortcutsPopover } from './ShortcutsPopover'
+import { SpaceTools } from './SpaceTools'
 import { useUi } from './uiStore'
 
 const MODES: { id: ViewMode; label: string; icon: IconName; tip: string }[] = [
@@ -111,6 +112,8 @@ export function Toolbar() {
             <span className="tb-label">Dimensions</span>
           </button>
         </div>
+
+        <SpaceTools />
 
         <div className="group" role="group" aria-label="Lighting">
           <div role="radiogroup" aria-label="Time of day" className="sub" onKeyDown={(e) => onRadioKeys(e, [...lights], lights.indexOf(lighting), setLighting)}>

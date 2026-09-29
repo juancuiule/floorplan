@@ -8,11 +8,14 @@ import type { Vec3 } from '../model/types'
 import { project } from '../project'
 import { useView } from '../store'
 import { CameraRig } from './CameraRig'
+import { Clearances } from './Clearances'
 import { requestShadowUpdate, takeShadowUpdate } from './shadows'
 import { DecorLayer, SurfaceEvents } from './decor/DecorLayer'
 import { Ceilings, Floors } from './Floors'
 import { Fixtures } from './Fixtures'
 import { Labels } from './Labels'
+import { Measure } from './Measure'
+import { Walk } from './Walk'
 import { Walls } from './Walls'
 
 declare global {
@@ -136,7 +139,8 @@ export function Scene() {
     <Canvas
       onPointerMissed={() => {
         const d = useDecor.getState()
-        if (!d.movingId) d.select(null)
+        const v = useView.getState()
+        if (!d.movingId && !v.walking && !v.tool) d.select(null)
       }}
       frameloop="demand"
       shadows="soft"
@@ -158,6 +162,9 @@ export function Scene() {
       </SurfaceEvents>
       <Labels />
       <CameraRig />
+      <Walk />
+      <Measure />
+      <Clearances />
       <FrameCounter />
       <Effects />
     </Canvas>

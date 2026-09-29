@@ -32,7 +32,7 @@ const MAX_DT = 1 / 30
 export function Walls() {
   const { walls, bulges } = project.shell
   // The fade runs in useFrame; a mode switch has to wake the render loop.
-  useEffect(() => useView.subscribe((s, prev) => void (s.mode !== prev.mode && invalidate())), [])
+  useEffect(() => useView.subscribe((s, prev) => void ((s.mode !== prev.mode || s.walking !== prev.walking) && invalidate())), [])
   return (
     <group>
       {walls.map((w) => (
@@ -111,12 +111,13 @@ function WallView({ wall, bulges }: { wall: Wall; bulges: Bulge[] }) {
   const alpha = useRef({ stub: 1, upper: 1, shadows: true })
 
   useFrame(({ camera }, dt) => {
-    const mode = useView.getState().mode
+    const { mode, walking } = useView.getState()
     let stub = 1
     let upper = 1
     if (mode === 'xray') {
       stub = upper = XRAY_ALPHA
-    } else if (wall.kind === 'exterior') {
+    } else if (wall.kind === 'exterior' && !walking) {
+      // Walking, the camera is a person in the flat: nothing is cut away, even out on the balcony.
       const mx = (wall.a[0] + wall.b[0]) / 2
       const mz = (wall.a[1] + wall.b[1]) / 2
       const beyond = (camera.position.x - mx) * outward[0] + (camera.position.z - mz) * outward[1]
