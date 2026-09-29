@@ -23,7 +23,7 @@ async function hover(x, y) {
 }
 
 // 1. Artwork on the kitchen-side wall
-await page.getByRole('tab', { name: /Artwork/ }).click()
+await page.getByRole('tab', { name: /^Art/ }).click()
 await page.locator('.thumb').nth(2).click()
 await hover(520, 330)
 await page.screenshot({ path: join(outDir, '1-art-hover.png') })

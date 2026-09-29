@@ -104,3 +104,48 @@ export const WARMTH: { id: Warmth; label: string; color: string }[] = [
 ]
 
 export const warmthColor = (w: Warmth) => WARMTH.find((x) => x.id === w)?.color ?? '#ffc792'
+
+// ---------- presentation only (panel grouping and search) ----------
+
+export type PlantGroup = 'Floor plants' | 'Small and tabletop' | 'Planters' | 'Hanging and wall'
+export const PLANT_GROUPS: PlantGroup[] = ['Floor plants', 'Small and tabletop', 'Planters', 'Hanging and wall']
+
+export const PLANT_META: Record<PlantSpecies, { group: PlantGroup; keywords?: string }> = {
+  monstera: { group: 'Floor plants', keywords: 'swiss cheese' },
+  fiddle: { group: 'Floor plants', keywords: 'ficus lyrata tree' },
+  snake: { group: 'Floor plants', keywords: 'sansevieria' },
+  palm: { group: 'Floor plants', keywords: 'dypsis' },
+  olive: { group: 'Floor plants', keywords: 'tree balcony outdoor' },
+  rubber: { group: 'Floor plants', keywords: 'ficus elastica' },
+  fern: { group: 'Small and tabletop' },
+  cactus: { group: 'Small and tabletop', keywords: 'succulent' },
+  succulent: { group: 'Small and tabletop', keywords: 'echeveria clay pot' },
+  herbs: { group: 'Small and tabletop', keywords: 'basil kitchen clay pot' },
+  aloe: { group: 'Small and tabletop', keywords: 'succulent clay pot' },
+  haworthia: { group: 'Small and tabletop', keywords: 'succulent clay pot' },
+  jade: { group: 'Small and tabletop', keywords: 'crassula succulent' },
+  burro: { group: 'Small and tabletop', keywords: 'sedum trailing succulent clay pot' },
+  croton: { group: 'Small and tabletop' },
+  spider: { group: 'Small and tabletop', keywords: 'chlorophytum' },
+  lavender: { group: 'Planters', keywords: 'box balcony' },
+  collection: { group: 'Planters', keywords: 'succulents row clay pots' },
+  pothos: { group: 'Hanging and wall', keywords: 'ceiling trailing' },
+  windowBox: { group: 'Hanging and wall', keywords: 'sedum planter' },
+}
+
+export const MOUNT_GROUP: Record<Mount, string> = { surface: 'Floor and table', ceiling: 'Ceiling', wall: 'Wall' }
+export const MOUNT_ORDER: Mount[] = ['surface', 'ceiling', 'wall']
+
+export const LAMP_KEYWORDS: Partial<Record<LampType, string>> = {
+  arc: 'floor',
+  tripod: 'floor',
+  table: 'desk bedside',
+  mushroom: 'desk bedside',
+  flowerpot: 'desk bedside panton',
+  pendant: 'ceiling',
+  globe: 'ceiling',
+  lantern: 'ceiling noguchi',
+  sconce: 'wall',
+  exit: 'wall sign',
+  string: 'festoon fairy wall',
+}
