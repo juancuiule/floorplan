@@ -1,5 +1,21 @@
 {
   "version": 1,
+  "finishes": {
+    "floors": {
+      "main": "oakLight",
+      "hall": "oakLight",
+      "bath": "porcelainGrey",
+      "balcony": "balconyGrey"
+    },
+    "hexBlend": false,
+    "wallPaint": "#f8f7f3",
+    "accentWall": "side-bath",
+    "accentColor": "#5b5c5f",
+    "bathTile": {
+      "layout": "stack",
+      "color": "#f6f6f4"
+    }
+  },
   "items": [
     {
       "kind": "artwork",
@@ -7,8 +23,8 @@
       "image": "/artwork/image%2054.png",
       "at": [
         2.2,
-        1.15,
-        1.12
+        1.69,
+        0.76
       ],
       "facing": "x+",
       "host": "entry-main",
@@ -210,22 +226,6 @@
     },
     {
       "kind": "plant",
-      "id": "plant-mum1cbkgztpr",
-      "species": "collection",
-      "pot": "clay",
-      "at": [
-        7.77,
-        0.01,
-        2.98
-      ],
-      "rotation": 0,
-      "scale": 1,
-      "count": 20,
-      "spread": 1.25,
-      "seed": "8f526k"
-    },
-    {
-      "kind": "plant",
       "id": "plant-mum1e0pqb9dk",
       "species": "pothos",
       "pot": "ceramic",
@@ -395,8 +395,8 @@
       "id": "artwork-mum8t17mvd9k",
       "image": "/artwork/Screenshot%202025-11-01%20at%2016.43.01%202.png",
       "at": [
-        6.7,
-        2.16,
+        6.29,
+        2.15,
         0
       ],
       "facing": "z+",
@@ -640,14 +640,14 @@
       "id": "furniture-mum991u3ixdt",
       "type": "bookshelf",
       "at": [
-        3.35,
+        3.55,
         0,
         2.83
       ],
       "rotation": 180,
       "size": [
-        1.05,
-        0.6,
+        1.4,
+        0.72,
         0.33
       ],
       "finish": {
@@ -1059,6 +1059,156 @@
         "mat": 0
       },
       "host": "side-kitchen"
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mumblwc89fdt",
+      "type": "speakers",
+      "at": [
+        4.81,
+        0,
+        0.11
+      ],
+      "rotation": 0,
+      "size": [
+        0.91,
+        0.24,
+        0.2
+      ],
+      "finish": {
+        "body": "#262625",
+        "metal": "#1d1d1d",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "spacing": 60,
+        "grille": true
+      }
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mumbn6iqh7l1",
+      "type": "turntable",
+      "at": [
+        4.8,
+        0,
+        0.41
+      ],
+      "rotation": 0,
+      "size": [
+        0.45,
+        0.157,
+        0.352
+      ],
+      "finish": {
+        "body": "#dcc196",
+        "metal": "#b7babd",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "plinth": "black",
+        "label": "red",
+        "cover": "open"
+      }
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mumbnx6xnps3",
+      "type": "acIndoor",
+      "at": [
+        6.9,
+        2.26,
+        1.62
+      ],
+      "rotation": 0,
+      "size": [
+        0.8,
+        0.28,
+        0.21
+      ],
+      "finish": {
+        "body": "#f3f3f0",
+        "metal": "#1d1d1d",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "display": true
+      },
+      "facing": "x-",
+      "host": "facade"
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mumbotlloe3o",
+      "type": "acOutdoor",
+      "at": [
+        7.81,
+        0.01,
+        2.97
+      ],
+      "rotation": 180,
+      "size": [
+        0.78,
+        0.55,
+        0.29
+      ],
+      "finish": {
+        "body": "#e6e4dd",
+        "metal": "#b7babd",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "bracket": false,
+        "lift": 100
+      }
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mumbpe1pw6io",
+      "type": "standMixer",
+      "at": [
+        1.39,
+        0.91,
+        2.67
+      ],
+      "rotation": 180,
+      "size": [
+        0.24,
+        0.36,
+        0.36
+      ],
+      "finish": {
+        "body": "#dcc196",
+        "metal": "#eeeeec",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "color": "white"
+      }
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-mumbq0chiwvu",
+      "type": "espressoMachine",
+      "at": [
+        3.07,
+        0.9,
+        2.71
+      ],
+      "rotation": 180,
+      "size": [
+        0.22,
+        0.3,
+        0.28
+      ],
+      "finish": {
+        "body": "#dcc196",
+        "metal": "#d9dcdf",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "cup": true
+      }
     }
   ]
 }
