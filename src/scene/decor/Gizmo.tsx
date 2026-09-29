@@ -7,6 +7,7 @@ import { editRefs, useEdit } from '../../decor/edit'
 import { collisionsOf, footprintOf, mountOf, type Footprint, type SnapFace } from '../../decor/placement'
 import { useDecor } from '../../decor/store'
 import type { DecorItem, FurnitureItem } from '../../model/decor'
+import { useStructure } from '../../project/structure'
 
 // On-canvas editing aids: floor footprints with overlap warnings, the wall-snap
 // indicator, a "can't go here" marker, and the rotate ring. None of it is pickable
@@ -46,7 +47,9 @@ export function EditOverlays() {
   const rotating = useEdit((s) => s.rotating)
 
   const active = items.find((i) => i.id === (movingId ?? selectedId))
-  const col = useMemo(() => (active ? collisionsOf(active, items) : null), [active, items])
+  // Walls taken out or put back (the Room tab) change what the piece cuts into.
+  const structure = useStructure((s) => s.structure)
+  const col = useMemo(() => (active && structure ? collisionsOf(active, items) : null), [active, items, structure])
   const bad = !!col && (col.overlaps.length > 0 || col.wall)
 
   return (

@@ -5,6 +5,7 @@ import { useDecor } from '../decor/store'
 import type { Vec3 } from '../model/types'
 import { clearancesOf, type Clearance } from '../plan/clearance'
 import { formatCm } from '../plan/measure'
+import { useStructure } from '../project/structure'
 import { useView } from '../store'
 
 // Clearance check for the selected floor piece: a dimension from each free
@@ -18,10 +19,13 @@ export function Clearances() {
   const on = useView((s) => s.clearances)
   const items = useDecor((s) => s.items)
   const activeId = useDecor((s) => s.movingId ?? s.selectedId)
+  // Walls taken out or put back change what each side runs into.
+  const structure = useStructure((s) => s.structure)
   const list = useMemo(() => {
+    void structure // read by clearancesOf through the active walls
     const item = items.find((i) => i.id === activeId)
     return on && item && isFloorPiece(item) ? clearancesOf(item, items) : []
-  }, [on, items, activeId])
+  }, [on, items, activeId, structure])
 
   return (
     <group>

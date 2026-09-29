@@ -3,6 +3,8 @@ import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { Ceiling, Rect } from '../model/types'
 import { project } from '../project'
+import { useActiveShell } from '../project/structure'
+import { requestShadowUpdate } from './shadows'
 import { Box } from './Box'
 import { showsHexBlend, type Finishes } from '../model/finishes'
 import { FLOORS } from '../project/finishes'
@@ -22,6 +24,8 @@ function rectBox(r: Rect, y0: number, y1: number) {
 
 export function Floors() {
   const { slab, baseFloors, rooms } = project.shell
+  // Under a removed partition: the neighboring room's floor runs on to the old centerline.
+  const { floorFills } = useActiveShell()
   const edge = sharedEdgeMaterial()
   return (
     <group>
@@ -34,6 +38,9 @@ export function Floors() {
         .map((r) => (
           <FloorBox key={r.id} rect={r.rect} y0={0} y1={INLAY_T} material={r.floor!} />
         ))}
+      {floorFills.map((f) => (
+        <FloorBox key={f.id} rect={f.rect} y0={0} y1={INLAY_T} material={f.material} />
+      ))}
       <HexBlend />
     </group>
   )
@@ -101,9 +108,14 @@ function HexBlend() {
 }
 
 export function Ceilings() {
+  const { ceilings } = useActiveShell()
+  useEffect(() => {
+    requestShadowUpdate()
+    invalidate()
+  }, [ceilings])
   return (
     <group>
-      {project.shell.ceilings.map((c) => (
+      {ceilings.map((c) => (
         <CeilingView key={c.id} ceiling={c} />
       ))}
     </group>

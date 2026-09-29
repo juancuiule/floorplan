@@ -2,6 +2,7 @@ import { footprintOf, isFloorPiece, type Footprint } from '../decor/placement'
 import type { DecorItem } from '../model/decor'
 import type { Opening, Vec2, Wall } from '../model/types'
 import { project } from '../project'
+import { activeBulges, activeWalls, onStructure } from '../project/structure'
 
 // The plan as a set of solid rectangles: wall pieces between openings, columns,
 // fixed fittings and floor furniture. Walk mode collides against them, the
@@ -33,13 +34,15 @@ const FIXTURE_SIZE: Partial<Record<string, [number, number, number]>> = {
 }
 
 const cache = new Map<OpeningRule, Obstacle[]>()
+// Walls taken out (or put back) in the open layout: rebuild.
+onStructure(() => cache.clear())
 
-/** Walls, columns and fixed fittings (everything that is not decor). */
+/** Walls, columns and fixed fittings (everything that is not decor). Removed partitions are left out. */
 export function shellObstacles(open: OpeningRule): Obstacle[] {
   const hit = cache.get(open)
   if (hit) return hit
   const out: Obstacle[] = []
-  for (const w of project.shell.walls) {
+  for (const w of activeWalls()) {
     const dx = w.b[0] - w.a[0]
     const dz = w.b[1] - w.a[1]
     const len = Math.hypot(dx, dz)
@@ -62,7 +65,7 @@ export function shellObstacles(open: OpeningRule): Obstacle[] {
       out.push({ id: `${w.id}:${i}`, kind: 'wall', cx: w.a[0] + ux * mid, cz: w.a[1] + uz * mid, hw: (s1 - s0) / 2, hd: w.thickness / 2, rotation, top: w.height })
     })
   }
-  for (const b of project.shell.bulges) {
+  for (const b of activeBulges()) {
     if (b.min[1] > 0.1) continue
     out.push({
       id: b.id,
