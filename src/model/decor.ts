@@ -120,6 +120,13 @@ export type FurnitureType =
   | 'stationClock'
   // ceiling
   | 'hangingRack'
+  // appliances & electronics
+  | 'speakers'
+  | 'standMixer'
+  | 'espressoMachine'
+  | 'turntable'
+  | 'acIndoor'
+  | 'acOutdoor'
 
 export type FurnitureOption = number | boolean | string
 

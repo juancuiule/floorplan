@@ -388,7 +388,15 @@ function FurnitureControls({ item }: { item: FurnitureItem }) {
       {spec.optionSpecs.length > 0 && (
         <Section title="Options">
           {spec.optionSpecs.map((o) => (
-            <OptionControl key={o.key} spec={o} value={item.options[o.key]} onChange={(v) => set({ options: { ...item.options, [o.key]: v } })} />
+            <OptionControl
+              key={o.key}
+              spec={o}
+              value={item.options[o.key]}
+              onChange={(v) => {
+                const options = { ...item.options, [o.key]: v }
+                set(spec.sizeFor ? { options, size: spec.sizeFor(options, item.size) } : { options })
+              }}
+            />
           ))}
         </Section>
       )}
