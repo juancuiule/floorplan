@@ -85,15 +85,24 @@ await t.step('switches dollhouse / x-ray', async () => {
 })
 
 await t.step('visits every camera preset', async () => {
-  const presets = page.getByRole('group', { name: /camera/i }).getByRole('button')
-  const n = await presets.count().catch(() => 0)
-  // Fall back to the known labels if the group loses its accessible name.
-  const buttons = n > 0 ? await presets.all() : await page.getByRole('button', { name: /iso|top|from/i }).all()
-  assert.ok(buttons.length >= 3, `expected camera presets, found ${buttons.length}`)
-  for (const [i, b] of buttons.entries()) {
-    await b.click()
-    await page.waitForTimeout(700)
-    await shot(page, `03-preset-${i}`)
+  // Camera presets are a radio group in the toolbar; when the toolbar is narrow
+  // (e.g. with the panel open) a select replaces it. Drive whichever is showing.
+  const buttons = await page.getByRole('radiogroup', { name: /^camera$/i }).getByRole('radio').all()
+  if (buttons.length) {
+    for (const [i, b] of buttons.entries()) {
+      await b.click()
+      await page.waitForTimeout(700)
+      await shot(page, `03-preset-${i}`)
+    }
+  } else {
+    const select = page.getByRole('combobox', { name: /camera/i })
+    const values = await select.locator('option').evaluateAll((os) => os.map((o) => o.value))
+    assert.ok(values.length >= 3, `expected camera presets, found ${values.length}`)
+    for (const [i, v] of values.entries()) {
+      await select.selectOption(v)
+      await page.waitForTimeout(700)
+      await shot(page, `03-preset-${i}`)
+    }
   }
   assert.deepEqual(errors, [])
 })
@@ -120,7 +129,7 @@ await t.step('opens every panel tab', async () => {
     assert.equal(await tab.getAttribute('aria-selected'), 'true')
     // Each library shows a heading and at least one choice.
     assert.ok(await panel.getByRole('heading').first().isVisible())
-    assert.ok((await panel.locator('.card, .thumb').count()) > 0 || /art/i.test(await tab.innerText()), 'library has choices')
+    assert.ok((await panel.locator('.lib-row, .thumb').count()) > 0 || /art/i.test(await tab.innerText()), 'library has choices')
   }
   await shot(page, '05-tabs')
 })
@@ -213,9 +222,10 @@ await t.step('the saved file has one of each kind and survives a reload', async 
   assert.deepEqual([...kinds].sort(), ['artwork', 'furniture', 'lamp', 'plant'])
   await page.goto(url('view=iso-balcony'))
   await waitForScene(page)
-  // The "In the room" list shows the saved lamps after reload.
-  await openTab(/light/i)
-  const listed = await panel.locator('.placed li').count()
+  // The "In the room" list (all kinds, grouped) shows the saved lamps after reload.
+  const toggle = panel.locator('#room-toggle')
+  if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click()
+  const listed = await panel.getByRole('group', { name: /light/i }).locator('li').count()
   assert.equal(listed, items.filter((i) => i.kind === 'lamp').length)
   await page.getByRole('radio', { name: /evening/i }).click()
   await page.waitForTimeout(900)
