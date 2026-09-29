@@ -52,6 +52,12 @@ const PATHS = {
   fruitBaskets: 'M10 2v3M4 5.5a6 3 0 0 0 12 0zM5 11a5 2.5 0 0 0 10 0zM6.5 15.5a3.5 2 0 0 0 7 0zM10 8.5V11M10 13.5v2',
   stationClock: 'M10 3.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM10 6.5V10l2.5 1.5',
   hangingRack: 'M2 3h16M5 3v5M15 3v5M3 8h14v3H3zM7 8v3M10 8v3M13 8v3M6 11v4M14 11v3',
+  speakers: 'M2.5 4.5h5.5v11H2.5zM12 4.5h5.5v11H12zM5.25 9.9a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2zM14.75 9.9a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2zM5.25 7v.1M14.75 7v.1',
+  standMixer: 'M3.5 16.5h12M6 16.5V9M5 9V6.5A1.5 1.5 0 0 1 6.5 5h7.5a2 2 0 0 1 0 4H5zM9 11.5h6.5l-1.2 4h-4.1zM12.5 9v2.5',
+  espressoMachine: 'M4 3.5h12V7H4zM5 7v9.5M3.5 16.5h13M8.5 7v1.5h3V7M11.5 8.5l4 1M8.5 12.5h3l-.4 3H8.9z',
+  turntable: 'M2.5 5h15v10h-15zM8 6.8a3.2 3.2 0 1 1 0 6.4 3.2 3.2 0 0 1 0-6.4zM8 9.9v.2M15 6.5V11l-2 1.5',
+  acIndoor: 'M2.5 5h15v5.5A1.5 1.5 0 0 1 16 12H4a1.5 1.5 0 0 1-1.5-1.5zM5 9.5h10M6 14.5l-1 2M10 14.5v2M14 14.5l1 2',
+  acOutdoor: 'M2.5 4.5h15v11h-15zM8 6.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7zM8 8.5v3M6.5 10h3M14 7v6M15.8 7v6M4 15.5V17M16 15.5V17',
 
   // ---------- plants ----------
   plantLeaves: `${POT}M10 13V8M10 8C6 9 4 7 4 4c4-1 6 1 6 4zM10 8c4 1 6-1 6-4-4-1-6 1-6 4z`,
@@ -123,6 +129,12 @@ export const FURNITURE_ICON: Record<FurnitureType, IconName> = {
   fruitBaskets: 'fruitBaskets',
   stationClock: 'stationClock',
   hangingRack: 'hangingRack',
+  speakers: 'speakers',
+  standMixer: 'standMixer',
+  espressoMachine: 'espressoMachine',
+  turntable: 'turntable',
+  acIndoor: 'acIndoor',
+  acOutdoor: 'acOutdoor',
 }
 
 export const PLANT_ICON: Record<PlantSpecies, IconName> = {

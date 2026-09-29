@@ -5,6 +5,7 @@ import { Daybed, MurphyBed, PlatformBed } from './Sleep'
 import { ButterflyChair, ChairItem, DiningTable, Sofa, StandingDesk } from './SitWork'
 import { BlockShelf, Bookshelf, Rug, Sideboard, Wardrobe } from './Storage'
 import { FloatingShelf, FruitBaskets, GridShelf, HangingRack, KitchenRail, PegGrid, StationClock, UpperCabinets } from './Wall'
+import { AcIndoor, AcOutdoor, EspressoMachine, Speakers, StandMixer, Turntable } from './Devices'
 
 const VIEWS: Record<FurnitureType, (p: { item: FurnitureItem }) => ReactNode> = {
   platformBed: PlatformBed,
@@ -28,6 +29,12 @@ const VIEWS: Record<FurnitureType, (p: { item: FurnitureItem }) => ReactNode> = 
   fruitBaskets: FruitBaskets,
   stationClock: StationClock,
   hangingRack: HangingRack,
+  speakers: Speakers,
+  standMixer: StandMixer,
+  espressoMachine: EspressoMachine,
+  turntable: Turntable,
+  acIndoor: AcIndoor,
+  acOutdoor: AcOutdoor,
 }
 
 /** Only these fields change the model; moving or rotating a piece does not rebuild it. */

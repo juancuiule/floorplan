@@ -10,10 +10,14 @@ export type OptionSpec =
 export interface FurnitureSpec {
   label: string
   note: string
-  group: 'Sleep' | 'Sit' | 'Work & dine' | 'Storage' | 'Kitchen & wall' | 'Decor'
+  group: 'Sleep' | 'Sit' | 'Work & dine' | 'Storage' | 'Kitchen & wall' | 'Decor' | 'Appliances & electronics'
   mount: Mount
   /** Default [w, h, d] in meters. */
   size: Vec3
+  /** Wall pieces: the usual height of the bottom edge; placing near it settles there. */
+  mountHeight?: number
+  /** Pieces whose size follows their options (a speaker pair's spacing): the size for these options. */
+  sizeFor?: (options: Record<string, FurnitureOption>, size: Vec3) => Vec3
   presets?: { label: string; size: Vec3 }[]
   /** Which of the three finish colors the piece uses. */
   uses: ('body' | 'metal' | 'fabric')[]
@@ -56,6 +60,12 @@ const BLACK = METAL_FINISHES[0].color
 const LINEN = FABRIC_FINISHES[0].color
 
 const finish = (body = PLY, metal = BLACK, fabric = LINEN) => ({ body, metal, fabric })
+
+/** Width of one Edifier R1700BT speaker. */
+export const SPEAKER_W = 0.155
+/** Height of the AC condenser itself, without a bracket. */
+export const CONDENSER_H = 0.55
+const round2 = (v: number) => Math.round(v * 1000) / 1000
 
 export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
   platformBed: {
@@ -412,9 +422,137 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     optionSpecs: [],
     editable: ['w', 'h', 'd'],
   },
+
+  // ---------- appliances & electronics (the owner's own models) ----------
+  speakers: {
+    label: 'Edifier R1700BT',
+    note: 'Pair of bookshelf speakers',
+    group: 'Appliances & electronics',
+    mount: 'surface',
+    size: [round2(2 * SPEAKER_W + 0.6), 0.24, 0.2],
+    sizeFor: (o, s) => [round2(2 * SPEAKER_W + Number(o.spacing ?? 60) / 100), s[1], s[2]],
+    uses: ['body'],
+    finish: finish('#8a5b3b'),
+    options: { spacing: 60, grille: true },
+    optionSpecs: [
+      { key: 'spacing', label: 'Gap between speakers', kind: 'range', min: 10, max: 250, step: 5, unit: 'cm' },
+      { key: 'grille', label: 'Grilles on', kind: 'toggle' },
+    ],
+    editable: [],
+  },
+  standMixer: {
+    label: 'KitchenAid Artisan',
+    note: 'Tilt-head stand mixer',
+    group: 'Appliances & electronics',
+    mount: 'surface',
+    size: [0.24, 0.36, 0.36],
+    uses: ['metal'],
+    finish: finish(PLY, '#dfe2e5'),
+    options: { color: 'red' },
+    optionSpecs: [
+      {
+        key: 'color',
+        label: 'Color',
+        kind: 'chips',
+        choices: [
+          { id: 'red', label: 'Empire red' },
+          { id: 'white', label: 'White' },
+          { id: 'black', label: 'Black' },
+          { id: 'pistachio', label: 'Pistachio' },
+          { id: 'almond', label: 'Almond cream' },
+        ],
+      },
+    ],
+    editable: [],
+  },
+  espressoMachine: {
+    label: 'Oster Perfect Brew',
+    note: 'Barista espresso machine',
+    group: 'Appliances & electronics',
+    mount: 'surface',
+    size: [0.22, 0.3, 0.28],
+    uses: ['metal'],
+    finish: finish(PLY, '#d9dcdf'),
+    options: { cup: true },
+    optionSpecs: [{ key: 'cup', label: 'Cup on the tray', kind: 'toggle' }],
+    editable: [],
+  },
+  turntable: {
+    label: 'Audio-Technica AT-LP120X',
+    note: 'USB turntable, direct drive',
+    group: 'Appliances & electronics',
+    mount: 'surface',
+    size: [0.45, 0.157, 0.352],
+    uses: ['metal'],
+    finish: finish(PLY, '#d3d6d8'),
+    options: { plinth: 'black', label: 'red', cover: 'closed' },
+    optionSpecs: [
+      {
+        key: 'plinth',
+        label: 'Plinth',
+        kind: 'chips',
+        choices: [
+          { id: 'black', label: 'Black' },
+          { id: 'silver', label: 'Silver' },
+        ],
+      },
+      {
+        key: 'label',
+        label: 'Record label',
+        kind: 'chips',
+        choices: [
+          { id: 'red', label: 'Red' },
+          { id: 'yellow', label: 'Yellow' },
+          { id: 'blue', label: 'Blue' },
+          { id: 'white', label: 'White' },
+          { id: 'green', label: 'Green' },
+        ],
+      },
+      {
+        key: 'cover',
+        label: 'Dust cover',
+        kind: 'chips',
+        choices: [
+          { id: 'closed', label: 'Closed' },
+          { id: 'open', label: 'Open' },
+          { id: 'removed', label: 'Removed' },
+        ],
+      },
+    ],
+    editable: [],
+  },
+  acIndoor: {
+    label: 'Split AC, indoor unit',
+    note: 'Wall unit, hung high',
+    group: 'Appliances & electronics',
+    mount: 'wall',
+    size: [0.8, 0.28, 0.21],
+    mountHeight: 2.1,
+    uses: ['body'],
+    finish: finish('#f3f3f0'),
+    options: { display: true },
+    optionSpecs: [{ key: 'display', label: 'Display lit', kind: 'toggle' }],
+    editable: [],
+  },
+  acOutdoor: {
+    label: 'Split AC, outdoor unit',
+    note: 'Condenser, for the balcony',
+    group: 'Appliances & electronics',
+    mount: 'surface',
+    size: [0.78, CONDENSER_H, 0.29],
+    sizeFor: (o, s) => [s[0], round2(CONDENSER_H + (o.bracket === true ? Number(o.lift ?? 100) / 100 : 0)), s[2]],
+    uses: ['body', 'metal'],
+    finish: finish('#e6e4dd', METAL_FINISHES[3].color),
+    options: { bracket: false, lift: 100 },
+    optionSpecs: [
+      { key: 'bracket', label: 'On a wall bracket', kind: 'toggle' },
+      { key: 'lift', label: 'Bracket height', kind: 'range', min: 30, max: 180, step: 5, unit: 'cm' },
+    ],
+    editable: [],
+  },
 }
 
-export const FURNITURE_GROUPS: FurnitureSpec['group'][] = ['Sleep', 'Sit', 'Work & dine', 'Storage', 'Kitchen & wall', 'Decor']
+export const FURNITURE_GROUPS: FurnitureSpec['group'][] = ['Sleep', 'Sit', 'Work & dine', 'Storage', 'Kitchen & wall', 'Decor', 'Appliances & electronics']
 
 /** Presentation only: extra words the panel search matches. */
 export const FURNITURE_KEYWORDS: Partial<Record<FurnitureType, string>> = {
@@ -439,4 +577,10 @@ export const FURNITURE_KEYWORDS: Partial<Record<FurnitureType, string>> = {
   fruitBaskets: 'kitchen wire',
   stationClock: 'wall time',
   hangingRack: 'pots pans ceiling kitchen',
+  speakers: 'edifier r1700bt bookshelf audio music sound',
+  standMixer: 'kitchenaid artisan baking kitchen',
+  espressoMachine: 'oster coffee barista cafe kitchen',
+  turntable: 'audio-technica at-lp120x record player vinyl music',
+  acIndoor: 'air conditioner split aire acondicionado',
+  acOutdoor: 'air conditioner condenser compressor split balcony',
 }

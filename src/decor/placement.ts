@@ -78,6 +78,8 @@ export function mountOf(item: DecorItem): Mount {
 }
 
 const round = (v: number) => Math.round(v * 100) / 100
+/** How close (m) to a piece's usual mounting height the pointer pulls it there. */
+const MOUNT_PULL = 0.35
 const vec = (p: THREE.Vector3): Vec3 => [round(p.x), round(p.y), round(p.z)]
 
 /** The patch that moves `item` to the hit, or null if it cannot go there. */
@@ -88,7 +90,12 @@ export function placeAt(item: DecorItem, hit: SurfaceHit, opts: { free?: boolean
     if (hit.kind !== 'wall') return null
     const at = vec(hit.point)
     // Wall furniture is anchored by its bottom edge; center it on the pointer.
-    if (item.kind === 'furniture') at[1] = round(Math.max(0, hit.point.y - item.size[1] / 2))
+    if (item.kind === 'furniture') {
+      at[1] = round(Math.max(0, hit.point.y - item.size[1] / 2))
+      // Pieces with a usual height (an AC unit) settle there when the pointer is near it.
+      const usual = FURNITURE[item.type].mountHeight
+      if (usual !== undefined && Math.abs(at[1] - usual) < MOUNT_PULL) at[1] = usual
+    }
     return { at, facing: facingOf(hit.normal), host: hit.host } as Partial<DecorItem>
   }
   if (mount === 'surface') {
