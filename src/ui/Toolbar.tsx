@@ -122,7 +122,7 @@ export function Toolbar() {
                 role="radio"
                 aria-checked={lighting === l}
                 tabIndex={lighting === l ? 0 : -1}
-                data-tip={l === 'day' ? 'Today at 15:00 (L)' : 'Today at 21:00, lamps on (L)'}
+                data-tip={l === 'day' ? 'Afternoon sun, 15:00 (L)' : 'Evening, 21:00, lamps on (L)'}
                 aria-keyshortcuts="L"
                 onClick={() => setLighting(l)}
               >
