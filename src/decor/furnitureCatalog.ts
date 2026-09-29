@@ -415,3 +415,28 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
 }
 
 export const FURNITURE_GROUPS: FurnitureSpec['group'][] = ['Sleep', 'Sit', 'Work & dine', 'Storage', 'Kitchen & wall', 'Decor']
+
+/** Presentation only: extra words the panel search matches. */
+export const FURNITURE_KEYWORDS: Partial<Record<FurnitureType, string>> = {
+  platformBed: 'double single mattress',
+  murphyBed: 'murphy fold',
+  daybed: 'sofa bed guest',
+  sofa: 'couch settee',
+  standingDesk: 'office work table',
+  diningTable: 'dinner eat',
+  chair: 'seat',
+  butterflyChair: 'bkf hardoy seat lounge',
+  bookshelf: 'books cubes shelving',
+  wardrobe: 'closet clothes',
+  sideboard: 'tv cabinet credenza',
+  blockShelf: 'bricks books shelving',
+  rug: 'carpet',
+  gridShelf: 'wall shelving',
+  upperCabinets: 'kitchen wall cupboard glass',
+  floatingShelf: 'wall',
+  pegGrid: 'pegboard kitchen wall',
+  kitchenRail: 'hooks knives utensils',
+  fruitBaskets: 'kitchen wire',
+  stationClock: 'wall time',
+  hangingRack: 'pots pans ceiling kitchen',
+}
