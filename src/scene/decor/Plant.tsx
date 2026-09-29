@@ -4,7 +4,7 @@ import { POTS } from '../../decor/catalog'
 import type { PlantItem, PotStyle } from '../../model/decor'
 import { buildPlant, POT_SIZES, type PlantMat } from './plantGeometry'
 
-const MATS: Record<Exclude<PlantMat, 'pot'>, THREE.MeshStandardMaterial> = {
+export const MATS: Record<Exclude<PlantMat, 'pot'>, THREE.MeshStandardMaterial> = {
   leaf: new THREE.MeshStandardMaterial({ color: '#4f8a45', roughness: 0.6, side: THREE.DoubleSide }),
   leafDark: new THREE.MeshStandardMaterial({ color: '#2f6533', roughness: 0.5, side: THREE.DoubleSide }),
   leafLight: new THREE.MeshStandardMaterial({ color: '#7aa655', roughness: 0.65, side: THREE.DoubleSide }),
@@ -24,7 +24,7 @@ const MATS: Record<Exclude<PlantMat, 'pot'>, THREE.MeshStandardMaterial> = {
 }
 
 const potMaterials = new Map<PotStyle, THREE.MeshStandardMaterial>()
-function potMaterial(style: PotStyle) {
+export function potMaterial(style: PotStyle) {
   let m = potMaterials.get(style)
   if (!m) {
     const color = POTS.find((p) => p.id === style)?.color ?? '#ccc'

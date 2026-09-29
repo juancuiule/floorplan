@@ -10,7 +10,7 @@ export type OptionSpec =
 export interface FurnitureSpec {
   label: string
   note: string
-  group: 'Sleep' | 'Sit' | 'Work & dine' | 'Storage' | 'Kitchen & wall' | 'Decor' | 'Appliances & electronics'
+  group: 'Sleep' | 'Sit' | 'Work & dine' | 'Storage' | 'Kitchen & wall' | 'Balcony' | 'Decor' | 'Appliances & electronics'
   mount: Mount
   /** Default [w, h, d] in meters. */
   size: Vec3
@@ -303,6 +303,217 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     optionSpecs: [{ key: 'border', label: 'Border stripe', kind: 'toggle' }],
     editable: ['w', 'd'],
   },
+  loftBed: {
+    label: 'Raised sleeping platform',
+    note: 'Loft bed on drawers, storage steps',
+    group: 'Sleep',
+    mount: 'surface',
+    size: [2.55, 1.0, 1.5],
+    presets: [
+      { label: '90 × 190', size: [2.45, 1.0, 0.98] },
+      { label: '140 × 190', size: [2.55, 1.0, 1.5] },
+      { label: '160 × 200', size: [2.65, 1.05, 1.7] },
+    ],
+    uses: ['body', 'fabric'],
+    finish: finish(),
+    options: { stairs: 'right', drawers: 3 },
+    optionSpecs: [
+      {
+        key: 'stairs',
+        label: 'Steps on the',
+        kind: 'chips',
+        choices: [
+          { id: 'left', label: 'Left' },
+          { id: 'right', label: 'Right' },
+        ],
+      },
+      { key: 'drawers', label: 'Drawers under the bed', kind: 'range', min: 0, max: 4, step: 1 },
+    ],
+    editable: ['w', 'h', 'd'],
+  },
+  glassDivider: {
+    label: 'Glass room divider',
+    note: 'Plywood frame, fluted glass',
+    group: 'Decor',
+    mount: 'surface',
+    size: [1.4, 2.1, 0.3],
+    presets: [
+      { label: '2 panels', size: [0.9, 2.1, 0.3] },
+      { label: '3 panels', size: [1.4, 2.1, 0.3] },
+      { label: '4 panels · full height', size: [1.8, 2.4, 0.3] },
+    ],
+    uses: ['body'],
+    finish: finish(),
+    options: { panels: 3, glass: 'reeded', transom: true },
+    optionSpecs: [
+      { key: 'panels', label: 'Panels', kind: 'range', min: 1, max: 6, step: 1 },
+      {
+        key: 'glass',
+        label: 'Glass',
+        kind: 'chips',
+        choices: [
+          { id: 'reeded', label: 'Reeded' },
+          { id: 'frosted', label: 'Frosted' },
+          { id: 'clear', label: 'Clear' },
+        ],
+      },
+      { key: 'transom', label: 'Top rail (transom)', kind: 'toggle' },
+    ],
+    editable: ['w', 'h'],
+  },
+  officeChair: {
+    label: 'Ergonomic office chair',
+    note: 'Mesh back, headrest, on casters',
+    group: 'Work & dine',
+    mount: 'surface',
+    size: [0.66, 1.22, 0.66],
+    uses: ['metal'],
+    finish: finish(PLY, BLACK),
+    options: { color: 'black', seat: 48, headrest: true },
+    optionSpecs: [
+      {
+        key: 'color',
+        label: 'Mesh',
+        kind: 'chips',
+        choices: [
+          { id: 'black', label: 'Black' },
+          { id: 'grey', label: 'Grey' },
+        ],
+      },
+      { key: 'seat', label: 'Seat height', kind: 'range', min: 42, max: 56, step: 1, unit: 'cm' },
+      { key: 'headrest', label: 'Headrest', kind: 'toggle' },
+    ],
+    editable: [],
+  },
+  bistroChair: {
+    label: 'Tube chair or stool',
+    note: 'Bent steel tube, round wood seat',
+    group: 'Sit',
+    mount: 'surface',
+    size: [0.42, 0.8, 0.46],
+    uses: ['body'],
+    finish: finish(BODY_FINISHES[1].color),
+    options: { variant: 'chair', color: '#e0662f' },
+    optionSpecs: [
+      {
+        key: 'variant',
+        label: 'Type',
+        kind: 'chips',
+        choices: [
+          { id: 'chair', label: 'Chair' },
+          { id: 'stool', label: 'Stool' },
+          { id: 'bar', label: 'Bar stool' },
+        ],
+      },
+      {
+        key: 'color',
+        label: 'Tube color',
+        kind: 'chips',
+        choices: [
+          { id: '#e0662f', label: 'Orange' },
+          { id: '#3f8a57', label: 'Green' },
+          { id: '#2f5fb3', label: 'Blue' },
+          { id: '#e5b92e', label: 'Yellow' },
+          { id: '#c93a36', label: 'Red' },
+          { id: '#f0eee9', label: 'White' },
+        ],
+      },
+    ],
+    editable: [],
+  },
+  windowBench: {
+    label: 'Window bench',
+    note: 'Plywood box seat with cushion',
+    group: 'Sit',
+    mount: 'surface',
+    size: [1.2, 0.46, 0.42],
+    presets: [
+      { label: '90 cm', size: [0.9, 0.46, 0.42] },
+      { label: '120 cm', size: [1.2, 0.46, 0.42] },
+      { label: '160 cm', size: [1.6, 0.46, 0.42] },
+    ],
+    uses: ['body', 'fabric'],
+    finish: finish(PLY, BLACK, FABRIC_FINISHES[4].color),
+    options: { front: 'open', cushion: true },
+    optionSpecs: [
+      {
+        key: 'front',
+        label: 'Front',
+        kind: 'chips',
+        choices: [
+          { id: 'open', label: 'Open cubbies' },
+          { id: 'closed', label: 'Closed' },
+        ],
+      },
+      { key: 'cushion', label: 'Seat cushion', kind: 'toggle' },
+    ],
+    editable: ['w', 'h', 'd'],
+  },
+  wireBasket: {
+    label: 'Wire basket',
+    note: 'Lined with a burlap coffee sack',
+    group: 'Storage',
+    mount: 'surface',
+    size: [0.42, 0.5, 0.42],
+    presets: [
+      { label: 'Small', size: [0.32, 0.36, 0.32] },
+      { label: 'Laundry', size: [0.42, 0.5, 0.42] },
+      { label: 'Tall', size: [0.4, 0.62, 0.4] },
+    ],
+    uses: ['metal'],
+    finish: finish(PLY, BLACK),
+    options: { sack: true, laundry: true },
+    optionSpecs: [
+      { key: 'sack', label: 'Burlap coffee sack', kind: 'toggle' },
+      { key: 'laundry', label: 'Filled with laundry', kind: 'toggle' },
+    ],
+    editable: ['w', 'h'],
+  },
+  balconyBench: {
+    label: 'Balcony daybed',
+    note: 'Slats or pallets, cushions, pillows',
+    group: 'Balcony',
+    mount: 'surface',
+    size: [1.6, 0.42, 0.7],
+    presets: [
+      { label: 'Bench 120', size: [1.2, 0.42, 0.6] },
+      { label: 'Daybed 160', size: [1.6, 0.42, 0.7] },
+      { label: 'Pallets 120 × 80', size: [1.2, 0.42, 0.8] },
+    ],
+    uses: ['body', 'fabric'],
+    finish: finish(BODY_FINISHES[1].color, BLACK, FABRIC_FINISHES[0].color),
+    options: { base: 'slats', pillows: 3 },
+    optionSpecs: [
+      {
+        key: 'base',
+        label: 'Base',
+        kind: 'chips',
+        choices: [
+          { id: 'slats', label: 'Wood slats' },
+          { id: 'pallet', label: 'Pallets' },
+        ],
+      },
+      { key: 'pillows', label: 'Back pillows', kind: 'range', min: 0, max: 4, step: 1 },
+    ],
+    editable: ['w', 'h', 'd'],
+  },
+  planterWall: {
+    label: 'Cinder-block planter wall',
+    note: 'Staggered blocks, plants in the cells',
+    group: 'Balcony',
+    mount: 'surface',
+    size: [1.2, 0.8, 0.2],
+    presets: [
+      { label: '3 × 4', size: [1.2, 0.8, 0.2] },
+      { label: '4 × 6', size: [1.6, 1.2, 0.2] },
+      { label: '2 × 3 low', size: [0.8, 0.6, 0.2] },
+    ],
+    uses: ['body'],
+    finish: finish('#a9a6a0'),
+    options: { plants: 60 },
+    optionSpecs: [{ key: 'plants', label: 'Cells planted', kind: 'range', min: 0, max: 100, step: 10, unit: '%' }],
+    editable: ['w', 'h'],
+  },
 
   gridShelf: {
     label: 'Grid wall shelf',
@@ -348,8 +559,11 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     size: [0.9, 0.035, 0.22],
     uses: ['body', 'metal'],
     finish: finish(BODY_FINISHES[1].color, BLACK),
-    options: { brackets: true },
-    optionSpecs: [{ key: 'brackets', label: 'Visible brackets', kind: 'toggle' }],
+    options: { brackets: true, items: false },
+    optionSpecs: [
+      { key: 'brackets', label: 'Visible brackets', kind: 'toggle' },
+      { key: 'items', label: 'Styled: mugs, jars, books, a plant', kind: 'toggle' },
+    ],
     editable: ['w', 'd'],
   },
   pegGrid: {
@@ -408,6 +622,74 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     finish: finish(PLY, BLACK),
     options: {},
     optionSpecs: [],
+    editable: [],
+  },
+  retroClock: {
+    label: 'Retro wall clock',
+    note: 'Rounded red triangle, shows the time',
+    group: 'Decor',
+    mount: 'wall',
+    size: [0.32, 0.3, 0.05],
+    uses: ['metal'],
+    finish: finish(PLY, '#c9302c'),
+    options: { shape: 'triangle' },
+    optionSpecs: [
+      {
+        key: 'shape',
+        label: 'Shape',
+        kind: 'chips',
+        choices: [
+          { id: 'triangle', label: 'Triangle' },
+          { id: 'round', label: 'Round' },
+        ],
+      },
+    ],
+    editable: [],
+  },
+  railTable: {
+    label: 'Folding rail table',
+    note: 'Drop-leaf, on a wall or railing',
+    group: 'Balcony',
+    mount: 'wall',
+    size: [0.6, 0.3, 0.4],
+    presets: [
+      { label: '60 × 40', size: [0.6, 0.3, 0.4] },
+      { label: '80 × 40', size: [0.8, 0.3, 0.4] },
+      { label: 'Bar 100 × 30', size: [1.0, 0.25, 0.3] },
+    ],
+    uses: ['body', 'metal'],
+    finish: finish(BODY_FINISHES[1].color, BLACK),
+    options: { open: true },
+    optionSpecs: [{ key: 'open', label: 'Leaf up', kind: 'toggle' }],
+    editable: ['w', 'd'],
+  },
+  embroideryHoop: {
+    label: 'Cross-stitch hoop',
+    note: 'Pixel art on linen, wood hoop',
+    group: 'Decor',
+    mount: 'wall',
+    size: [0.2, 0.2, 0.015],
+    presets: [
+      { label: '15 cm', size: [0.15, 0.15, 0.015] },
+      { label: '20 cm', size: [0.2, 0.2, 0.015] },
+      { label: '30 cm', size: [0.3, 0.3, 0.015] },
+    ],
+    uses: ['body'],
+    finish: finish(BODY_FINISHES[0].color),
+    options: { motif: 'egg' },
+    optionSpecs: [
+      {
+        key: 'motif',
+        label: 'Motif',
+        kind: 'chips',
+        choices: [
+          { id: 'egg', label: 'Fried egg' },
+          { id: 'cherries', label: 'Cherries' },
+          { id: 'cactus', label: 'Cactus' },
+          { id: 'heart', label: 'Heart' },
+        ],
+      },
+    ],
     editable: [],
   },
   hangingRack: {
@@ -552,7 +834,7 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
   },
 }
 
-export const FURNITURE_GROUPS: FurnitureSpec['group'][] = ['Sleep', 'Sit', 'Work & dine', 'Storage', 'Kitchen & wall', 'Decor', 'Appliances & electronics']
+export const FURNITURE_GROUPS: FurnitureSpec['group'][] = ['Sleep', 'Sit', 'Work & dine', 'Storage', 'Kitchen & wall', 'Balcony', 'Decor', 'Appliances & electronics']
 
 /** Presentation only: extra words the panel search matches. */
 export const FURNITURE_KEYWORDS: Partial<Record<FurnitureType, string>> = {
@@ -583,4 +865,15 @@ export const FURNITURE_KEYWORDS: Partial<Record<FurnitureType, string>> = {
   turntable: 'audio-technica at-lp120x record player vinyl music',
   acIndoor: 'air conditioner split aire acondicionado',
   acOutdoor: 'air conditioner condenser compressor split balcony',
+  loftBed: 'loft mezzanine high bed stairs steps drawers',
+  glassDivider: 'partition screen reeded fluted glass wall',
+  officeChair: 'desk task swivel ergonomic mesh',
+  bistroChair: 'stool cafe metal tube stacking',
+  windowBench: 'kitchen seat banquette storage',
+  wireBasket: 'laundry hamper burlap coffee sack jute',
+  balconyBench: 'outdoor pallet sofa daybed terrace',
+  planterWall: 'cinder concrete blocks plants succulents',
+  retroClock: 'wall time red kitsch',
+  railTable: 'folding drop leaf balcony bar table railing',
+  embroideryHoop: 'embroidery cross stitch wall art egg',
 }

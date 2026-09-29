@@ -62,6 +62,17 @@ const PATHS = {
   turntable: 'M2.5 5h15v10h-15zM8 6.8a3.2 3.2 0 1 1 0 6.4 3.2 3.2 0 0 1 0-6.4zM8 9.9v.2M15 6.5V11l-2 1.5',
   acIndoor: 'M2.5 5h15v5.5A1.5 1.5 0 0 1 16 12H4a1.5 1.5 0 0 1-1.5-1.5zM5 9.5h10M6 14.5l-1 2M10 14.5v2M14 14.5l1 2',
   acOutdoor: 'M2.5 4.5h15v11h-15zM8 6.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7zM8 8.5v3M6.5 10h3M14 7v6M15.8 7v6M4 15.5V17M16 15.5V17',
+  loftBed: 'M2.5 8.5H13v8H2.5zM2.5 6.5H13M5 12.5h2M8.5 12.5h2M13 13.5h2.5V11H18v5.5h-5',
+  glassDivider: 'M3 3h14v13H3zM7.7 3v13M12.3 3v13M5.3 5v9M10 5v9M14.7 5v9M4 16v1.5M16 16v1.5',
+  officeChair: 'M6.5 2.5h7v7h-7zM5 11h10M10 11v3.5M6 17l4-2.5 4 2.5M10 14.5V17M4 9v2M16 9v2',
+  bistroChair: 'M6 9.5V4.5c0-1.5 8-1.5 8 0v5M4.5 9.5h11M6 9.5 4.5 17M14 9.5l1.5 7.5M8 9.5 7.5 17M12 9.5l.5 7.5',
+  windowBench: 'M5 2.5h10v6H5zM10 2.5v6M2.5 11h15v5.5h-15zM2.5 11V9.5h15V11M7.5 11v5.5M12.5 11v5.5',
+  wireBasket: 'M4 5h12l-1.2 11.5H5.2zM7 5l.5 11.5M10 5v11.5M13 5l-.5 11.5M4.4 9h11.2M4.8 13h10.4',
+  balconyBench: 'M2.5 11h15v2.5h-15zM3.5 13.5v3M16.5 13.5v3M4 11V7.5a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1V11M10.5 11V7.5a1 1 0 0 1 1-1H15a1 1 0 0 1 1 1V11',
+  planterWall: 'M3 4h14v12H3zM3 8h14M3 12h14M10 4v4M6.5 8v4M13.5 8v4M10 12v4M5.5 6.5c.5-1 1.5-1 2 0M12.5 14.5c.5-1 1.5-1 2 0',
+  retroClock: 'M10 3 17 15.5H3zM10 8.5a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6zM10 11.3V9.8M10 11.3h1.2',
+  railTable: 'M3.5 3v14M3.5 8H17M3.5 15.5 9 8M3.5 6h2',
+  embroideryHoop: 'M10 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM10 1.5V4M8.5 1.5h3M8 9h1.5v1.5H8zM10.5 10.5H12V12h-1.5zM8 12h1.5v1.5H8z',
 
   // ---------- plants ----------
   plantLeaves: `${POT}M10 13V8M10 8C6 9 4 7 4 4c4-1 6 1 6 4zM10 8c4 1 6-1 6-4-4-1-6 1-6 4z`,
@@ -86,6 +97,7 @@ const PATHS = {
   lampLantern: 'M10 2v3M10 5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11zM4.8 9h10.4M4.8 12h10.4',
   lampSconce: 'M4 4v12M4 10h3M6.5 5h7l-1.5 5h-4zM8.5 3l-.5-1M12 3l.5-1',
   lampExit: 'M4 5h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM6.5 8.5h7M6.5 11.5h4',
+  lampExitCeiling: 'M10 2v3.5M3 5.5h14v9H3zM6 8v4h2M6 10h1.5M6 8h2M9.5 8l2.5 4M12 8l-2.5 4M14 8v4',
   lampString: 'M2 4.5c5 4 11 4 16 0M6 7.3v1.2M10 8v1.2M14 7.3v1.2M6 8.5a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zM10 9.2a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zM14 8.5a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6z',
 } as const
 
@@ -139,6 +151,17 @@ export const FURNITURE_ICON: Record<FurnitureType, IconName> = {
   turntable: 'turntable',
   acIndoor: 'acIndoor',
   acOutdoor: 'acOutdoor',
+  loftBed: 'loftBed',
+  glassDivider: 'glassDivider',
+  officeChair: 'officeChair',
+  bistroChair: 'bistroChair',
+  windowBench: 'windowBench',
+  wireBasket: 'wireBasket',
+  balconyBench: 'balconyBench',
+  planterWall: 'planterWall',
+  retroClock: 'retroClock',
+  railTable: 'railTable',
+  embroideryHoop: 'embroideryHoop',
 }
 
 export const PLANT_ICON: Record<PlantSpecies, IconName> = {
@@ -175,6 +198,7 @@ export const LAMP_ICON: Record<LampType, IconName> = {
   lantern: 'lampLantern',
   sconce: 'lampSconce',
   exit: 'lampExit',
+  exitCeiling: 'lampExitCeiling',
   string: 'lampString',
 }
 

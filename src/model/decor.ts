@@ -73,7 +73,7 @@ export interface PlantItem {
   host?: string
 }
 
-export type LampType = 'arc' | 'tripod' | 'table' | 'mushroom' | 'flowerpot' | 'pendant' | 'globe' | 'lantern' | 'sconce' | 'exit' | 'string'
+export type LampType = 'arc' | 'tripod' | 'table' | 'mushroom' | 'flowerpot' | 'pendant' | 'globe' | 'lantern' | 'sconce' | 'exit' | 'exitCeiling' | 'string'
 export type Warmth = 2700 | 3000 | 4000
 
 export interface LampItem {
@@ -110,6 +110,14 @@ export type FurnitureType =
   | 'sideboard'
   | 'blockShelf'
   | 'rug'
+  | 'loftBed'
+  | 'glassDivider'
+  | 'officeChair'
+  | 'bistroChair'
+  | 'windowBench'
+  | 'wireBasket'
+  | 'balconyBench'
+  | 'planterWall'
   // wall
   | 'gridShelf'
   | 'upperCabinets'
@@ -118,6 +126,9 @@ export type FurnitureType =
   | 'kitchenRail'
   | 'fruitBaskets'
   | 'stationClock'
+  | 'retroClock'
+  | 'railTable'
+  | 'embroideryHoop'
   // ceiling
   | 'hangingRack'
   // appliances & electronics

@@ -3,7 +3,8 @@ import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { FurnitureItem } from '../../../model/decor'
 import { useView } from '../../../store'
-import { seeded } from '../plantGeometry'
+import { MATS, potMaterial } from '../Plant'
+import { buildPlant, seeded } from '../plantGeometry'
 import { B, mat, Rod } from './common'
 
 // Wall pieces: origin on the wall surface, y = bottom edge, +z out of the wall.
@@ -48,7 +49,7 @@ export function GridShelf({ item }: { item: FurnitureItem }) {
   )
 }
 
-function reededTexture(kind: string) {
+export function reededTexture(kind: string) {
   const c = document.createElement('canvas')
   c.width = c.height = 256
   const g = c.getContext('2d')!
@@ -144,12 +145,74 @@ export function UpperCabinets({ item }: { item: FurnitureItem }) {
   )
 }
 
+const MUGS = ['#f1ede4', '#2f4d6b', '#c96f4a', '#e5d7a8', '#6f8f7a', '#1f2326']
+
+/** A few everyday things on a shelf: mugs, a jar, a stack of books, a small succulent. */
+function ShelfItems({ w, d, y, seed }: { w: number; d: number; y: number; seed: string }) {
+  const r = seeded(seed)
+  const plant = useMemo(() => buildPlant('succulent', 'clay', seed), [seed])
+  useEffect(() => () => plant.parts.forEach((p) => p.geometry.dispose()), [plant])
+  const slots = Math.max(3, Math.floor((w - 0.06) / 0.11))
+  const kinds = ['books', 'mug', 'mug', 'plant', 'jar', 'mug', 'books', 'jar']
+  const start = Math.floor(r() * 3)
+  const z = d * 0.45
+  return (
+    <group position={[0, y, 0]}>
+      {Array.from({ length: slots }, (_, i) => {
+        const x = -w / 2 + 0.06 + (i + 0.5) * ((w - 0.12) / slots)
+        const kind = kinds[(start + i) % kinds.length]
+        if (kind === 'mug') {
+          const c = MUGS[Math.floor(r() * MUGS.length)]
+          const turn = r() * Math.PI * 2
+          return (
+            <group key={i} position={[x, 0, z]} rotation={[0, turn, 0]}>
+              <mesh position={[0, 0.045, 0]} material={mat(c, 'gloss')} castShadow>
+                <cylinderGeometry args={[0.04, 0.037, 0.09, 20]} />
+              </mesh>
+              <mesh position={[0.036, 0.048, 0]} rotation={[0, 0, -Math.PI / 2]} material={mat(c, 'gloss')}>
+                <torusGeometry args={[0.022, 0.006, 6, 14, Math.PI]} />
+              </mesh>
+            </group>
+          )
+        }
+        if (kind === 'jar')
+          return (
+            <group key={i} position={[x, 0, z]}>
+              <mesh position={[0, 0.07, 0]} material={mat('#d9e1dc', 'gloss')} castShadow>
+                <cylinderGeometry args={[0.04, 0.04, 0.14, 18]} />
+              </mesh>
+              <mesh position={[0, 0.148, 0]} material={mat('#b58a5a')}>
+                <cylinderGeometry args={[0.041, 0.041, 0.018, 18]} />
+              </mesh>
+            </group>
+          )
+        if (kind === 'books')
+          return (
+            <group key={i} position={[x, 0, z]} rotation={[0, (r() - 0.5) * 0.3, 0]}>
+              <B s={[0.1, 0.025, 0.15]} p={[0, 0.0125, 0]} m={mat('#2f4d6b', 'matte')} />
+              <B s={[0.09, 0.02, 0.14]} p={[0.004, 0.035, 0]} m={mat('#e2d4b7', 'matte')} />
+              <B s={[0.085, 0.018, 0.13]} p={[-0.004, 0.054, 0]} m={mat('#b34a3c', 'matte')} />
+            </group>
+          )
+        return (
+          <group key={i} position={[x, 0.003, z]}>
+            {plant.parts.map((p) => (
+              <mesh key={p.mat} geometry={p.geometry} material={p.mat === 'pot' ? potMaterial('clay') : MATS[p.mat]} castShadow />
+            ))}
+          </group>
+        )
+      })}
+    </group>
+  )
+}
+
 export function FloatingShelf({ item }: { item: FurnitureItem }) {
   const [w, h, d] = item.size
   const steel = mat(item.finish.metal, 'metal')
   return (
     <group>
       <B s={[w, h, d]} p={[0, h / 2, d / 2]} m={mat(item.finish.body)} />
+      {item.options.items === true && <ShelfItems w={w} d={d} y={h} seed={item.id} />}
       {item.options.brackets !== false &&
         [-1, 1].map((sx) => (
           <group key={sx} position={[sx * (w / 2 - 0.12), 0, 0]}>

@@ -4,6 +4,10 @@ import { Merged } from '../../Merged'
 import { Daybed, MurphyBed, PlatformBed } from './Sleep'
 import { ButterflyChair, ChairItem, DiningTable, Sofa, StandingDesk } from './SitWork'
 import { BlockShelf, Bookshelf, Rug, Sideboard, Wardrobe } from './Storage'
+import { BalconyBench, PlanterWall, RailTable } from './Balcony'
+import { EmbroideryHoop, GlassDivider, RetroClock, WireBasket } from './Decor'
+import { LoftBed } from './Loft'
+import { BistroChair, OfficeChair, WindowBench } from './Seating'
 import { FloatingShelf, FruitBaskets, GridShelf, HangingRack, KitchenRail, PegGrid, StationClock, UpperCabinets } from './Wall'
 import { AcIndoor, AcOutdoor, EspressoMachine, Speakers, StandMixer, Turntable } from './Devices'
 
@@ -21,6 +25,14 @@ const VIEWS: Record<FurnitureType, (p: { item: FurnitureItem }) => ReactNode> = 
   sideboard: Sideboard,
   blockShelf: BlockShelf,
   rug: Rug,
+  loftBed: LoftBed,
+  glassDivider: GlassDivider,
+  officeChair: OfficeChair,
+  bistroChair: BistroChair,
+  windowBench: WindowBench,
+  wireBasket: WireBasket,
+  balconyBench: BalconyBench,
+  planterWall: PlanterWall,
   gridShelf: GridShelf,
   upperCabinets: UpperCabinets,
   floatingShelf: FloatingShelf,
@@ -28,6 +40,9 @@ const VIEWS: Record<FurnitureType, (p: { item: FurnitureItem }) => ReactNode> = 
   kitchenRail: KitchenRail,
   fruitBaskets: FruitBaskets,
   stationClock: StationClock,
+  retroClock: RetroClock,
+  railTable: RailTable,
+  embroideryHoop: EmbroideryHoop,
   hangingRack: HangingRack,
   speakers: Speakers,
   standMixer: StandMixer,
