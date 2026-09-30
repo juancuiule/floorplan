@@ -6,7 +6,7 @@ import { chromium } from 'playwright'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const [outDir = 'shots', base = 'http://localhost:5173'] = process.argv.slice(2)
+const [outDir = 'test-results/gallery', base = 'http://localhost:5173'] = process.argv.slice(2)
 mkdirSync(outDir, { recursive: true })
 writeFileSync('data/decor.test-gallery.json', JSON.stringify({ version: 1, items: [] }, null, 2) + '\n')
 

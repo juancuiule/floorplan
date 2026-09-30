@@ -5,7 +5,7 @@ import { chromium } from 'playwright'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 
-const [outDir = 'shots', base = 'http://localhost:5173', ...rest] = process.argv.slice(2)
+const [outDir = 'test-results/shots', base = 'http://localhost:5173', ...rest] = process.argv.slice(2)
 const shots = rest.length
   ? rest
   : ['iso-balcony:dollhouse', 'iso-entry:dollhouse', 'iso-balcony:xray', 'top:dollhouse', 'from-balcony:dollhouse', 'from-entry:dollhouse']

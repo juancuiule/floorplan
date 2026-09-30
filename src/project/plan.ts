@@ -1,11 +1,12 @@
 import type { Plan } from '../model/plan'
+import { DEFAULT_PLAN_ID } from '../plans/default'
 
-// Every plan in src/plans is bundled; ?plan=<id> picks one, the default is the owner's flat.
+// Every plan in src/plans is bundled; ?plan=<id> picks one, the default is set in src/plans/default.ts.
 
 const modules = import.meta.glob<Plan>('../plans/*.plan.json', { eager: true, import: 'default' })
 
 export const PLANS: Plan[] = Object.values(modules).sort((a, b) => a.name.localeCompare(b.name))
-export const DEFAULT_PLAN_ID = 'monoambiente'
+export { DEFAULT_PLAN_ID }
 
 function pick(): Plan {
   const wanted = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('plan')

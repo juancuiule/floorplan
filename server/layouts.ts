@@ -1,5 +1,6 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
+import { DEFAULT_PLAN_ID } from '../src/plans/default.ts'
 
 // Layout variants on disk: data/decor.json is the main layout ("Current"),
 // data/decor.<slug>.json are named ones. A file may carry its display name
@@ -17,7 +18,7 @@ export interface LayoutInfo {
 }
 
 /** The plan a layout belongs to when its file doesn't say (the owner's flat). */
-export const DEFAULT_PLAN = 'monoambiente'
+export const DEFAULT_PLAN = DEFAULT_PLAN_ID
 
 export class LayoutError extends Error {
   status: number

@@ -3,7 +3,7 @@
 // screenshot per step and a few invariants (finite numbers, idle frames at 0,
 // undo/redo round trips, persistence across a reload).
 //
-//   CHROME_PATH=... node scripts/hunt.mjs [outDir] [baseUrl]
+//   CHROME_PATH=... node tests/e2e/hunt.mjs [outDir] [baseUrl]
 //
 // Works on a scratch copy of the owner's layout (data/decor.test-hunt.json,
 // git-ignored): data/decor.json is only read. Layouts it saves are test-* ones

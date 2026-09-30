@@ -1,10 +1,10 @@
 // Drives the decor panel like a person would and saves screenshots.
-// Usage: node scripts/e2e-decor.mjs <outDir> [baseUrl]   (uses data/decor.e2e.json, never your real layout)
+// Usage: node tests/e2e/decor-panel.mjs <outDir> [baseUrl]   (uses data/decor.e2e.json, never your real layout)
 import { chromium } from 'playwright'
 import { mkdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const [outDir = 'shots', base = 'http://localhost:5173'] = process.argv.slice(2)
+const [outDir = 'test-results/decor-panel', base = 'http://localhost:5173'] = process.argv.slice(2)
 mkdirSync(outDir, { recursive: true })
 const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || undefined,

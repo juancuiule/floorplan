@@ -1,12 +1,12 @@
 // Exercises the editing interactions (place, drag, undo/redo, nudge, rotate, copy/paste,
 // delete) and checks what gets saved. Uses data/decor.edit.json, seeded from
 // data/decor.furn.json when that exists (both git-ignored), never your real layout.
-// Usage: node scripts/e2e-edit.mjs <outDir> [baseUrl]
+// Usage: node tests/e2e/edit.mjs <outDir> [baseUrl]
 import { chromium } from 'playwright'
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const [outDir = 'shots', base = 'http://localhost:5173'] = process.argv.slice(2)
+const [outDir = 'test-results/edit', base = 'http://localhost:5173'] = process.argv.slice(2)
 mkdirSync(outDir, { recursive: true })
 const FILE = 'data/decor.edit.json'
 if (existsSync('data/decor.furn.json')) copyFileSync('data/decor.furn.json', FILE)

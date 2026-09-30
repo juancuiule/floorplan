@@ -1,11 +1,11 @@
 // Checks that on-demand rendering still animates: x-ray fade, preset camera moves,
 // dollhouse cut-away, desk height tween. Saves shots into outDir.
-// Usage: node scripts/verify-demand.mjs outDir baseUrl
+// Usage: node tests/e2e/render-on-demand.mjs outDir baseUrl
 import { chromium } from 'playwright'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const [outDir = 'shots-verify', base = 'http://localhost:5173'] = process.argv.slice(2)
+const [outDir = 'test-results/render-on-demand', base = 'http://localhost:5173'] = process.argv.slice(2)
 mkdirSync(outDir, { recursive: true })
 const file = 'data/decor.furn.json'
 const original = readFileSync(file, 'utf8')

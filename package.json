@@ -1,7 +1,12 @@
 {
-  "name": "monoambiente",
+  "name": "floorplan",
   "private": true,
   "version": "0.0.0",
+  "description": "A real-time 3D model of an apartment for planning the interior",
+  "repository": "github:juancuiule/floorplan",
+  "engines": {
+    "node": ">=20.19"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
