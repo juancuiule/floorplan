@@ -54,8 +54,8 @@
       "id": "artwork-gallery-square",
       "image": "/artwork/IMG_3585.png",
       "at": [
-        3.62,
-        1.81,
+        4.82,
+        1.135,
         0
       ],
       "facing": "z+",
@@ -242,9 +242,9 @@
       "species": "pothos",
       "pot": "ceramic",
       "at": [
-        3.14,
+        3.79,
         2.6,
-        2.47
+        1.47
       ],
       "rotation": 60,
       "scale": 1,
@@ -407,8 +407,8 @@
       "id": "artwork-mum8t17mvd9k",
       "image": "/artwork/Screenshot%202025-11-01%20at%2016.43.01%202.png",
       "at": [
-        6.29,
-        2.15,
+        5.95,
+        1.43,
         0
       ],
       "facing": "z+",
@@ -579,34 +579,9 @@
       ],
       "rotation": 0,
       "on": true,
-      "brightness": 1,
+      "brightness": 0.9,
       "warmth": 2700,
       "color": "#f6ead8"
-    },
-    {
-      "kind": "furniture",
-      "id": "furniture-mum975jcn4dl",
-      "type": "daybed",
-      "at": [
-        3.18,
-        0,
-        0.7
-      ],
-      "rotation": 0,
-      "size": [
-        1.95,
-        0.46,
-        1.4
-      ],
-      "finish": {
-        "body": "#c49c6c",
-        "metal": "#eeeeec",
-        "fabric": "#56585c"
-      },
-      "options": {
-        "drawers": true,
-        "pillows": true
-      }
     },
     {
       "kind": "furniture",
@@ -621,7 +596,7 @@
       "size": [
         1.4,
         0.72,
-        0.33
+        0.6
       ],
       "finish": {
         "body": "#dcc196",
@@ -834,8 +809,8 @@
       "id": "artwork-mum9qkc8imj1",
       "image": "/artwork/image%2064.png",
       "at": [
-        5.07,
-        0.81,
+        5.13,
+        1.161,
         3
       ],
       "facing": "z-",
@@ -903,8 +878,8 @@
       "id": "artwork-mum9smo4zeyv",
       "image": "/artwork/Screenshot%202025-11-01%20at%2000.12.16%202.png",
       "at": [
-        3.11,
-        1.307,
+        3.145,
+        1.568,
         3
       ],
       "facing": "z-",
@@ -1018,8 +993,8 @@
       "id": "artwork-muma5x62zu5f",
       "image": "/artwork/img_2197-61676a700d9101809317290255807040-1024-1024.webp",
       "at": [
-        2.83,
-        1.7,
+        6.5,
+        2.08,
         0
       ],
       "facing": "z+",
@@ -1041,11 +1016,11 @@
       "id": "furniture-mumblwc89fdt",
       "type": "speakers",
       "at": [
-        4.81,
-        0,
-        0.11
+        5.665,
+        0.5,
+        2.815
       ],
-      "rotation": 0,
+      "rotation": 180,
       "size": [
         0.91,
         0.24,
@@ -1066,11 +1041,11 @@
       "id": "furniture-mumbn6iqh7l1",
       "type": "turntable",
       "at": [
-        4.8,
-        0,
-        0.41
+        5.665,
+        0.5,
+        2.796
       ],
-      "rotation": 0,
+      "rotation": 180,
       "size": [
         0.45,
         0.157,
@@ -1143,9 +1118,9 @@
       "id": "furniture-mumbpe1pw6io",
       "type": "standMixer",
       "at": [
-        4.575,
-        0,
-        2.755
+        3,
+        0.72,
+        2.815
       ],
       "rotation": 180,
       "size": [
@@ -1167,9 +1142,9 @@
       "id": "furniture-mumbq0chiwvu",
       "type": "espressoMachine",
       "at": [
-        3.87,
-        0.9,
-        2.82
+        4.045,
+        0.72,
+        2.83
       ],
       "rotation": 180,
       "size": [
@@ -1217,9 +1192,9 @@
       "id": "furniture-mumc8cjvr7s8",
       "type": "mugs",
       "at": [
-        3.63,
-        0.91,
-        2.5
+        3.65,
+        0.72,
+        2.79
       ],
       "rotation": 0,
       "size": [
@@ -1260,6 +1235,55 @@
       },
       "options": {
         "plants": 60
+      }
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-munfjmyu8aqj",
+      "type": "sideboard",
+      "at": [
+        5.44,
+        0,
+        2.79
+      ],
+      "rotation": 180,
+      "size": [
+        1.6,
+        0.5,
+        0.42
+      ],
+      "finish": {
+        "body": "#c49c6c",
+        "metal": "#1d1d1d",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "legs": true
+      }
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-munfl3cja6z0",
+      "type": "loftBed",
+      "at": [
+        3.48,
+        0,
+        0.75
+      ],
+      "rotation": 0,
+      "size": [
+        2.55,
+        1,
+        1.5
+      ],
+      "finish": {
+        "body": "#dcc196",
+        "metal": "#1d1d1d",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "stairs": "right",
+        "drawers": 3
       }
     }
   ]
