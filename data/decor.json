@@ -1327,11 +1327,11 @@
     },
     {
       "kind": "furniture",
-      "id": "furniture-muningbpdk05",
+      "id": "furniture-munl5jpulx3c",
       "type": "tvWall",
       "at": [
         5.44,
-        1,
+        1.095,
         3
       ],
       "rotation": 0,
@@ -1347,8 +1347,8 @@
       },
       "options": {
         "inches": 65,
-        "screen": "on",
-        "youtube": "https://youtu.be/lSW0NDE0-b0?t=7348",
+        "screen": "youtube",
+        "youtube": "https://youtu.be/EjSaoDvAGyk?t=495",
         "image": "https://media.minutouno.com/p/c0d7ff9c6b25707c63e0a4fac4817b3d/adjuntos/150/imagenes/041/472/0041472121/estadio-libertadores-america-ricardo-enrique-bochini-independientejpg.jpg"
       },
       "facing": "z-",
