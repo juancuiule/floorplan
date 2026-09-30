@@ -2,8 +2,14 @@
 
 A real-time 3D model of a studio apartment, for planning the interior: hang artwork, place furniture, plants and lamps, try paint and floors, take a wall out, walk through it and watch the real sun move across the room.
 
-![The studio in dollhouse view, from the balcony](docs/iso-balcony.jpg)
-![The same layout from the opposite side](docs/iso-balcony-flipped.jpg)
+![The web app: dollhouse view with the time and sun panel, the furniture and artwork libraries, and the room panel](docs/web-view.webp)
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/iso-balcony.jpg" alt="The studio in dollhouse view, from the balcony"></td>
+    <td width="50%"><img src="docs/iso-balcony-flipped.jpg" alt="The same layout from the opposite side"></td>
+  </tr>
+</table>
 
 ```sh
 pnpm install
