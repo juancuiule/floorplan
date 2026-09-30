@@ -368,8 +368,17 @@ export const useDecor = create<DecorState>((set, get) => ({
     const gone = new Set(ids)
     set((st) => {
       const selectedIds = st.selectedIds.filter((x) => !gone.has(x))
+      const kept = st.items.filter((i) => !gone.has(i.id))
+      // A group left with one piece is no group: that piece goes back to being loose.
+      const size = new Map<string, number>()
+      for (const i of kept) if (i.groupId) size.set(i.groupId, (size.get(i.groupId) ?? 0) + 1)
       return {
-        items: st.items.filter((i) => !gone.has(i.id)),
+        items: kept.map((i) => {
+          if (!i.groupId || size.get(i.groupId)! > 1) return i
+          const loose = { ...i }
+          delete loose.groupId
+          return loose
+        }),
         selectedIds,
         selectedId: st.selectedId && !gone.has(st.selectedId) ? st.selectedId : (selectedIds.at(-1) ?? null),
       }
