@@ -437,7 +437,7 @@
       "rotation": 0,
       "size": [
         1.4,
-        0.8,
+        0.76,
         0.7
       ],
       "finish": {
@@ -1143,9 +1143,9 @@
       "id": "furniture-mumbpe1pw6io",
       "type": "standMixer",
       "at": [
-        1.39,
-        0.91,
-        2.67
+        4.575,
+        0,
+        2.755
       ],
       "rotation": 180,
       "size": [
@@ -1188,31 +1188,6 @@
     },
     {
       "kind": "furniture",
-      "id": "furniture-mumc520ru31v",
-      "type": "windowBench",
-      "at": [
-        5.64,
-        0,
-        2.79
-      ],
-      "rotation": 180,
-      "size": [
-        1.2,
-        0.46,
-        0.42
-      ],
-      "finish": {
-        "body": "#c49c6c",
-        "metal": "#1d1d1d",
-        "fabric": "#56585c"
-      },
-      "options": {
-        "front": "open",
-        "cushion": true
-      }
-    },
-    {
-      "kind": "furniture",
       "id": "furniture-mumc6zqbb4i7",
       "type": "officeChair",
       "at": [
@@ -1235,31 +1210,6 @@
         "color": "grey",
         "seat": 48,
         "headrest": true
-      }
-    },
-    {
-      "kind": "furniture",
-      "id": "furniture-mumc7pfhvhcq",
-      "type": "wireBasket",
-      "at": [
-        4.49,
-        0,
-        1.11
-      ],
-      "rotation": 0,
-      "size": [
-        0.42,
-        0.5,
-        0.42
-      ],
-      "finish": {
-        "body": "#dcc196",
-        "metal": "#1d1d1d",
-        "fabric": "#e6e0d4"
-      },
-      "options": {
-        "sack": true,
-        "laundry": true
       }
     },
     {
