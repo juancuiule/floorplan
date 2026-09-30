@@ -31,9 +31,9 @@
       "id": "artwork-gallery-a3",
       "image": "/artwork/image%2054.png",
       "at": [
-        3.97,
-        0.01,
-        -0.16
+        5.2887,
+        1.125,
+        0
       ],
       "facing": "z+",
       "host": "side-bath",
@@ -581,16 +581,17 @@
       "on": true,
       "brightness": 0.9,
       "warmth": 2700,
-      "color": "#f6ead8"
+      "color": "#f6ead8",
+      "drop": 0.13
     },
     {
       "kind": "furniture",
       "id": "furniture-mum991u3ixdt",
       "type": "bookshelf",
       "at": [
-        3.47,
+        3.54,
         0,
-        2.83
+        2.7
       ],
       "rotation": 180,
       "size": [
@@ -1118,9 +1119,9 @@
       "id": "furniture-mumbpe1pw6io",
       "type": "standMixer",
       "at": [
-        3,
+        3.07,
         0.72,
-        2.815
+        2.65
       ],
       "rotation": 180,
       "size": [
@@ -1259,6 +1260,31 @@
       },
       "options": {
         "legs": true
+      }
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-munfq709glom",
+      "type": "platformBed",
+      "at": [
+        3.22,
+        0,
+        0.7
+      ],
+      "rotation": 90,
+      "size": [
+        1.4,
+        0.7,
+        2.04
+      ],
+      "finish": {
+        "body": "#dcc196",
+        "metal": "#1d1d1d",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "headShelf": "head",
+        "books": false
       }
     }
   ]
