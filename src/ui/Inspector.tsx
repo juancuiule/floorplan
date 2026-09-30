@@ -1,4 +1,4 @@
-import { memo, useState, type ReactNode } from 'react'
+import { memo, useEffect, useState, type ReactNode } from 'react'
 import { FRAME_COLORS, FRAME_STYLES, LAMPS, MAT_WIDTHS, PLANTS, POT_SIZES, POTS, SIZE_PRESETS, WARMTH } from '../decor/catalog'
 import { BODY_FINISHES, FABRIC_FINISHES, FURNITURE, METAL_FINISHES, type OptionSpec } from '../decor/furnitureCatalog'
 import { isPendant, MAX_CORD, MIN_CORD, pendantBottom, pendantDrop } from '../decor/pendant'
@@ -10,6 +10,7 @@ import { structureOf } from '../model/finishes'
 import type { Vec3 } from '../model/types'
 import { lostWallOf, WALL_LABELS, type HungItem } from '../project/structure'
 import { artworkOuterSize } from '../scene/decor/Artwork'
+import { screenImageSrc } from '../scene/decor/furniture/Devices'
 import { Chips, Field, NumberInput, Section, Slider, Swatches, Switch, useFieldControlId } from './controls'
 import { colorName } from './controlUtils'
 import { cm, isPlaced, itemKindLine, itemLabel } from './format'
@@ -482,6 +483,7 @@ function TextOption({ spec, value, onChange }: { spec: Extract<OptionSpec, { kin
     setDraft(null)
   }
   const shown = draft ?? value
+  const failure = useImageFailure(value, spec.key === 'image' && draft === null)
   const bad =
     shown.trim() !== '' && (spec.key === 'youtube' ? !parseYouTube(shown) : spec.key === 'image' ? !/^(https?:\/\/|\/)/i.test(shown.trim()) : false)
   return (
@@ -496,11 +498,34 @@ function TextOption({ spec, value, onChange }: { spec: Extract<OptionSpec, { kin
       />
       {bad ? (
         <p className="hint-text warn-text">{spec.key === 'youtube' ? 'That doesn’t look like a YouTube link.' : 'Use a link starting with https:// (or /artwork/…).'}</p>
+      ) : spec.key === 'image' && failure ? (
+        <p className="hint-text warn-text">Couldn’t load that image: {failure}. The screen keeps its default picture.</p>
       ) : (
         spec.hint && <p className="hint-text">{spec.hint}</p>
       )}
     </Field>
   )
+}
+
+/** Why the saved image link doesn't load (checked through the same route the screen uses), or null. */
+function useImageFailure(link: string, active: boolean): string | null {
+  const [failure, setFailure] = useState<{ src: string; error: string } | null>(null)
+  const src = active ? screenImageSrc(link) : null
+  useEffect(() => {
+    if (!src) return
+    let alive = true
+    fetch(src)
+      .then(async (r) => {
+        if (!alive || r.ok) return
+        const body = (await r.json().catch(() => null)) as { error?: string } | null
+        setFailure({ src, error: body?.error ?? `the server answered ${r.status}` })
+      })
+      .catch(() => alive && setFailure({ src, error: 'no answer' }))
+    return () => {
+      alive = false
+    }
+  }, [src])
+  return failure && failure.src === src ? failure.error : null
 }
 
 function TextOptionInput(p: { value: string; placeholder?: string; invalid: boolean; onChange: (v: string) => void; onCommit: () => void; onCancel: () => void }) {

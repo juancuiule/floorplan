@@ -85,7 +85,16 @@ async function fetchImage(raw: string): Promise<{ type: string; body: Buffer }> 
   const u = checkImageUrl(raw)
   const hit = imageCache.get(u.href)
   if (hit) return hit
-  const r = await fetch(u, { signal: AbortSignal.timeout(15000), redirect: 'follow' })
+  // Ask like a browser: many image hosts refuse other clients (403).
+  const r = await fetch(u, {
+    signal: AbortSignal.timeout(15000),
+    redirect: 'follow',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36',
+      Accept: 'image/webp,image/jpeg,image/png,image/avif,image/*;q=0.8',
+      'Accept-Language': 'en,es;q=0.9',
+    },
+  })
   if (!r.ok) throw new ImageError(`The image server answered ${r.status}`)
   const type = r.headers.get('content-type')?.split(';')[0].trim() ?? ''
   if (!type.startsWith('image/')) throw new ImageError('That link is not an image')
