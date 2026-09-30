@@ -1,6 +1,8 @@
 import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { LAMPS, warmthColor } from '../../decor/catalog'
+import { isPendant, pendantDrop } from '../../decor/pendant'
+import { useDecor } from '../../decor/store'
 import type { LampItem } from '../../model/decor'
 import { useView } from '../../store'
 import { Merged } from '../Merged'
@@ -68,6 +70,8 @@ export function Lamp({ item }: { item: LampItem }) {
 
 function LampModel({ item }: { item: LampItem }) {
   const m = useLampMaterials(item)
+  // Pendants: the cord set in the inspector, or one that keeps them clear of heads (or low over a table).
+  const drop = useDecor((s) => (isPendant(item.type) ? pendantDrop(item, s.items) : 0))
 
   switch (item.type) {
     case 'arc':
@@ -162,63 +166,70 @@ function LampModel({ item }: { item: LampItem }) {
         </group>
       )
 
-    case 'lantern':
-      // Large rice-paper globe (Noguchi Akari style), glowing, with thin ribs.
+    case 'lantern': {
+      // Large rice-paper globe (Noguchi Akari style), glowing, with thin ribs, on a cord of `drop`.
+      const c = -(drop + 0.3)
       return (
         <group>
-          <mesh position={[0, -0.25, 0]} material={cable}>
-            <cylinderGeometry args={[0.003, 0.003, 0.5, 6]} />
+          <mesh position={[0, -drop / 2, 0]} material={cable}>
+            <cylinderGeometry args={[0.003, 0.003, drop, 6]} />
           </mesh>
-          <mesh position={[0, -0.82, 0]} material={m.glow} castShadow>
+          <mesh position={[0, c, 0]} material={m.glow} castShadow>
             <sphereGeometry args={[0.3, 40, 28]} />
           </mesh>
           {Array.from({ length: 11 }, (_, i) => {
             const y = -0.25 + (i + 1) * 0.05
             const rr = Math.sqrt(Math.max(0, 0.3 * 0.3 - y * y)) + 0.001
             return (
-              <mesh key={i} position={[0, -0.82 + y, 0]} rotation={[Math.PI / 2, 0, 0]} material={m.shade}>
+              <mesh key={i} position={[0, c + y, 0]} rotation={[Math.PI / 2, 0, 0]} material={m.shade}>
                 <torusGeometry args={[rr, 0.0015, 4, 48]} />
               </mesh>
             )
           })}
-          <Bulb position={[0, -0.82, 0]} item={item} />
+          <Bulb position={[0, c, 0]} item={item} />
         </group>
       )
+    }
 
-    case 'pendant':
+    case 'pendant': {
+      // Dome shade: its top meets the cord, its rim is 22 cm lower.
+      const rim = -(drop + 0.22)
       return (
         <group>
           <mesh position={[0, -0.01, 0]} material={cable}>
             <cylinderGeometry args={[0.05, 0.05, 0.02, 20]} />
           </mesh>
-          <mesh position={[0, -0.4, 0]} material={cable}>
-            <cylinderGeometry args={[0.004, 0.004, 0.8, 6]} />
+          <mesh position={[0, -drop / 2, 0]} material={cable}>
+            <cylinderGeometry args={[0.004, 0.004, drop, 6]} />
           </mesh>
-          <mesh position={[0, -1.0, 0]} material={m.shade} castShadow>
+          <mesh position={[0, rim, 0]} material={m.shade} castShadow>
             <sphereGeometry args={[0.22, 36, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
           </mesh>
-          <mesh position={[0, -0.93, 0]} material={m.bulb}>
+          <mesh position={[0, rim + 0.07, 0]} material={m.bulb}>
             <sphereGeometry args={[0.05, 16, 10]} />
           </mesh>
-          <Bulb position={[0, -1.02, 0]} item={item} />
+          <Bulb position={[0, rim - 0.02, 0]} item={item} />
         </group>
       )
+    }
 
-    case 'globe':
+    case 'globe': {
+      const c = -(drop + 0.16)
       return (
         <group>
           <mesh position={[0, -0.01, 0]} material={cable}>
             <cylinderGeometry args={[0.05, 0.05, 0.02, 20]} />
           </mesh>
-          <mesh position={[0, -0.33, 0]} material={cable}>
-            <cylinderGeometry args={[0.004, 0.004, 0.66, 6]} />
+          <mesh position={[0, -drop / 2, 0]} material={cable}>
+            <cylinderGeometry args={[0.004, 0.004, drop, 6]} />
           </mesh>
-          <mesh position={[0, -0.82, 0]} material={m.glow}>
+          <mesh position={[0, c, 0]} material={m.glow}>
             <sphereGeometry args={[0.16, 36, 24]} />
           </mesh>
-          <Bulb position={[0, -0.82, 0]} item={item} />
+          <Bulb position={[0, c, 0]} item={item} />
         </group>
       )
+    }
 
     case 'sconce':
       return (

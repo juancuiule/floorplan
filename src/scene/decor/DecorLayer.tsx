@@ -6,7 +6,8 @@ import { followLead } from '../../decor/arrange'
 import { editRefs, useEdit } from '../../decor/edit'
 import { translated } from '../../decor/extent'
 import { buildGuideCtx, guideMove, worldGuides, type GuideCtx } from '../../decor/guides'
-import { facingOf, facingRotation, facingVector, mountOf, placeAt, readIntersection, type SnapFace, type SurfaceHit } from '../../decor/placement'
+import { facingOf, facingRotation, facingVector, mountOf, placeAt, readIntersection, slidesOnFloor, type SnapFace, type SurfaceHit } from '../../decor/placement'
+import { settleMoved } from '../../decor/rest'
 import { useDecor } from '../../decor/store'
 import type { DecorItem } from '../../model/decor'
 import { useView } from '../../store'
@@ -127,6 +128,9 @@ function moveSelection(item: DecorItem, patch: Partial<DecorItem>, faces: SnapFa
       guides = worldGuides(g)
     }
   }
+  // The pointer picked the surface; each piece rests on what is under its own footprint
+  // (the grab offset and a piece's width can put it over something else: a cooktop, the floor).
+  if (mountOf(item) === 'surface') moved.splice(0, moved.length, ...settleMoved(moved))
   s.applyPatches(Object.fromEntries(moved.map((m) => [m.id, m])))
   const edit = useEdit.getState()
   if (guides || edit.guides) edit.set({ guides })
@@ -276,7 +280,8 @@ export function SurfaceEvents({ children }: { children: ReactNode }) {
     if (edit.hoverId) edit.set({ hoverId: null })
     // Floor furniture slides along the floor, wall pieces along walls: neither climbs onto other decor.
     const mount = mountOf(item)
-    const skipDecor = mount === 'wall' || (item.kind === 'furniture' && mount === 'surface')
+    // Tabletop pieces (mugs, a mixer, speakers) do climb onto desks, sideboards and shelves.
+    const skipDecor = mount === 'wall' || slidesOnFloor(item)
     const moving = new Set([item.id, ...s.followers.map((f) => f.id)])
     const under = surfaceUnder(e.intersections, { skipIds: moving, skipDecor })
     if (!under) return
@@ -284,7 +289,15 @@ export function SurfaceEvents({ children }: { children: ReactNode }) {
     const report = { snap: [] as ReturnType<typeof useEdit.getState>['snap'] }
     const ev = e.nativeEvent
     // A selection moves rigidly: no turning to back onto a wall.
-    const patch = hit && (applyGrab(item, hit), placeAt(item, hit, { free: ev.altKey || s.followers.length > 0, report }))
+    const free = ev.altKey || s.followers.length > 0
+    const pointed = hit?.point.clone()
+    let patch = hit && (applyGrab(item, hit), placeAt(item, hit, { free, report }))
+    // The pointer picks the surface. If the grab offset would carry a piece off it
+    // (grabbed high on its front, then pointed at a shelf top), center it on the pointer.
+    if (patch?.at && hit && pointed && mount === 'surface' && !slidesOnFloor(item) && !hit.point.equals(pointed)) {
+      const rested = settleMoved([{ ...item, ...patch } as DecorItem])[0]
+      if (rested.at[1] < pointed.y - 0.02) patch = placeAt(item, { ...hit, point: pointed }, { free, report })
+    }
     if (patch) {
       // Alt (like wall snapping) or Cmd/Ctrl turn the smart guides off.
       moveSelection(item, patch, report.snap, ev.altKey || ev.metaKey || ev.ctrlKey)
@@ -320,8 +333,17 @@ export function SurfaceEvents({ children }: { children: ReactNode }) {
     if (edit.hoverId) edit.set({ hoverId: null })
   }
 
+  // What surface pieces settle onto: the architecture and decor under these handlers.
+  const root = useRef<THREE.Group>(null)
+  useEffect(() => {
+    editRefs.sceneRoot = root.current
+    return () => {
+      if (editRefs.sceneRoot === root.current) editRefs.sceneRoot = null
+    }
+  }, [])
+
   return (
-    <group onPointerDown={onPointerDown} onPointerMove={onPointerMove} onClick={onClick} onPointerLeave={onPointerLeave}>
+    <group ref={root} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onClick={onClick} onPointerLeave={onPointerLeave}>
       {children}
     </group>
   )

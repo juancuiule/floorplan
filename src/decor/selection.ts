@@ -1,9 +1,10 @@
 import type { ArtworkItem, DecorItem } from '../model/decor'
 import type { Vec3 } from '../model/types'
-import { align, distribute, hangGallery, matchSize, selectionFrame, type AlignMode, type GalleryOpts } from './arrange'
+import { align, distribute, hangGallery, matchSize, selectionFrame, type AlignMode, type GalleryOpts, type Patches } from './arrange'
 import { screenAxes } from './edit'
 import { backedBox, boxIn, isWallItem, unionBox } from './extent'
 import { alongWall } from './placement'
+import { settleMoved } from './rest'
 import { useDecor } from './store'
 
 // Commands on the current selection, shared by the edit bar, the inspector and
@@ -17,18 +18,27 @@ export function arrangeFrame(items = selectedItems()) {
   return selectionFrame(items, { right, away })
 }
 
+/** Patches that line pieces up on the floor plan, with each surface piece resting on what is under its new spot. */
+function settled(items: DecorItem[], patches: Patches): Patches {
+  const moved = items.filter((i) => patches[i.id]).map((i) => ({ ...i, ...patches[i.id] }) as DecorItem)
+  if (!moved.length || moved.some(isWallItem)) return patches
+  const out = { ...patches }
+  for (const m of settleMoved(moved)) out[m.id] = { ...patches[m.id], at: m.at }
+  return out
+}
+
 export function alignSelection(mode: AlignMode) {
   const s = useDecor.getState()
   const items = selectedItems(s)
   const frame = arrangeFrame(items)
-  if (frame) s.applyPatches(align(items, frame, mode, s.items))
+  if (frame) s.applyPatches(settled(items, align(items, frame, mode, s.items)))
 }
 
 export function distributeSelection(axis: 'u' | 'v') {
   const s = useDecor.getState()
   const items = selectedItems(s)
   const frame = arrangeFrame(items)
-  if (frame) s.applyPatches(distribute(items, frame, axis, s.items))
+  if (frame) s.applyPatches(settled(items, distribute(items, frame, axis, s.items)))
 }
 
 /** Every artwork in the selection takes the size and frame of the primary one. */

@@ -98,6 +98,12 @@ export interface LampItem extends Groupable {
   color: string
   /** String lights only: run length along the wall, meters. */
   length?: number
+  /**
+   * Pendants only: cord from the ceiling to the top of the shade, meters. Left
+   * out, it follows the room (src/decor/pendant.ts): the bottom stays at 1.95 m
+   * or higher, or hangs 70 cm over a dining table under it.
+   */
+  drop?: number
 }
 
 export type FurnitureType =

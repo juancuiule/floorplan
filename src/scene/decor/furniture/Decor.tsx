@@ -163,9 +163,9 @@ export function WireBasket({ item }: { item: FurnitureItem }) {
       {/* vertical wires and rings */}
       {Array.from({ length: n }, (_, i) => {
         const a = (i / n) * Math.PI * 2
-        return <Rod key={i} a={[Math.sin(a) * R * 0.9, 0.012, Math.cos(a) * R * 0.9]} b={[Math.sin(a) * R, h, Math.cos(a) * R]} radius={0.0022} m={wire} segments={4} />
+        return <Rod key={i} a={[Math.sin(a) * R * 0.9, 0.0025, Math.cos(a) * R * 0.9]} b={[Math.sin(a) * R, h, Math.cos(a) * R]} radius={0.0022} m={wire} segments={4} />
       })}
-      {[0.012, h * 0.35, h * 0.68, h].map((y, k) => {
+      {[0.0025, h * 0.35, h * 0.68, h].map((y, k) => {
         const rr = R * (0.9 + 0.1 * (y / h))
         return (
           <mesh key={k} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]} material={wire}>
@@ -175,7 +175,7 @@ export function WireBasket({ item }: { item: FurnitureItem }) {
       })}
       {/* base grid */}
       {[-1, 0, 1].map((k) => (
-        <Rod key={`g${k}`} a={[-R * 0.88, 0.012, k * R * 0.45]} b={[R * 0.88, 0.012, k * R * 0.45]} radius={0.0022} m={wire} segments={4} />
+        <Rod key={`g${k}`} a={[-R * 0.88, 0.0025, k * R * 0.45]} b={[R * 0.88, 0.0025, k * R * 0.45]} radius={0.0022} m={wire} segments={4} />
       ))}
       {/* side handles */}
       {[-1, 1].map((sx) => (
@@ -186,7 +186,7 @@ export function WireBasket({ item }: { item: FurnitureItem }) {
       {sack && (
         <group>
           {/* thetaStart -π puts the stamp (u = 0.5) on the front */}
-          <mesh position={[0, (h - 0.02) / 2 + 0.015, 0]} material={burlapMaterial()} castShadow receiveShadow>
+          <mesh position={[0, (h - 0.02) / 2 + 0.005, 0]} material={burlapMaterial()} castShadow receiveShadow>
             <cylinderGeometry args={[R * 0.985, R * 0.88, h - 0.02, 32, 1, true, -Math.PI, Math.PI * 2]} />
           </mesh>
           {/* the sack folded over the rim */}
@@ -282,7 +282,8 @@ export function Mugs({ item }: { item: FurnitureItem }) {
   const r = seeded(item.id)
   const step = w / n
   const tray = item.options.tray === true
-  const ty = tray ? 0.016 : 0
+  // Mugs stand on the tray's floor (its 1 cm base), inside the side lips.
+  const ty = tray ? 0.01 : 0
   return (
     <group>
       {tray && (
