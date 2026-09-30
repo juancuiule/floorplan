@@ -35,7 +35,7 @@ interface DecorState {
   library: LibraryImage[]
   tab: PanelTab
   error: string | null
-  /** Floors, paint and tiles of this layout (saved in its file, not part of undo). */
+  /** Floors, paint, tiles and walls taken out of this layout (saved in its file, part of undo). */
   finishes: Finishes
   /** The layout being edited: null for data/decor.json, else the <slug> of data/decor.<slug>.json. */
   layout: string | null
@@ -107,12 +107,18 @@ interface DecorState {
   renamed: (slug: string | null, name: string) => void
 }
 
+/** Errors that pause saving (the panel shows them). */
+const NO_API = 'Saving is only available while running the dev server.'
+const BROKEN_FILE = 'Saving paused: the layout file on disk is not valid JSON. Fix it and this tab reloads it.'
+
 /** Which decor file this tab edits: data/decor.json, or data/decor.<name>.json with ?decor=<name>. */
 /** The main layout file of a plan other than the default one. */
 export const planMainSlug = (id: string) => `plan-${id}`
+/** The open plan's main layout ("Current"): data/decor.json for the default plan. */
+export const MAIN_SLUG: string | null = isDefaultPlan ? null : planMainSlug(plan.id)
 
 // Another plan's main layout lives in data/decor.plan-<id>.json, so it never opens the default plan's layouts.
-let decorFile = new URLSearchParams(window.location.search).get('decor') ?? (isDefaultPlan ? null : planMainSlug(plan.id))
+let decorFile = new URLSearchParams(window.location.search).get('decor') ?? MAIN_SLUG
 const decorUrl = () => `/api/decor${decorFile ? `?file=${encodeURIComponent(decorFile)}` : ''}`
 
 /** Keeps ?decor= in the address bar in step with the open layout, without a reload. */
@@ -147,39 +153,57 @@ export const useDecor = create<DecorState>((set, get) => ({
   canRedo: false,
 
   load: async () => {
+    const file = decorFile
+    let res: Response
     try {
-      const file = decorFile
-      const res = await fetch(decorUrl())
-      const data = (await res.json()) as DecorFile
-      // Switched again while this was loading: the newer load wins.
-      if (file !== decorFile) return
-      const items = data.items ?? []
-      const finishes = normalizeFinishes(data.finishes)
-      const layoutName = typeof data.name === 'string' ? data.name : ''
-      const groupNames = namesOf(data.groups)
-      lastSaved = serialize(items, finishes, layoutName, groupNames)
-      lastGroups = groupNames
-      lastFinishes = finishes
-      lastName = layoutName
-      // Keep the item under the pointer when the file is reloaded mid-placement.
-      const { movingId, isDraft } = get()
-      const moving = isDraft ? get().items.find((i) => i.id === movingId) : undefined
-      applying = true
-      const next = moving ? [...items.filter((i) => i.id !== moving.id), moving] : items
-      const ids = new Set(next.map((i) => i.id))
-      const { selectedId: prevId, selectedIds: prevIds } = get()
-      const selectedIds = prevIds.filter((id) => ids.has(id))
-      const selectedId = prevId && ids.has(prevId) ? prevId : (selectedIds.at(-1) ?? null)
-      set({ items: next, loaded: true, finishes, layoutName, groupNames, layout: file, selectedIds, selectedId })
-      applying = false
-      // A file loaded from disk starts a fresh history: undo never reverts someone else's edit.
-      past.length = 0
-      future.length = 0
-      syncFlags()
+      res = await fetch(decorUrl())
     } catch {
-      // No dev API (e.g. a static build): start empty and do not persist.
-      set({ loaded: true, error: 'Saving is only available while running the dev server.' })
+      res = new Response(null, { status: 503 })
     }
+    // Switched again while this was loading: the newer load wins.
+    if (file !== decorFile) return
+    // A static build answers with its index.html, or not at all.
+    if (!res.ok || /html/.test(res.headers.get('Content-Type') ?? '')) {
+      // No dev API (e.g. a static build): start empty and do not persist.
+      set({ loaded: true, error: NO_API })
+      return
+    }
+    let data: DecorFile
+    try {
+      data = (await res.json()) as DecorFile
+      if (!data || typeof data !== 'object' || !Array.isArray(data.items ?? [])) throw new SyntaxError('not a layout')
+    } catch {
+      // The file on disk is broken (a hand edit half done): keep what is on screen
+      // and pause saving so it is not overwritten; fixing the file reloads it.
+      set({ loaded: true, error: BROKEN_FILE })
+      return
+    }
+    if (file !== decorFile) return
+    const items = data.items ?? []
+    const finishes = normalizeFinishes(data.finishes)
+    const layoutName = typeof data.name === 'string' ? data.name : ''
+    const groupNames = namesOf(data.groups)
+    lastSaved = serialize(items, finishes, layoutName, groupNames)
+    lastGroups = groupNames
+    lastFinishes = finishes
+    lastName = layoutName
+    // Keep the item under the pointer when the file is reloaded mid-placement.
+    const { movingId, isDraft } = get()
+    const moving = isDraft ? get().items.find((i) => i.id === movingId) : undefined
+    applying = true
+    const next = moving ? [...items.filter((i) => i.id !== moving.id), moving] : items
+    const ids = new Set(next.map((i) => i.id))
+    const { selectedId: prevId, selectedIds: prevIds } = get()
+    const selectedIds = prevIds.filter((id) => ids.has(id))
+    const selectedId = prevId && ids.has(prevId) ? prevId : (selectedIds.at(-1) ?? null)
+    // A good read clears a broken-file (or no-API) notice and resumes saving.
+    const error = get().error?.startsWith('Saving') ? null : get().error
+    set({ items: next, loaded: true, finishes, layoutName, groupNames, layout: file, selectedIds, selectedId, error })
+    applying = false
+    // A file loaded from disk starts a fresh history: undo never reverts someone else's edit.
+    past.length = 0
+    future.length = 0
+    syncFlags()
   },
 
   refreshLibrary: async () => {
@@ -414,13 +438,17 @@ export const useDecor = create<DecorState>((set, get) => ({
     set({ groupNames })
   },
   setTab: (tab) => set({ tab }),
-  setFinishes: (patch) => set((s) => ({ finishes: { ...s.finishes, ...patch } })),
+  setFinishes: (patch) => {
+    pendingKey = finishesKey(get().finishes, patch)
+    set((s) => ({ finishes: { ...s.finishes, ...patch } }))
+  },
   switchLayout: async (slug) => {
     const from = decorFile
     if (slug === from) return
     const s = get()
     if (s.movingId) s.cancelPlacing()
-    set({ selectedId: null })
+    // Layouts copied from each other share item ids: start the other one with nothing selected.
+    set({ selectedId: null, selectedIds: [] })
     await flushSave()
     decorFile = slug
     syncUrl()
@@ -501,14 +529,20 @@ function placeCopy(copy: DecorItem) {
 
 // ---------- undo / redo ----------
 //
-// History records the committed layout: what is saved to disk. A draft still
-// following the pointer is not part of it, so placing, relocating and pasting
-// only record the final drop. Each entry keeps the whole items array before and
-// after the change; unchanged items are shared, so entries are cheap.
+// History records the committed layout: what is saved to disk, items and
+// finishes (floors, paint, walls taken out). A draft still following the
+// pointer is not part of it, so placing, relocating and pasting only record the
+// final drop. Each entry keeps the whole items array before and after the
+// change; unchanged items are shared, so entries are cheap.
+
+interface Snapshot {
+  items: DecorItem[]
+  finishes: Finishes
+}
 
 interface Entry {
-  before: DecorItem[]
-  after: DecorItem[]
+  before: Snapshot
+  after: Snapshot
   /** Changes with the same key merge into one entry (a drag gesture, a slider scrub). */
   key: string | null
   t: number
@@ -519,7 +553,7 @@ const HISTORY_LIMIT = 200
 const MERGE_MS = 1000
 const past: Entry[] = []
 const future: Entry[] = []
-let committed: DecorItem[] = []
+let committed: Snapshot = { items: [], finishes: DEFAULT_FINISHES }
 let applying = false
 let gestureKey: string | null = null
 let gestureN = 0
@@ -532,6 +566,28 @@ function committedOf(s: DecorState): DecorItem[] {
 }
 
 const sameItems = (a: DecorItem[], b: DecorItem[]) => a.length === b.length && a.every((x, i) => x === b[i])
+const sameSnapshot = (a: Snapshot, b: Snapshot) => a.finishes === b.finishes && sameItems(a.items, b.items)
+
+const HEX = /^#[0-9a-f]{6}$/i
+/**
+ * Merge key for a finishes patch: dragging a color picker is one step, so a
+ * patch that only changes colors merges with the next one of the same colors.
+ * Picking a floor or taking a wall out is always its own step.
+ */
+function finishesKey(prev: Finishes, patch: Partial<Finishes>): string | null {
+  const changed: string[] = []
+  const walk = (a: unknown, b: unknown, path: string): boolean => {
+    if (a === b) return true
+    if (a && b && typeof a === 'object' && typeof b === 'object') {
+      const keys = new Set([...Object.keys(a), ...Object.keys(b)])
+      return [...keys].every((k) => walk((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k], `${path}.${k}`))
+    }
+    changed.push(path)
+    return typeof a === 'string' && typeof b === 'string' && HEX.test(a) && HEX.test(b)
+  }
+  const colorsOnly = Object.entries(patch).every(([k, v]) => walk(prev[k as keyof Finishes], v, k))
+  return colorsOnly && changed.length ? `finishes:${changed.sort().join(',')}` : null
+}
 
 function syncFlags() {
   const canUndo = past.length > 0
@@ -540,19 +596,21 @@ function syncFlags() {
   if (s.canUndo !== canUndo || s.canRedo !== canRedo) useDecor.setState({ canUndo, canRedo })
 }
 
-/** Restores a snapshot, selecting the item the step touched. */
-function applyItems(target: DecorItem[], from: DecorItem[]) {
-  const fromById = new Map(from.map((i) => [i.id, i]))
-  const changed = target.filter((i) => fromById.get(i.id) !== i).map((i) => i.id)
+/** Restores a snapshot, selecting the items the step touched. */
+function applyItems(target: Snapshot, from: Snapshot) {
+  const fromById = new Map(from.items.map((i) => [i.id, i]))
+  const changed = target.items.filter((i) => fromById.get(i.id) !== i).map((i) => i.id)
   const { selectedId, selectedIds } = useDecor.getState()
-  const ids = new Set(target.map((i) => i.id))
+  const ids = new Set(target.items.map((i) => i.id))
   const kept = selectedIds.filter((id) => ids.has(id))
   applying = true
-  useDecor.setState(
-    changed.length
-      ? { items: target, selectedIds: changed, selectedId: selectedId && changed.includes(selectedId) ? selectedId : changed[changed.length - 1] }
-      : { items: target, selectedIds: kept, selectedId: selectedId && ids.has(selectedId) ? selectedId : (kept.at(-1) ?? null) },
-  )
+  useDecor.setState({
+    items: target.items,
+    finishes: target.finishes,
+    ...(changed.length
+      ? { selectedIds: changed, selectedId: selectedId && changed.includes(selectedId) ? selectedId : changed[changed.length - 1] }
+      : { selectedIds: kept, selectedId: selectedId && ids.has(selectedId) ? selectedId : (kept.at(-1) ?? null) }),
+  })
   applying = false
   syncFlags()
 }
@@ -561,8 +619,8 @@ useDecor.subscribe((s) => {
   const key = gestureKey ?? pendingKey
   pendingKey = null
   if (!s.loaded) return
-  const next = committedOf(s)
-  if (sameItems(next, committed)) return
+  const next: Snapshot = { items: committedOf(s), finishes: s.finishes }
+  if (sameSnapshot(next, committed)) return
   const prev = committed
   committed = next
   if (applying) return
@@ -572,7 +630,7 @@ useDecor.subscribe((s) => {
     top.after = next
     top.t = now
     // A drag that ended where it started (or was cancelled with Esc) is no step at all.
-    if (sameItems(top.before, next)) past.pop()
+    if (sameSnapshot(top.before, next)) past.pop()
   } else {
     past.push({ before: prev, after: next, key, t: now })
     if (past.length > HISTORY_LIMIT) past.shift()

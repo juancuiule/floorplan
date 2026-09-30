@@ -318,3 +318,104 @@ describe('library', () => {
     expect(useDecor.getState().error).toBe('Only png')
   })
 })
+
+describe('finishes are part of undo', () => {
+  let useDecor: Store['useDecor']
+  beforeEach(async () => {
+    ;({ useDecor } = await freshStore())
+    await useDecor.getState().load()
+  })
+  const mainFloor = () => useDecor.getState().finishes.floors.main
+  const floor = (main: 'walnut' | 'concrete') => ({ floors: { ...useDecor.getState().finishes.floors, main } })
+
+  it('undoes and redoes a floor change without touching the items', () => {
+    useDecor.getState().update<PlantItem>('p1', { scale: 1.2 })
+    const items = useDecor.getState().items
+    useDecor.getState().setFinishes(floor('walnut'))
+    useDecor.getState().undo()
+    expect(mainFloor()).toBe('oakLight')
+    // The earlier item edit is still there: undo took back only the floor.
+    expect(useDecor.getState().items).toBe(items)
+    useDecor.getState().redo()
+    expect(mainFloor()).toBe('walnut')
+  })
+
+  it('undoes taking a wall out', () => {
+    useDecor.getState().setFinishes({ structure: { removedWalls: ['entry-main'], raiseEntryCeiling: false } })
+    expect(useDecor.getState().canUndo).toBe(true)
+    useDecor.getState().undo()
+    expect(useDecor.getState().finishes.structure).toBeUndefined()
+    useDecor.getState().redo()
+    expect(useDecor.getState().finishes.structure?.removedWalls).toEqual(['entry-main'])
+  })
+
+  it('a color picker drag is one step; two floor picks are two', () => {
+    const s = useDecor.getState()
+    s.setFinishes({ wallPaint: '#eeeeee' })
+    s.setFinishes({ wallPaint: '#dddddd' })
+    s.setFinishes({ wallPaint: '#cccccc' })
+    s.undo()
+    expect(useDecor.getState().finishes.wallPaint).toBe('#f3f1ec')
+    expect(useDecor.getState().canUndo).toBe(false)
+    s.setFinishes(floor('walnut'))
+    s.setFinishes(floor('concrete'))
+    s.undo()
+    expect(mainFloor()).toBe('walnut')
+  })
+
+  it('saves an undone finish', async () => {
+    useDecor.getState().setFinishes({ wallPaint: '#eeeeee' })
+    await vi.advanceTimersByTimeAsync(500)
+    useDecor.getState().undo()
+    await vi.advanceTimersByTimeAsync(500)
+    expect(JSON.parse(puts().at(-1)!.body!).finishes).toBeUndefined()
+  })
+})
+
+describe('a broken layout file', () => {
+  it('pauses saving while the file is not valid JSON, and resumes once it is fixed', async () => {
+    const { useDecor } = await freshStore()
+    await useDecor.getState().load()
+    let text = '{ "version": 1, "items": [ '
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        calls.push({ url: String(url), method: init?.method ?? 'GET', body: init?.body as string | undefined })
+        return init?.method === 'PUT' ? new Response('{"ok":true}') : new Response(text, { headers: { 'Content-Type': 'application/json' } })
+      }),
+    )
+    await useDecor.getState().load()
+    expect(useDecor.getState().error).toMatch(/^Saving paused/)
+    // What was on screen stays, and is not written over the file being fixed.
+    expect(useDecor.getState().items.map((i) => i.id)).toEqual(['p1', 'l1'])
+    useDecor.getState().update<PlantItem>('p1', { scale: 1.3 })
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(puts()).toHaveLength(0)
+
+    text = JSON.stringify({ version: 1, items: [plant('p1')] })
+    await useDecor.getState().load()
+    expect(useDecor.getState().error).toBeNull()
+    useDecor.getState().update<PlantItem>('p1', { scale: 1.4 })
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(lastSavedItems()?.[0]).toMatchObject({ id: 'p1', scale: 1.4 })
+  })
+
+  it('treats a file without an items array as broken', async () => {
+    const { useDecor } = await freshStore()
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{"version":1,"items":{}}')))
+    await useDecor.getState().load()
+    expect(useDecor.getState().error).toMatch(/^Saving paused/)
+  })
+})
+
+describe('switchLayout', () => {
+  it('starts the other layout with nothing selected, even when it has the same ids', async () => {
+    const { useDecor } = await freshStore('?decor=unit')
+    await useDecor.getState().load()
+    useDecor.getState().selectMany(['p1', 'l1'])
+    await useDecor.getState().switchLayout('unit-b')
+    expect(useDecor.getState().items.map((i) => i.id)).toEqual(['p1', 'l1'])
+    expect(useDecor.getState().selectedIds).toEqual([])
+    expect(useDecor.getState().selectedId).toBeNull()
+  })
+})
