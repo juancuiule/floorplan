@@ -2,6 +2,9 @@
 
 A real-time 3D model of the studio, for planning the interior.
 
+![The studio in dollhouse view, from the balcony](docs/iso-balcony.jpg)
+![The same layout from the opposite side](docs/iso-balcony-flipped.jpg)
+
 ```sh
 pnpm install
 pnpm dev            # http://localhost:5173
