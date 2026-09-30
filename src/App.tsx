@@ -45,6 +45,12 @@ function isTextField(t: EventTarget | null): boolean {
   return !!input && !['range', 'checkbox', 'radio', 'button', 'color'].includes(input.type)
 }
 
+/** The inspector's number fields (text inputs with a decimal keypad). */
+function isNumberField(t: EventTarget | null): boolean {
+  const el = t as HTMLInputElement | null
+  return el?.tagName === 'INPUT' && (el.type === 'number' || el.inputMode === 'decimal' || el.inputMode === 'numeric')
+}
+
 function useShortcuts() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -53,8 +59,11 @@ function useShortcuts() {
       const key = e.key.toLowerCase()
 
       // Undo / redo work everywhere except inside a text field (which has its own undo).
-      if (mod && !e.altKey && (key === 'z' || key === 'y') && !isTextField(e.target)) {
+      // Number fields (sizes, heights) are edits of the room, not text: commit what was
+      // typed and undo in the room.
+      if (mod && !e.altKey && (key === 'z' || key === 'y') && (!isTextField(e.target) || isNumberField(e.target))) {
         e.preventDefault()
+        if (isNumberField(e.target)) (e.target as HTMLInputElement).blur()
         if (key === 'y' || e.shiftKey) s.redo()
         else s.undo()
         return

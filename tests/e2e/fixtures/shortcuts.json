@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "items": [
+    { "kind": "furniture", "id": "desk", "type": "standingDesk", "at": [4.3, 0, 0.35], "rotation": 0, "size": [1.4, 0.72, 0.7], "finish": { "body": "#6a4731", "metal": "#1d1d1d", "fabric": "#e6e0d4" }, "options": { "riser": false, "monitor": false } },
+    { "kind": "plant", "id": "plant", "species": "monstera", "pot": "ceramic", "at": [3.2, 0, 2.2], "rotation": 0, "scale": 1 },
+    { "kind": "plant", "id": "plant-2", "species": "snake", "pot": "concrete", "at": [5.6, 0, 2.0], "rotation": 0, "scale": 1 }
+  ]
+}

@@ -766,3 +766,8 @@ if (import.meta.hot) {
     await useDecor.getState().load()
   })
 }
+
+// This module holds live state (the store, and here its undo history). Swapping it
+// in place during development would leave parts of the app on the old copy, so a
+// change to it reloads the page.
+if (import.meta.hot) import.meta.hot.accept(() => window.location.reload())

@@ -203,3 +203,16 @@ useView.subscribe((s, prev) => {
     /* storage blocked: this page only */
   }
 })
+
+declare global {
+  interface Window {
+    /** Dev only: the view store, for scripts. */
+    __view?: typeof useView
+  }
+}
+if (import.meta.env.DEV && typeof window !== 'undefined') window.__view = useView
+
+// This module holds live state (the store, and here its undo history). Swapping it
+// in place during development would leave parts of the app on the old copy, so a
+// change to it reloads the page.
+if (import.meta.hot) import.meta.hot.accept(() => window.location.reload())
