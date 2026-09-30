@@ -10,11 +10,20 @@
     },
     "hexBlend": false,
     "wallPaint": "#f8f7f3",
-    "accentWall": "side-bath",
+    "paint": {
+      "side-bath:+:main-room": "#5b5c5f"
+    },
+    "ceilingPaint": "#f7f6f2",
+    "accentWall": "none",
     "accentColor": "#5b5c5f",
     "bathTile": {
       "layout": "stack",
       "color": "#f6f6f4"
+    },
+    "shower": {
+      "screen": "glass",
+      "curtainColor": "#f2f0ea",
+      "fittings": "chrome"
     }
   },
   "items": [
