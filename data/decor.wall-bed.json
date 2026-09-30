@@ -10,7 +10,13 @@
     },
     "hexBlend": false,
     "wallPaint": "#f8f7f3",
-    "accentWall": "side-bath",
+    "paint": {
+      "side-bath:+:main-room": "#5b5c5f",
+      "entry-main:-:main-room": "#5b5c5f",
+      "side-kitchen:-:main-room": "#f8f7f3"
+    },
+    "ceilingPaint": "#f7f6f2",
+    "accentWall": "none",
     "accentColor": "#5b5c5f",
     "bathTile": {
       "layout": "stack",
@@ -629,8 +635,8 @@
         "fabric": "#e6e0d4"
       },
       "options": {
-        "led": true,
-        "glass": "reeded"
+        "led": false,
+        "glass": "clear"
       },
       "facing": "z-",
       "host": "side-kitchen"
