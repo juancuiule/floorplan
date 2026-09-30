@@ -43,7 +43,7 @@ const writeLayout = async (slug: string | null, body: unknown) => {
   await fs.mkdir(data(), { recursive: true })
   await fs.writeFile(file(slug), JSON.stringify(body))
 }
-const list = async (q = '') => (await (await fetch(`${base}/api/layouts${q}`)).json()) as { slug: string | null; name: string; items: number; updated: string }[]
+const list = async (q = '') => (await (await fetch(`${base}/api/layouts${q}`)).json()) as { slug: string | null; name: string; items: number; updated: string; plan: string }[]
 const post = (body: unknown) => fetch(`${base}/api/layouts`, { method: 'POST', body: JSON.stringify(body) })
 const patch = (slug: string | null, body: unknown) => fetch(`${base}/api/layouts${slug ? `?file=${slug}` : ''}`, { method: 'PATCH', body: JSON.stringify(body) })
 const del = (slug: string | null) => fetch(`${base}/api/layouts${slug ? `?file=${slug}` : ''}`, { method: 'DELETE' })
