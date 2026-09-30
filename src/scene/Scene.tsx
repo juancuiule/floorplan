@@ -233,7 +233,7 @@ export function Scene() {
         if (!d.movingId && !v.walking && !v.tool) d.select(null)
       }}
       frameloop="demand"
-      shadows="soft"
+      shadows
       // Every pixel pays for N8AO, SMAA and tone mapping; past 1.5x the extra
       // sharpness is hard to see and costs ~1.8x the fill of 1.5x.
       dpr={[1, 1.5]}
