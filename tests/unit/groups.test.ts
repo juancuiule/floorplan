@@ -235,4 +235,18 @@ describe('groups', () => {
     useDecor.getState().undo()
     expect(useDecor.getState().items.some((i) => i.groupId)).toBe(false)
   })
+
+  it('deleting all but one piece of a group leaves that piece loose; undo brings the group back', () => {
+    const s = useDecor.getState()
+    s.selectMany(['a', 'b', 'c'])
+    s.group()
+    const gid = useDecor.getState().items.find((i) => i.id === 'a')!.groupId
+    s.remove('a')
+    // Two left: still a group.
+    expect(useDecor.getState().items.filter((i) => i.groupId === gid).map((i) => i.id)).toEqual(['b', 'c'])
+    s.remove('b')
+    expect(useDecor.getState().items.find((i) => i.id === 'c')!.groupId).toBeUndefined()
+    s.undo()
+    expect(useDecor.getState().items.filter((i) => i.groupId === gid).map((i) => i.id)).toEqual(['b', 'c'])
+  })
 })

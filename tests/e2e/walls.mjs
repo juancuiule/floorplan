@@ -123,6 +123,20 @@ await t.step('putting it back from the list restores the wall, the file and the 
   assert.equal(await panel.locator('.wall-lost-badge').count(), 0)
 })
 
+await t.step('undo takes the wall out again and redo puts it back, in the file too', async () => {
+  const mod = process.platform === 'darwin' ? 'Meta' : 'Control'
+  const sw = panel.locator('.wall-row[data-wall="entry-main"]').getByRole('switch')
+  await page.mouse.move(700, 880)
+  await page.keyboard.press(`${mod}+z`)
+  await eventually(async () => (await sw.getAttribute('aria-checked')) === 'false', { message: 'undo removes the wall again' })
+  await eventually(async () => (await api.readDecor(DECOR)).finishes?.structure?.removedWalls?.[0] === 'entry-main', { message: 'undo saved' })
+  await page.keyboard.press(`${mod}+Shift+z`)
+  await eventually(async () => (await sw.getAttribute('aria-checked')) === 'true', { message: 'redo puts it back' })
+  await eventually(async () => !(await api.readDecor(DECOR)).finishes, { message: 'redo saved' })
+  await page.waitForTimeout(400)
+  assert.equal(await calls(), baseline, 'same draw calls as before')
+})
+
 assert.deepEqual(errors, [], 'no page errors')
 await browser.close()
 if (!t.done()) process.exit(1)

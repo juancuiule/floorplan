@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { flushSave, serialize, useDecor } from './store'
+import { flushSave, MAIN_SLUG, serialize, useDecor } from './store'
 
 // Client side of the layouts API (server/layouts.ts): the list for the menu
 // and the actions on it. Switching itself lives in the decor store.
@@ -46,11 +46,13 @@ export const useLayouts = create<LayoutsState>((set, get) => ({
     }
   },
   saveAs: async (name) => {
-    const d = useDecor.getState()
     await flushSave()
+    const d = useDecor.getState()
     try {
-      const items = d.items.filter((i) => !(d.isDraft && i.id === d.movingId))
-      const data = JSON.parse(serialize(items, d.finishes))
+      // What is saved: a new piece still following the pointer stays out, one being moved keeps its spot.
+      const items = d.isDraft ? d.items.flatMap((i) => (i.id !== d.movingId ? [i] : d.backup ? [d.backup] : [])) : d.items
+      // Group names travel with the copy; the server writes the new name.
+      const data = JSON.parse(serialize(items, d.finishes, '', d.groupNames))
       const { slug } = await call<{ slug: string }>('/api/layouts', { method: 'POST', ...json({ name, data }) })
       await useDecor.getState().switchLayout(slug)
       await get().refresh()
@@ -74,8 +76,10 @@ export const useLayouts = create<LayoutsState>((set, get) => ({
     try {
       const d = useDecor.getState()
       if (slug === d.layout) {
-        // Leave it first so no pending save writes it back.
-        await d.switchLayout(null)
+        // Leave it first so no pending save writes it back. Another plan's main
+        // layout is data/decor.plan-<id>.json, never data/decor.json.
+        if (slug === MAIN_SLUG) throw new Error('The current layout cannot be deleted')
+        await d.switchLayout(MAIN_SLUG)
       }
       await call(`/api/layouts${q(slug)}`, { method: 'DELETE' })
       if (useDecor.getState().compareWith === slug) useDecor.getState().setCompareWith(undefined)

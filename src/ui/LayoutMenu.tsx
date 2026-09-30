@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { MAIN_NAME, useLayouts, type LayoutInfo } from '../decor/layouts'
 import { plan } from '../project/plan'
-import { useDecor } from '../decor/store'
+import { MAIN_SLUG, useDecor } from '../decor/store'
 import { Icon } from './icons'
 import './layoutMenu.css'
 
@@ -10,7 +10,8 @@ import './layoutMenu.css'
 // them, saves the current one under a new name, renames and deletes. The A/B
 // button (or B) flips between this layout and the one to compare with.
 
-const displayName = (slug: string | null, name: string) => name || slug || MAIN_NAME
+/** A main layout (data/decor.json, or another plan's data/decor.plan-<id>.json) is "Current" until renamed. */
+const displayName = (slug: string | null, name: string) => name || (slug === null || slug === MAIN_SLUG ? MAIN_NAME : slug)
 
 function ago(iso: string) {
   const s = (Date.now() - new Date(iso).getTime()) / 1000
@@ -228,7 +229,7 @@ function LayoutsPopover({ onClose }: { onClose: () => void }) {
                 <button type="button" className="icon-btn" aria-label={`Rename ${name}`} title="Rename" onClick={() => setMode({ kind: 'rename', slug: l.slug })}>
                   <Icon name="pencil" size={15} />
                 </button>
-                {l.slug !== null && (
+                {l.slug !== null && l.slug !== MAIN_SLUG && (
                   <button type="button" className="icon-btn danger" aria-label={`Delete ${name}`} title="Delete" onClick={() => setMode({ kind: 'delete', slug: l.slug })}>
                     <Icon name="trash" size={15} />
                   </button>

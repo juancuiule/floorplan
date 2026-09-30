@@ -30,6 +30,11 @@ export class LayoutError extends Error {
 export const SLUG = /^[a-z0-9-]{1,40}$/
 export const MAIN_NAME = 'Current'
 
+/** data/decor.plan-<id>.json is the main layout of plan <id>: it keeps its file like data/decor.json. */
+export const isPlanMainSlug = (slug: string | null) => slug !== null && slug.startsWith('plan-')
+/** Is this layout some plan's main one ("Current")? */
+export const isMainSlug = (slug: string | null) => slug === null || isPlanMainSlug(slug)
+
 /** Scratch files written by test runs never show up in the menu. */
 export const isHiddenSlug = (slug: string) => /^(e2e|test)/.test(slug)
 
@@ -77,10 +82,13 @@ const write = (file: string, data: unknown) => fs.writeFile(file, JSON.stringify
 
 /** A slug that is free: the wanted one, or wanted-2, wanted-3… */
 async function freeSlug(dataDir: string, wanted: string) {
-  const base = wanted.slice(0, 36).replace(/-+$/, '') || 'layout'
+  const cut = (s: string) => s.slice(0, 36).replace(/-+$/, '')
+  // plan-<id> is the main layout of plan <id>: "Plan B" (or a second "Plan") must not take one.
+  const base = isPlanMainSlug(wanted) ? cut(`layout-${wanted}`) : cut(wanted) || 'layout'
   if (!(await exists(layoutFile(dataDir, base)))) return base
+  const stem = isPlanMainSlug(`${base}-2`) ? `layout-${base}` : base
   for (let i = 2; ; i++) {
-    const slug = `${base}-${i}`
+    const slug = `${stem}-${i}`
     if (!(await exists(layoutFile(dataDir, slug)))) return slug
   }
 }
@@ -99,7 +107,7 @@ export async function listLayouts(dataDir: string, all = false): Promise<LayoutI
     const [data, stat] = await Promise.all([readJson(file), fs.stat(file)])
     out.push({
       slug,
-      name: typeof data.name === 'string' && data.name ? data.name : slug ?? MAIN_NAME,
+      name: typeof data.name === 'string' && data.name ? data.name : isMainSlug(slug) ? MAIN_NAME : slug!,
       items: Array.isArray(data.items) ? data.items.length : 0,
       updated: stat.mtime.toISOString(),
       plan: typeof data.plan === 'string' && data.plan ? data.plan : DEFAULT_PLAN,
@@ -134,7 +142,8 @@ export async function createLayout(dataDir: string, body: { name?: unknown; from
 
 /**
  * Renames a layout. A named one also moves to the slug of its new name (when
- * that is free); the main layout keeps its file and only takes the name.
+ * that is free); a main layout (this plan's or another's) keeps its file and
+ * only takes the name.
  */
 export async function renameLayout(dataDir: string, slug: string | null, rawName: unknown) {
   const name = cleanName(rawName)
@@ -143,7 +152,7 @@ export async function renameLayout(dataDir: string, slug: string | null, rawName
   if (!(await exists(file))) throw new LayoutError('No such layout', 404)
   const { name: _old, version: _v, ...rest } = await readJson(file)
   let next = slug
-  if (slug !== null) {
+  if (!isMainSlug(slug)) {
     const wanted = slugify(name)
     if (wanted !== slug) next = await freeSlug(dataDir, wanted)
   }
@@ -153,7 +162,7 @@ export async function renameLayout(dataDir: string, slug: string | null, rawName
 }
 
 export async function deleteLayout(dataDir: string, slug: string | null) {
-  if (slug === null) throw new LayoutError('The current layout cannot be deleted')
+  if (slug === null || isPlanMainSlug(slug)) throw new LayoutError('The current layout cannot be deleted')
   assertSlug(slug)
   const file = layoutFile(dataDir, slug)
   if (!(await exists(file))) throw new LayoutError('No such layout', 404)
