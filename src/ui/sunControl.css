@@ -1,27 +1,135 @@
 /* ---------- sun study ---------- */
 
-.sun-wrap {
-  position: relative;
+/* The toolbar control: play + a fixed-width clock. Nothing here changes size
+   between day and evening, while playing or with the popover open. */
+.group.time-control {
+  flex: none;
 }
 
-.sun-trigger .sun-clock {
+.group .time-play {
+  width: 34px;
+  padding: 0;
+  justify-content: center;
+}
+
+.group .time-trigger {
+  width: 88px;
+  padding: 0 8px 0 10px;
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.time-clock {
   font-variant-numeric: tabular-nums;
   font-weight: 500;
+  /* 00:00 to 23:59 all take the same width with tabular figures. */
+  min-width: 5ch;
 }
 
-.sun-trigger .sun-date {
+.time-chevron {
+  margin-inline-start: auto;
   color: var(--muted);
-  font-variant-numeric: tabular-nums;
 }
 
-.sun-trigger[aria-expanded='true'] {
+.group .time-trigger[aria-expanded='true'] {
   background: var(--press);
 }
 
+.time-trigger[aria-expanded='true']::after {
+  display: none;
+}
+
+/* Portaled to <body> and anchored under the trigger: it floats over the scene
+   and never pushes the toolbar. */
 .popover.sun-pop {
-  left: 0;
+  position: fixed;
   right: auto;
-  width: min(320px, calc(100vw - 2 * var(--gutter)));
+  width: min(340px, calc(100vw - 24px));
+  max-height: calc(100dvh - 80px);
+}
+
+/* Day / Evening presets and the downlights switch. */
+.sun-presets {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.seg {
+  display: flex;
+  flex: 1;
+  padding: 2px;
+  gap: 2px;
+  border-radius: var(--radius-sm);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.seg button,
+.seg-toggle,
+.chip-btn {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  font: inherit;
+  white-space: nowrap;
+}
+
+.seg-toggle,
+.chip-btn {
+  flex: none;
+  border-radius: var(--radius-sm);
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.seg button[aria-checked='true'],
+.seg-toggle[aria-pressed='true'],
+.chip-btn[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  .seg button:not([aria-checked='true']):hover,
+  .seg-toggle:not([aria-pressed='true']):hover,
+  .chip-btn:not([aria-pressed='true']):hover {
+    background: var(--press);
+  }
+}
+
+.seg-small {
+  flex: none;
+}
+
+.seg-small button {
+  min-height: 26px;
+  min-width: 34px;
+  padding: 0 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chip-btn {
+  min-height: 30px;
+  padding: 0 12px 0 8px;
+}
+
+.chip-btn .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.sun-play {
+  margin-top: 10px;
 }
 
 .sun-pop .group-label {
@@ -51,6 +159,7 @@
 
 .sun-slider input[type='range'] {
   display: block;
+  touch-action: none;
   width: 100%;
   height: 24px;
   margin: 0;

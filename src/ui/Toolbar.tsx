@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { plan } from '../project/plan'
-import { PRESETS } from '../scene/CameraRig'
+import { isFlippable } from '../project/cameraSides'
+import { PRESETS, viewSide } from '../scene/CameraRig'
 import { useView, type ViewMode, type ViewPreset } from '../store'
 import { onRadioKeys } from './controlUtils'
 import { Icon, type IconName } from './icons'
@@ -29,6 +30,7 @@ function useViewShortcuts(toggleHelp: () => void) {
       if (n >= 1 && n <= PRESET_IDS.length) v.goTo(PRESET_IDS[n - 1])
       else if (e.key === 'x' || e.key === 'X') v.setMode(v.mode === 'xray' ? 'dollhouse' : 'xray')
       else if (e.key === 'm' || e.key === 'M') v.toggleDims()
+      else if (e.key === 'f' || e.key === 'F') v.flipView()
       else if (e.key === 'l' || e.key === 'L') v.setLighting(v.lighting === 'day' ? 'evening' : 'day')
       else if (e.key === '\\') ui.togglePanel()
       else if (e.key === '?') toggleHelp()
@@ -47,9 +49,9 @@ export function Toolbar() {
   const mode = useView((s) => s.mode)
   const preset = useView((s) => s.preset)
   const showDims = useView((s) => s.showDims)
-  const lighting = useView((s) => s.lighting)
-  const downlights = useView((s) => s.downlights)
-  const { setMode, goTo, toggleDims, setLighting, toggleDownlights } = useView.getState()
+  const flippable = isFlippable(preset)
+  const flipped = useView((s) => (isFlippable(s.preset) ? s.isoFlip[s.preset] : false))
+  const { setMode, goTo, toggleDims, flipView } = useView.getState()
   const panelOpen = useUi((s) => s.panelOpen)
   const togglePanel = useUi((s) => s.togglePanel)
   const [help, setHelp] = useState(false)
@@ -60,7 +62,6 @@ export function Toolbar() {
 
   const modeIndex = MODES.findIndex((m) => m.id === mode)
   const presetIndex = PRESET_IDS.indexOf(preset)
-  const lights = ['day', 'evening'] as const
 
   return (
     <div className="toolbar">
@@ -107,6 +108,20 @@ export function Toolbar() {
           </select>
           <Icon name="chevron" size={14} className="select-chevron" />
         </label>
+        <div className="group" role="group" aria-label="Camera side">
+          {/* Always in place (disabled for top and eye-level views) so the toolbar never shifts. */}
+          <button
+            type="button"
+            className="flip-side"
+            aria-disabled={!flippable}
+            aria-label={flippable ? `View from the ${viewSide(preset, !flipped)} side` : 'Flip side (iso views only)'}
+            data-tip={flippable ? `View from the ${viewSide(preset, !flipped)} side (F)` : 'Flip side: iso views only (F)'}
+            aria-keyshortcuts="F"
+            onClick={() => flippable && flipView()}
+          >
+            <Icon name="flip" />
+          </button>
+        </div>
 
         <div className="group" role="group" aria-label="Space tools">
           <button type="button" aria-pressed={showDims} data-tip="Show room dimensions (M)" aria-keyshortcuts="M" onClick={toggleDims}>
@@ -116,31 +131,6 @@ export function Toolbar() {
           <SpaceTools />
         </div>
 
-        <div className="group" role="group" aria-label="Lighting">
-          <div role="radiogroup" aria-label="Time of day" className="sub" onKeyDown={(e) => onRadioKeys(e, [...lights], lights.indexOf(lighting), setLighting)}>
-            {lights.map((l) => (
-              <button
-                key={l}
-                type="button"
-                role="radio"
-                aria-checked={lighting === l}
-                tabIndex={lighting === l ? 0 : -1}
-                data-tip={l === 'day' ? 'Afternoon sun, 15:00 (L)' : 'Evening, 21:00, lamps on (L)'}
-                aria-keyshortcuts="L"
-                onClick={() => setLighting(l)}
-              >
-                <Icon name={l === 'day' ? 'sun' : 'moon'} />
-                <span className="tb-label opt">{l === 'day' ? 'Day' : 'Evening'}</span>
-              </button>
-            ))}
-          </div>
-          {lighting === 'evening' && (
-            <button type="button" aria-pressed={downlights} data-tip="Recessed ceiling lights" onClick={toggleDownlights}>
-              <Icon name="downlight" />
-              <span className="tb-label opt">Downlights</span>
-            </button>
-          )}
-        </div>
         <SunControl />
       </div>
 

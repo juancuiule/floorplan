@@ -1,6 +1,7 @@
 import type { CameraDef, CameraId } from '../model/plan'
 import type { Rect, Vec2, Vec3 } from '../model/types'
 import { plan } from './plan'
+import { sideNames } from './cameraSides'
 
 // Numbers the app needs about the open plan that follow from its geometry, so
 // a plan file doesn't have to spell them out.
@@ -61,3 +62,9 @@ export const CAMERAS: Record<CameraId, CameraDef> = (() => {
   }
   return { ...derived, ...plan.cameras }
 })()
+
+/** The plan's center line along its length (constant z): the iso views flip across it. */
+export const CENTER_Z = (FLOOR_BOUNDS[1] + FLOOR_BOUNDS[3]) / 2
+
+/** Names of the plan's two long sides, z min then z max ("bathroom", "hall + kitchen"). */
+export const SIDE_NAMES = sideNames(shell)
