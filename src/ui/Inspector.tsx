@@ -412,9 +412,10 @@ function FurnitureControls({ item }: { item: FurnitureItem }) {
             <OptionControl
               key={o.key}
               spec={o}
-              value={item.options[o.key]}
+              // Pieces saved before an option existed read its default.
+              value={item.options?.[o.key] ?? spec.options[o.key]}
               onChange={(v) => {
-                const options = { ...item.options, [o.key]: v }
+                const options = { ...spec.options, ...item.options, [o.key]: v }
                 set(spec.sizeFor ? { options, size: spec.sizeFor(options, item.size) } : { options })
               }}
             />

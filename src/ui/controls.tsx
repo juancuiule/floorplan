@@ -1,5 +1,5 @@
 import { createContext, useContext, useId, useState, type CSSProperties, type ReactNode } from 'react'
-import { onRadioKeys } from './controlUtils'
+import { onRadioKeys, parseNumber } from './controlUtils'
 import { Icon } from './icons'
 import { useUi } from './uiStore'
 
@@ -182,14 +182,14 @@ export function NumberInput({
         onFocus={(e) => e.currentTarget.select()}
         onChange={(e) => {
           setDraft(e.target.value)
-          const v = parseFloat(e.target.value.replace(',', '.'))
-          if (!Number.isNaN(v) && v >= (min ?? -Infinity) && v <= (max ?? Infinity)) onChange(v)
+          const v = parseNumber(e.target.value)
+          if (v !== null && v >= (min ?? -Infinity) && v <= (max ?? Infinity)) onChange(v)
         }}
         onBlur={() => {
           if (draft === null) return
-          const v = parseFloat(draft.replace(',', '.'))
+          const v = parseNumber(draft)
           setDraft(null)
-          commit(Number.isNaN(v) ? value : v)
+          commit(v ?? value)
         }}
         onKeyDown={(e) => {
           if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {

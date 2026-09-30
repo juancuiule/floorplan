@@ -35,8 +35,21 @@ import { Section } from "./controls";
 
 const STRUCTURAL = "Structural / exterior: can’t be removed";
 
-/** Plan extent drawn: the flat plus the balcony, with a margin for the outer walls. */
-const VIEW: Rect = [-0.3, -0.3, 8.5, 3.3];
+/** Plan extent drawn: the open plan's walls and floors (a balcony too), with a small margin. */
+const VIEW: Rect = (() => {
+  const rects: Rect[] = [
+    ...shell.walls.map((w) => hitRect(w, 0)),
+    ...shell.baseFloors.map((f) => f.rect),
+    ...shell.rooms.map((r) => r.rect),
+  ];
+  const m = 0.2;
+  return [
+    Math.min(...rects.map((r) => r[0])) - m,
+    Math.min(...rects.map((r) => r[1])) - m,
+    Math.max(...rects.map((r) => r[2])) + m,
+    Math.max(...rects.map((r) => r[3])) + m,
+  ];
+})();
 
 export function WallsSection() {
   const finishes = useDecor((s) => s.finishes);
@@ -245,6 +258,20 @@ function wallRects(w: Wall): Rect[] {
   );
 }
 
+/** A thin strip on a wall's centerline, `offset`..`offset + width` from wall.a: a window on the plan. */
+function glassRect(w: Wall, offset: number, width: number): Rect {
+  const alongZ = Math.abs(w.a[0] - w.b[0]) < 1e-6;
+  const i = alongZ ? 1 : 0;
+  const dir = Math.sign(w.b[i] - w.a[i]) || 1;
+  const p = w.a[i] + dir * offset;
+  const q = w.a[i] + dir * (offset + width);
+  const lo = Math.min(p, q);
+  const hi = Math.max(p, q);
+  return alongZ
+    ? [w.a[0] - 0.03, lo, w.a[0] + 0.03, hi]
+    : [lo, w.a[1] - 0.03, hi, w.a[1] + 0.03];
+}
+
 const rectProps = ([x0, z0, x1, z1]: Rect) => ({
   x: x0,
   y: z0,
@@ -325,12 +352,7 @@ function PlanDiagram({
               <rect
                 key={o.id}
                 className="pd-glass"
-                {...rectProps([
-                  w.a[0] - 0.03,
-                  w.a[1] + o.offset,
-                  w.a[0] + 0.03,
-                  w.a[1] + o.offset + o.width,
-                ])}
+                {...rectProps(glassRect(w, o.offset, o.width))}
               />
             ))}
         </g>
