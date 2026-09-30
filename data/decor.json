@@ -9,7 +9,11 @@
     },
     "hexBlend": false,
     "wallPaint": "#f8f7f3",
-    "accentWall": "side-bath",
+    "paint": {
+      "side-bath:+:main-room": "#5b5c5f"
+    },
+    "ceilingPaint": "#f7f6f2",
+    "accentWall": "none",
     "accentColor": "#5b5c5f",
     "bathTile": {
       "layout": "stack",
@@ -21,7 +25,9 @@
       "fittings": "chrome"
     },
     "structure": {
-      "removedWalls": [],
+      "removedWalls": [
+        "entry-main"
+      ],
       "raiseEntryCeiling": true
     }
   },
@@ -31,12 +37,12 @@
       "id": "artwork-gallery-a3",
       "image": "/artwork/image%2054.png",
       "at": [
-        5.2887,
-        1.125,
-        0
+        2.2,
+        2.08,
+        0.38
       ],
-      "facing": "z+",
-      "host": "side-bath",
+      "facing": "x+",
+      "host": "entry-main",
       "size": {
         "preset": "50x70",
         "w": 0.5,
@@ -54,8 +60,8 @@
       "id": "artwork-gallery-square",
       "image": "/artwork/IMG_3585.png",
       "at": [
-        3.13,
-        2.08,
+        2.6,
+        2.22,
         0
       ],
       "facing": "z+",
@@ -77,8 +83,8 @@
       "id": "artwork-mulzx26vu829",
       "image": "/artwork/IMG_3582.png",
       "at": [
-        4.9463,
-        1.95,
+        3.845,
+        1.975,
         0
       ],
       "facing": "z+",
@@ -93,15 +99,16 @@
         "color": "#1f1e1c",
         "mat": 0
       },
-      "host": "side-bath"
+      "host": "side-bath",
+      "groupId": "g-munil6jadl1g"
     },
     {
       "kind": "artwork",
       "id": "artwork-mum0033igyoj",
       "image": "/artwork/IMG_3583.png",
       "at": [
-        5.5837,
-        2.16,
+        4.48,
+        2.185,
         0
       ],
       "facing": "z+",
@@ -116,15 +123,16 @@
         "color": "#1f1e1c",
         "mat": 0
       },
-      "host": "side-bath"
+      "host": "side-bath",
+      "groupId": "g-munil6jadl1g"
     },
     {
       "kind": "artwork",
       "id": "artwork-mum01nj4azj8",
       "image": "/artwork/image%2061.png",
       "at": [
-        4.355,
-        0.835,
+        4.065,
+        1.425,
         3
       ],
       "facing": "z-",
@@ -147,8 +155,8 @@
       "id": "artwork-mum0242moyn0",
       "image": "/artwork/image%2060.png",
       "at": [
-        4.505,
-        0.835,
+        4.215,
+        1.425,
         3
       ],
       "facing": "z-",
@@ -171,8 +179,8 @@
       "id": "artwork-mum06b1y5rc0",
       "image": "/artwork/IMG_3588.png",
       "at": [
-        3.49,
-        2.02,
+        3.8,
+        1.3815,
         3
       ],
       "facing": "z-",
@@ -194,8 +202,8 @@
       "id": "artwork-mum074tfcxqr",
       "image": "/artwork/IMG_3587.png",
       "at": [
-        3.18,
-        2.15,
+        3.515,
+        1.1835,
         3
       ],
       "facing": "z-",
@@ -217,8 +225,8 @@
       "id": "artwork-mum07ga1u4nu",
       "image": "/artwork/image%2062.png",
       "at": [
-        4.43,
-        0.6275,
+        4.14,
+        1.2175,
         3
       ],
       "facing": "z-",
@@ -242,9 +250,9 @@
       "species": "pothos",
       "pot": "ceramic",
       "at": [
-        3.79,
+        6.12,
         2.6,
-        1.47
+        0.44
       ],
       "rotation": 60,
       "scale": 1,
@@ -315,8 +323,8 @@
       "id": "artwork-mum8rjrgwagr",
       "image": "/artwork/image%2055.png",
       "at": [
-        5.76,
-        1.33,
+        3.35,
+        1.994,
         3
       ],
       "facing": "z-",
@@ -338,8 +346,8 @@
       "id": "artwork-mum8rpm40zz3",
       "image": "/artwork/image%2056.png",
       "at": [
-        5.88,
-        1.5,
+        3.515,
+        2.178,
         3
       ],
       "facing": "z-",
@@ -361,8 +369,8 @@
       "id": "artwork-mum8sc2h1p4w",
       "image": "/artwork/image%2010.png",
       "at": [
-        4.155,
-        2.195,
+        3.165,
+        2.045,
         0
       ],
       "facing": "z+",
@@ -377,15 +385,16 @@
         "color": "#1f1e1c",
         "mat": 0
       },
-      "host": "side-bath"
+      "host": "side-bath",
+      "groupId": "g-munilispf1uo"
     },
     {
       "kind": "artwork",
       "id": "artwork-mum8soqjii53",
       "image": "/artwork/IMG_3589.png",
       "at": [
-        4.305,
-        1.725,
+        3.34,
+        1.66,
         0
       ],
       "facing": "z+",
@@ -400,15 +409,16 @@
         "color": "#1f1e1c",
         "mat": 0
       },
-      "host": "side-bath"
+      "host": "side-bath",
+      "groupId": "g-munilispf1uo"
     },
     {
       "kind": "artwork",
       "id": "artwork-mum8t17mvd9k",
       "image": "/artwork/Screenshot%202025-11-01%20at%2016.43.01%202.png",
       "at": [
-        5.95,
-        1.43,
+        5.83,
+        2.045,
         0
       ],
       "facing": "z+",
@@ -692,8 +702,8 @@
       "id": "artwork-mum9o40qvb6d",
       "image": "/artwork/image%2059.png",
       "at": [
-        4.42,
-        2.11,
+        3.05,
+        2.03,
         3
       ],
       "facing": "z-",
@@ -715,8 +725,8 @@
       "id": "artwork-mum9oiuidzb7",
       "image": "/artwork/Screenshot%202025-11-01%20at%2000.05.35%202.png",
       "at": [
-        4.6325,
-        1.6625,
+        4.3525,
+        2.1555,
         3
       ],
       "facing": "z-",
@@ -739,8 +749,8 @@
       "id": "artwork-mum9p1j5zcf6",
       "image": "/artwork/Screenshot%202025-11-01%20at%2000.06.00%202.png",
       "at": [
-        4.5075,
-        1.575,
+        4.2275,
+        2.068,
         3
       ],
       "facing": "z-",
@@ -763,8 +773,8 @@
       "id": "artwork-mum9pazgqvyc",
       "image": "/artwork/Screenshot%202025-11-01%20at%2000.07.11%202.png",
       "at": [
-        4.6325,
-        1.4875,
+        4.3525,
+        1.9805,
         3
       ],
       "facing": "z-",
@@ -787,11 +797,11 @@
       "id": "artwork-mum9q22w3y0m",
       "image": "/artwork/image%2065.png",
       "at": [
-        5.23,
-        1.94,
-        3
+        5.205,
+        1.79,
+        0
       ],
-      "facing": "z-",
+      "facing": "z+",
       "size": {
         "preset": "50x70",
         "w": 0.5,
@@ -803,18 +813,18 @@
         "color": "#64422f",
         "mat": 0.03
       },
-      "host": "side-kitchen"
+      "host": "side-bath"
     },
     {
       "kind": "artwork",
       "id": "artwork-mum9qkc8imj1",
       "image": "/artwork/image%2064.png",
       "at": [
-        5.13,
-        1.161,
-        3
+        2.78,
+        1.52,
+        0
       ],
-      "facing": "z-",
+      "facing": "z+",
       "size": {
         "preset": "custom",
         "w": 0.62,
@@ -826,15 +836,15 @@
         "color": "#1f1e1c",
         "mat": 0
       },
-      "host": "side-kitchen"
+      "host": "side-bath"
     },
     {
       "kind": "artwork",
       "id": "artwork-mum9rf1rl5wp",
       "image": "/artwork/image%2069.png",
       "at": [
-        6.29,
-        0.98,
+        2.52,
+        2.146,
         3
       ],
       "facing": "z-",
@@ -856,8 +866,8 @@
       "id": "artwork-mum9s1wfkxx5",
       "image": "/artwork/image%2068.png",
       "at": [
-        6.03,
-        0.93,
+        2.76,
+        2.116,
         3
       ],
       "facing": "z-",
@@ -879,8 +889,8 @@
       "id": "artwork-mum9smo4zeyv",
       "image": "/artwork/Screenshot%202025-11-01%20at%2000.12.16%202.png",
       "at": [
-        3.145,
-        1.568,
+        3.905,
+        1.9,
         3
       ],
       "facing": "z-",
@@ -902,8 +912,8 @@
       "id": "artwork-mum9vtvqlwuu",
       "image": "/artwork/Screenshot%202026-09-29%20at%2003.03.54%202.png",
       "at": [
-        3.945,
-        1.3225,
+        3.125,
+        1.735,
         3
       ],
       "facing": "z-",
@@ -918,15 +928,16 @@
         "color": "#1f1e1c",
         "mat": 0
       },
-      "host": "side-kitchen"
+      "host": "side-kitchen",
+      "groupId": "g-munii18dynxi"
     },
     {
       "kind": "artwork",
       "id": "artwork-mum9wk0x2lu0",
       "image": "/artwork/Screenshot%202026-09-29%20at%2003.04.19%202.png",
       "at": [
-        3.945,
-        0.9625,
+        3.125,
+        1.375,
         3
       ],
       "facing": "z-",
@@ -941,15 +952,16 @@
         "color": "#1f1e1c",
         "mat": 0
       },
-      "host": "side-kitchen"
+      "host": "side-kitchen",
+      "groupId": "g-munii18dynxi"
     },
     {
       "kind": "artwork",
       "id": "artwork-mum9ykr7x4jj",
       "image": "/artwork/image%2070.png",
       "at": [
-        3.82,
-        1.99,
+        3.515,
+        1.55,
         3
       ],
       "facing": "z-",
@@ -971,8 +983,8 @@
       "id": "artwork-muma05ki575m",
       "image": "/artwork/gol-guerra-tienda-1-07ad7d6924d5e185c617847286869907-1024-1024.webp",
       "at": [
-        4.04,
-        1.73,
+        3.52,
+        1.81,
         3
       ],
       "facing": "z-",
@@ -1299,8 +1311,8 @@
       "rotation": 180,
       "size": [
         0.6,
-        1.75,
-        0.62
+        1.9,
+        0.66
       ],
       "finish": {
         "body": "#e2e3e4",
@@ -1311,6 +1323,34 @@
         "style": "modern",
         "freezer": "top"
       }
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-muningbpdk05",
+      "type": "tvWall",
+      "at": [
+        5.44,
+        1,
+        3
+      ],
+      "rotation": 0,
+      "size": [
+        1.455,
+        0.825,
+        0.06
+      ],
+      "finish": {
+        "body": "#dcc196",
+        "metal": "#161718",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "inches": 65,
+        "screen": "youtube",
+        "youtube": "https://youtu.be/lSW0NDE0-b0?t=7348"
+      },
+      "facing": "z-",
+      "host": "side-kitchen"
     }
   ]
 }
