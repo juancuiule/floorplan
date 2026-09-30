@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { carry } from './carry'
 import { isDefaultPlan, plan } from '../project/plan'
 import type { DecorFile, DecorItem, DecorKind } from '../model/decor'
 import { DEFAULT_FINISHES, isDefaultFinishes, normalizeFinishes, type Finishes } from '../model/finishes'
@@ -132,7 +133,19 @@ function syncUrl() {
 
 export const newId = (kind: DecorKind) => `${kind}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
 
-export const useDecor = create<DecorState>((set, get) => ({
+/** Set while loading a file: its items replace the old ones, nothing is carried. */
+let loading = false
+
+export const useDecor = create<DecorState>((rawSet, get) => {
+  // Every edit made through the store brings along what rests on the pieces it moves (src/decor/carry.ts).
+  // Undo, redo and file reloads restore whole snapshots with useDecor.setState and skip this.
+  const set: typeof rawSet = ((partial: Parameters<typeof rawSet>[0]) =>
+    rawSet((s) => {
+      const p = typeof partial === 'function' ? partial(s) : partial
+      if (loading || !p || !('items' in p) || !p.items || p.items === s.items) return p
+      return { ...p, items: carry(s.items, p.items) }
+    })) as typeof rawSet
+  return {
   items: [],
   loaded: false,
   selectedId: null,
@@ -199,7 +212,9 @@ export const useDecor = create<DecorState>((set, get) => ({
     const selectedId = prevId && ids.has(prevId) ? prevId : (selectedIds.at(-1) ?? null)
     // A good read clears a broken-file (or no-API) notice and resumes saving.
     const error = get().error?.startsWith('Saving') ? null : get().error
+    loading = true
     set({ items: next, loaded: true, finishes, layoutName, groupNames, layout: file, selectedIds, selectedId, error })
+    loading = false
     applying = false
     // A file loaded from disk starts a fresh history: undo never reverts someone else's edit.
     past.length = 0
@@ -486,7 +501,8 @@ export const useDecor = create<DecorState>((set, get) => ({
     lastSaved = serialize(committedOf(get()), get().finishes, name, get().groupNames)
     set({ layout: slug, layoutName: name })
   },
-}))
+}
+})
 
 declare global {
   interface Window {
