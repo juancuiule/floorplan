@@ -10,7 +10,8 @@
     "hexBlend": false,
     "wallPaint": "#f8f7f3",
     "paint": {
-      "side-bath:+:main-room": "#5b5c5f"
+      "side-bath:+:main-room": "#5b5c5f",
+      "entry-main:-:main-room": "#5b5c5f"
     },
     "ceilingPaint": "#f7f6f2",
     "accentWall": "none",
@@ -465,9 +466,9 @@
       "id": "furniture-mum8wdam2n8c",
       "type": "stationClock",
       "at": [
-        2.15,
-        2.19,
-        0.8
+        2.17,
+        2.39,
+        0.83
       ],
       "rotation": 0,
       "size": [
@@ -482,7 +483,7 @@
       },
       "options": {},
       "facing": "z+",
-      "host": "shower-niche"
+      "host": "entry-main"
     },
     {
       "kind": "furniture",
@@ -1072,7 +1073,7 @@
       "options": {
         "plinth": "black",
         "label": "red",
-        "cover": "open"
+        "cover": "closed"
       }
     },
     {
@@ -1196,7 +1197,7 @@
       },
       "options": {
         "color": "grey",
-        "seat": 48,
+        "seat": 45,
         "headrest": true
       }
     },
@@ -1346,8 +1347,9 @@
       },
       "options": {
         "inches": 65,
-        "screen": "youtube",
-        "youtube": "https://youtu.be/lSW0NDE0-b0?t=7348"
+        "screen": "on",
+        "youtube": "https://youtu.be/lSW0NDE0-b0?t=7348",
+        "image": "https://media.minutouno.com/p/c0d7ff9c6b25707c63e0a4fac4817b3d/adjuntos/150/imagenes/041/472/0041472121/estadio-libertadores-america-ricardo-enrique-bochini-independientejpg.jpg"
       },
       "facing": "z-",
       "host": "side-kitchen"
