@@ -11,6 +11,9 @@ interface UiState {
   setPanelOpen: (open: boolean) => void
   toggleRoomList: () => void
   toggleSection: (title: string) => void
+  /** Paint brush: clicking a wall paints that side this color ('base' puts back the base color). Null: off. */
+  paintBrush: string | null
+  setPaintBrush: (brush: string | null) => void
 }
 
 const KEY = 'monoambiente.ui'
@@ -30,6 +33,8 @@ export const useUi = create<UiState>((set) => ({
   roomListOpen: saved.roomListOpen ?? false,
   collapsed: saved.collapsed ?? {},
   togglePanel: () => set((s) => ({ panelOpen: !s.panelOpen })),
+  paintBrush: null,
+  setPaintBrush: (paintBrush) => set({ paintBrush }),
   setPanelOpen: (panelOpen) => set({ panelOpen }),
   toggleRoomList: () => set((s) => ({ roomListOpen: !s.roomListOpen })),
   toggleSection: (title) => set((s) => ({ collapsed: { ...s.collapsed, [title]: !s.collapsed[title] } })),

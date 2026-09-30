@@ -1,4 +1,6 @@
 import { create } from 'zustand'
+import { shell } from '../project'
+import { migrateAccent, paintFaces } from '../project/paintFaces'
 import { carry } from './carry'
 import { isDefaultPlan, plan } from '../project/plan'
 import type { DecorFile, DecorItem, DecorKind } from '../model/decor'
@@ -194,7 +196,8 @@ export const useDecor = create<DecorState>((rawSet, get) => {
     }
     if (file !== decorFile) return
     const items = data.items ?? []
-    const finishes = normalizeFinishes(data.finishes)
+    // A layout from before per-face paint: its accent wall becomes a painted face.
+    const finishes = migrateAccent(normalizeFinishes(data.finishes), paintFaces(shell.walls), shell.walls)
     const layoutName = typeof data.name === 'string' ? data.name : ''
     const groupNames = namesOf(data.groups)
     lastSaved = serialize(items, finishes, layoutName, groupNames)

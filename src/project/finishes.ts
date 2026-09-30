@@ -142,11 +142,13 @@ export function bathTileDef(tile: Finishes['bathTile']): MaterialDef {
 /** Material ids whose look comes from the finishes instead of src/project/materials.ts. */
 const ZONE_OF: Record<string, FloorZone> = { floorMain: 'main', floorHall: 'hall', bathFloor: 'bath', balconyFloor: 'balcony' }
 
-export const isFinishMaterial = (id: string) => id in ZONE_OF || id === 'plaster' || id === 'tile' || id.startsWith('accent:')
+export const isFinishMaterial = (id: string) => id in ZONE_OF || id === 'plaster' || id === 'ceiling' || id === 'tile' || id.startsWith('accent:') || id.startsWith('paint:')
 
 /**
  * The material definition for a finish-driven id under the given finishes, or
- * null for ids the finishes do not touch. `plaster` takes the paint color, the
+ * null for ids the finishes do not touch. `plaster` takes the paint color,
+ * `paint:<face>` layers a face's own color (hidden when it has none), `ceiling`
+ * the ceiling color, the
  * `accent:<wall>` layers the accent color on the chosen wall (and are hidden on
  * the others), `tile` is the bathroom wall tile and the floor ids follow their zone.
  */
@@ -154,6 +156,11 @@ export function finishDef(id: string, f: Finishes, base: Record<string, Material
   const zone = ZONE_OF[id]
   if (zone) return FLOORS[f.floors[zone]].def
   if (id === 'plaster') return { ...base.plaster, color: f.wallPaint }
+  if (id === 'ceiling') return { ...base.ceiling, color: f.ceilingPaint }
+  if (id.startsWith('paint:')) {
+    const color = f.paint[id.slice('paint:'.length)]
+    return { ...base.plaster, color: color ?? f.wallPaint, hidden: !color }
+  }
   if (id === 'tile') return bathTileDef(f.bathTile)
   if (id.startsWith('accent:')) {
     const on = f.accentWall === id.slice('accent:'.length)

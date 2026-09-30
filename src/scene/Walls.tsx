@@ -1,4 +1,5 @@
 import { invalidate, useFrame } from '@react-three/fiber'
+import { paintFaces, type PaintFace } from '../project/paintFaces'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { outwardNormal, wallFrame, wallPieces } from '../geometry/walls'
@@ -25,6 +26,12 @@ const MAX_DT = 1 / 30
 export function Walls() {
   // Partitions taken out in this layout are not mounted at all: no meshes, no draw calls.
   const { walls, soffits, parts } = useActiveShell()
+  // Paintable faces of the walls standing now, per wall.
+  const faces = useMemo(() => {
+    const byWall = new Map<string, PaintFace[]>()
+    for (const f of paintFaces(walls)) byWall.set(f.wall, [...(byWall.get(f.wall) ?? []), f])
+    return byWall
+  }, [walls])
   // The fade runs in useFrame; a mode switch has to wake the render loop.
   useEffect(() => useView.subscribe((s, prev) => void ((s.mode !== prev.mode || s.walking !== prev.walking) && invalidate())), [])
   // Walls came or went: the shadow maps are stale.
@@ -36,7 +43,7 @@ export function Walls() {
     <group>
       {[...walls, ...soffits].map((w) => {
         const p = parts.get(w.id)
-        return <WallView key={w.id} wall={w} bulges={p?.bulges ?? NONE} accents={p?.accents ?? NONE} />
+        return <WallView key={w.id} wall={w} bulges={p?.bulges ?? NONE} accents={p?.accents ?? NONE} faces={faces.get(w.id) ?? NO_FACES} />
       })}
       <WallGhosts />
     </group>
@@ -99,7 +106,11 @@ interface BulgePiece {
 
 type AccentPanel = Shell['accentPanels'][number]
 
-function WallView({ wall, bulges, accents }: { wall: Wall; bulges: Bulge[]; accents: AccentPanel[] }) {
+const NO_FACES: PaintFace[] = []
+/** Paint sits this far in front of the plaster: enough to win the depth test, too thin to see. */
+const PAINT_T = 0.001
+
+function WallView({ wall, bulges, accents, faces }: { wall: Wall; bulges: Bulge[]; accents: AccentPanel[]; faces: PaintFace[] }) {
   const frame = useMemo(() => wallFrame(wall), [wall])
   const pieces = useMemo(() => wallPieces(wall, STUB_HEIGHT), [wall])
   const outward = useMemo(() => outwardNormal(wall, INSIDE), [wall])
@@ -158,8 +169,22 @@ function WallView({ wall, bulges, accents }: { wall: Wall; bulges: Bulge[]; acce
         })
       }
     }
-    return { stub, stubEdge, upper, upperEdge, get, stubSet, upperSet, bulgePieces }
-  }, [wall, bulges, accents])
+    // Paint layers: one per face and wall piece (around the openings), hidden unless that face is painted.
+    const paint: { key: string; size: Vec3; position: Vec3; material: THREE.MeshStandardMaterial }[] = []
+    for (const face of faces) {
+      const m = { stub: makeMaterial(`paint:${face.id}`), upper: makeMaterial(`paint:${face.id}`) }
+      stubSet.add(m.stub)
+      upperSet.add(m.upper)
+      const z = face.side * (wall.thickness / 2 + PAINT_T / 2)
+      pieces.forEach((p, i) => {
+        const a = Math.max(p.s0, face.s0)
+        const b = Math.min(p.s1, face.s1)
+        if (b - a < 0.005) return
+        paint.push({ key: `${face.id}:${i}`, size: [b - a, p.y1 - p.y0, PAINT_T], position: [(a + b) / 2, (p.y0 + p.y1) / 2, z], material: p.stub ? m.stub : m.upper })
+      })
+    }
+    return { stub, stubEdge, upper, upperEdge, get, stubSet, upperSet, bulgePieces, paint }
+  }, [wall, bulges, accents, faces, pieces])
 
   // A wall taken out (or shortened) in the open layout: free what it built.
   // Deferred a tick so a StrictMode remount (same materials) keeps them.
@@ -233,6 +258,9 @@ function WallView({ wall, bulges, accents }: { wall: Wall; bulges: Bulge[]; acce
               material={p.stub ? mats.stub : mats.upper}
               edgeMaterial={p.stub ? mats.stubEdge : mats.upperEdge}
             />
+          ))}
+          {mats.paint.map((p) => (
+            <Box key={p.key} size={p.size} position={p.position} material={p.material} castShadow={false} />
           ))}
           {wall.openings?.map((o) => (
             <OpeningView key={o.id} opening={o} wall={wall} get={mats.get} edge={mats.upperEdge} />

@@ -53,6 +53,13 @@ export interface Finishes {
   hexBlend: boolean
   /** Paint for every plastered wall. */
   wallPaint: string
+  /**
+   * Paint per wall side, over the base color: face id (see src/project/paintFaces.ts:
+   * `<wall>:<+|->:<room>`) to color. Missing faces take `wallPaint`.
+   */
+  paint: Record<string, string>
+  /** Ceiling color. */
+  ceilingPaint: string
   accentWall: AccentWall
   accentColor: string
   bathTile: { layout: TileLayout; color: string }
@@ -65,6 +72,8 @@ export const DEFAULT_FINISHES: Finishes = {
   floors: { main: 'oakLight', hall: 'oakLight', bath: 'porcelainGrey', balcony: 'balconyGrey' },
   hexBlend: false,
   wallPaint: '#f3f1ec',
+  paint: {},
+  ceilingPaint: '#f7f6f2',
   accentWall: 'none',
   accentColor: '#9fae95',
   bathTile: { layout: 'stack', color: '#f6f6f4' },
@@ -72,6 +81,8 @@ export const DEFAULT_FINISHES: Finishes = {
 }
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/i
+/** `<wall>:<+|->:<room>` */
+const FACE_ID = /^[\w-]+:[+-]:[\w-]+$/
 
 const color = (v: unknown, fallback: string) => (typeof v === 'string' && HEX_COLOR.test(v) ? v.toLowerCase() : fallback)
 const oneOf = <T extends string>(v: unknown, options: readonly T[], fallback: T): T => (options.includes(v as T) ? (v as T) : fallback)
@@ -96,6 +107,12 @@ export function normalizeFinishes(raw: unknown): Finishes {
     },
     hexBlend: r.hexBlend === true,
     wallPaint: color(r.wallPaint, d.wallPaint),
+    paint: Object.fromEntries(
+      Object.entries(r.paint && typeof r.paint === 'object' ? (r.paint as Record<string, unknown>) : {}).flatMap(([k, v]) =>
+        FACE_ID.test(k) && typeof v === 'string' && HEX_COLOR.test(v) ? [[k, v.toLowerCase()]] : [],
+      ),
+    ),
+    ceilingPaint: color(r.ceilingPaint, d.ceilingPaint),
     accentWall: oneOf(r.accentWall, ACCENT_WALLS, d.accentWall),
     accentColor: color(r.accentColor, d.accentColor),
     bathTile: { layout: oneOf(tile.layout, TILE_LAYOUTS, d.bathTile.layout), color: color(tile.color, d.bathTile.color) },
