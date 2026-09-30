@@ -103,6 +103,14 @@ const tvScreen: OptionSpec = {
     { id: 'youtube', label: 'YouTube' },
   ],
 }
+const tvImage: OptionSpec = {
+  key: 'image',
+  label: 'Image link',
+  kind: 'text',
+  placeholder: 'https://…/photo.jpg',
+  hint: 'Any image link, or /artwork/… from your library. Cropped to the screen; empty shows the skyline.',
+  when: ['screen', 'on'],
+}
 const tvYouTube: OptionSpec = {
   key: 'youtube',
   label: 'YouTube link',
@@ -925,7 +933,7 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     },
     uses: ['metal'],
     finish: finish(PLY, '#161718'),
-    options: { inches: 55, stand: 'feet', screen: 'off', youtube: '' },
+    options: { inches: 55, stand: 'feet', screen: 'off', youtube: '', image: '' },
     optionSpecs: [
       { key: 'inches', label: 'Size', kind: 'chips', choices: tvSizeChoices },
       {
@@ -938,6 +946,7 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
         ],
       },
       tvScreen,
+      tvImage,
       tvYouTube,
     ],
     editable: [],
@@ -953,8 +962,8 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     sizeFor: (o) => [...tvPanel(Number(o.inches ?? 55)), 0.06],
     uses: ['metal'],
     finish: finish(PLY, '#161718'),
-    options: { inches: 55, screen: 'off', youtube: '' },
-    optionSpecs: [{ key: 'inches', label: 'Size', kind: 'chips', choices: tvSizeChoices }, tvScreen, tvYouTube],
+    options: { inches: 55, screen: 'off', youtube: '', image: '' },
+    optionSpecs: [{ key: 'inches', label: 'Size', kind: 'chips', choices: tvSizeChoices }, tvScreen, tvImage, tvYouTube],
     editable: [],
   },
   fridge: {

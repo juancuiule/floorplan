@@ -14,6 +14,7 @@ import { createLayout, deleteLayout, LayoutError, listLayouts, renameLayout } fr
 //   POST   /api/layouts             { name, data? | from? } save a new layout, returns { slug, name }
 //   PATCH  /api/layouts?file=<slug> { name } rename (no ?file= renames the main one), returns { slug, name }
 //   DELETE /api/layouts?file=<slug> delete a named layout
+//   GET    /api/image?url=<link>    a remote image, fetched here for the TV screen (public http(s) only, 15 MB)
 // Changes to the decor files on disk are pushed to open tabs as 'decor:changed',
 // and any layout file written, added or removed as 'layouts:changed'.
 
@@ -56,6 +57,45 @@ async function uniqueName(dir: string, wanted: string) {
       return name
     }
   }
+}
+
+/** Remote images for the TV screen, fetched here so the page can use them as textures (no CORS). */
+const MAX_IMAGE = 15 * 1024 * 1024
+const imageCache = new Map<string, { type: string; body: Buffer }>()
+
+export class ImageError extends Error {
+  status = 400
+}
+
+/** Only public http(s) hosts: no local or private addresses. */
+export function checkImageUrl(raw: string): URL {
+  let u: URL
+  try {
+    u = new URL(raw)
+  } catch {
+    throw new ImageError('Not a link')
+  }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new ImageError('Only http and https links')
+  const h = u.hostname.toLowerCase()
+  if (h === 'localhost' || h.endsWith('.local') || /^(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.|\[?::1\]?$|\[?f[cd])/.test(h)) throw new ImageError('Not a public address')
+  return u
+}
+
+async function fetchImage(raw: string): Promise<{ type: string; body: Buffer }> {
+  const u = checkImageUrl(raw)
+  const hit = imageCache.get(u.href)
+  if (hit) return hit
+  const r = await fetch(u, { signal: AbortSignal.timeout(15000), redirect: 'follow' })
+  if (!r.ok) throw new ImageError(`The image server answered ${r.status}`)
+  const type = r.headers.get('content-type')?.split(';')[0].trim() ?? ''
+  if (!type.startsWith('image/')) throw new ImageError('That link is not an image')
+  if (Number(r.headers.get('content-length') ?? 0) > MAX_IMAGE) throw new ImageError('Image too large')
+  const body = Buffer.from(await r.arrayBuffer())
+  if (body.length > MAX_IMAGE) throw new ImageError('Image too large')
+  const out = { type, body }
+  if (imageCache.size > 30) imageCache.delete(imageCache.keys().next().value!)
+  imageCache.set(u.href, out)
+  return out
 }
 
 export function studioApi(): Plugin {
@@ -103,6 +143,13 @@ export function studioApi(): Plugin {
             await fs.writeFile(path.join(artDir, name), body)
             return send(res, 200, { name, url: artUrl(name) })
           }
+          if (url.pathname === '/api/image' && req.method === 'GET') {
+            const out = await fetchImage(url.searchParams.get('url') ?? '')
+            res.statusCode = 200
+            res.setHeader('Content-Type', out.type)
+            res.setHeader('Cache-Control', 'max-age=86400')
+            return res.end(out.body)
+          }
           if (url.pathname === '/api/layouts') {
             const file = url.searchParams.get('file')
             if (req.method === 'GET') return send(res, 200, await listLayouts(dataDir, url.searchParams.get('all') === '1'))
@@ -135,7 +182,8 @@ export function studioApi(): Plugin {
           }
           send(res, 404, { error: 'Not found' })
         } catch (e) {
-          if (e instanceof LayoutError) return send(res, e.status, { error: e.message })
+          if (e instanceof LayoutError || e instanceof ImageError) return send(res, e.status, { error: e.message })
+          if (e instanceof Error && (e.name === 'TimeoutError' || e.name === 'TypeError') && url.pathname === '/api/image') return send(res, 502, { error: 'Could not reach that image' })
           if (e instanceof SyntaxError) return send(res, 400, { error: 'Malformed JSON' })
           send(res, 500, { error: e instanceof Error ? e.message : String(e) })
         }

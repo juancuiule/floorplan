@@ -1,5 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { embedUrl, parseYouTube } from '../../../decor/youtube'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
@@ -607,6 +607,63 @@ function tvScreenMaterial(on: boolean): THREE.MeshStandardMaterial {
   return tvOn
 }
 
+/** Where the page loads a picture from: local paths as they are, other links through the dev server (no CORS). */
+export function screenImageSrc(link: string): string | null {
+  const s = link.trim()
+  if (!s) return null
+  if (s.startsWith('/')) return s
+  if (/^https?:\/\//i.test(s)) return `/api/image?url=${encodeURIComponent(s)}`
+  return null
+}
+
+/**
+ * A screen material showing the picture at `link`, cropped to the screen (cover),
+ * glowing like a lit screen. Null without a link; the default picture shows
+ * while it loads or when it cannot be loaded.
+ */
+function useScreenImage(link: string, aspect: number): THREE.MeshStandardMaterial | null {
+  const invalidate = useThree((s) => s.invalidate)
+  const src = screenImageSrc(link)
+  const material = useMemo(
+    () => (src ? new THREE.MeshStandardMaterial({ color: '#000000', roughness: 0.2, emissive: '#ffffff', emissiveIntensity: 0.9, emissiveMap: tvScreenMaterial(true).emissiveMap }) : null),
+    [src],
+  )
+  useEffect(() => {
+    if (!src || !material) return
+    let texture: THREE.Texture | null = null
+    let alive = true
+    new THREE.TextureLoader().load(
+      src,
+      (t) => {
+        if (!alive) return t.dispose()
+        texture = t
+        t.colorSpace = THREE.SRGBColorSpace
+        t.anisotropy = 8
+        const img = t.image as { width: number; height: number }
+        const a = img.width / img.height
+        if (a > aspect) {
+          t.repeat.set(aspect / a, 1)
+          t.offset.set((1 - aspect / a) / 2, 0)
+        } else {
+          t.repeat.set(1, a / aspect)
+          t.offset.set(0, (1 - a / aspect) / 2)
+        }
+        material.emissiveMap = t
+        material.needsUpdate = true
+        invalidate()
+      },
+      undefined,
+      () => console.warn(`The TV picture could not be loaded: ${link}`),
+    )
+    return () => {
+      alive = false
+      texture?.dispose()
+      material.dispose()
+    }
+  }, [src, material, aspect, link, invalidate])
+  return material
+}
+
 /**
  * A 16:9 flat TV sized by its diagonal. On a stand: origin at the footprint center,
  * feet or a pedestal lift the panel. On the wall: origin on the wall, y = bottom edge,
@@ -617,6 +674,7 @@ export function Tv({ item }: { item: FurnitureItem }) {
   const wall = item.type === 'tvWall'
   const pedestal = item.options.stand === 'pedestal'
   const video = item.options.screen === 'youtube' ? parseYouTube(String(item.options.youtube ?? '')) : null
+  const picture = useScreenImage(item.options.screen === 'on' ? String(item.options.image ?? '') : '', (pw - 2 * TV_BEZEL) / (ph - 2 * TV_BEZEL))
   // Frame and stand take the metal finish (black by default); the back stays dark.
   const frame = mat(item.finish.metal, 'matte')
   const back = mat('#26282b', 'matte')
@@ -631,7 +689,7 @@ export function Tv({ item }: { item: FurnitureItem }) {
       <B s={[pw, ph, t]} p={[0, cy, zc]} m={frame} />
       {/* the thicker electronics box at the back */}
       <B s={[pw * 0.62, ph * 0.5, 0.02]} p={[0, lift + ph * 0.42, zc - t / 2 - 0.01]} m={back} />
-      <mesh position={[0, cy, zc + t / 2 + 0.0006]} material={tvScreenMaterial(item.options.screen === 'on')}>
+      <mesh position={[0, cy, zc + t / 2 + 0.0006]} material={picture ?? tvScreenMaterial(item.options.screen === 'on')}>
         <planeGeometry args={[pw - 2 * TV_BEZEL, ph - 2 * TV_BEZEL]} />
       </mesh>
       {video && <TvVideo url={embedUrl(video)} width={pw - 2 * TV_BEZEL} height={ph - 2 * TV_BEZEL} position={[0, cy, zc + t / 2 + 0.003]} itemId={item.id} />}

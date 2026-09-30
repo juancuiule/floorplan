@@ -482,7 +482,8 @@ function TextOption({ spec, value, onChange }: { spec: Extract<OptionSpec, { kin
     setDraft(null)
   }
   const shown = draft ?? value
-  const bad = spec.key === 'youtube' && shown.trim() !== '' && !parseYouTube(shown)
+  const bad =
+    shown.trim() !== '' && (spec.key === 'youtube' ? !parseYouTube(shown) : spec.key === 'image' ? !/^(https?:\/\/|\/)/i.test(shown.trim()) : false)
   return (
     <Field label={spec.label}>
       <TextOptionInput
@@ -493,7 +494,11 @@ function TextOption({ spec, value, onChange }: { spec: Extract<OptionSpec, { kin
         onCommit={commit}
         onCancel={() => setDraft(null)}
       />
-      {bad ? <p className="hint-text warn-text">That doesn’t look like a YouTube link.</p> : spec.hint && <p className="hint-text">{spec.hint}</p>}
+      {bad ? (
+        <p className="hint-text warn-text">{spec.key === 'youtube' ? 'That doesn’t look like a YouTube link.' : 'Use a link starting with https:// (or /artwork/…).'}</p>
+      ) : (
+        spec.hint && <p className="hint-text">{spec.hint}</p>
+      )}
     </Field>
   )
 }
