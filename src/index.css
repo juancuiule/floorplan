@@ -208,6 +208,18 @@ kbd {
   white-space: nowrap;
 }
 
+.group .flip-side {
+  width: 34px;
+  padding: 0;
+  justify-content: center;
+}
+
+.group button[aria-disabled='true'] {
+  color: var(--muted);
+  opacity: 0.55;
+  cursor: default;
+}
+
 .round {
   justify-content: center;
   width: 40px;
@@ -216,7 +228,7 @@ kbd {
 }
 
 @media (hover: hover) {
-  .group button:hover,
+  .group button:not([aria-disabled='true']):hover,
   .round:hover {
     background: var(--hover);
   }

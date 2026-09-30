@@ -3,6 +3,7 @@ import { plan } from './project/plan'
 import { duskLevel, NIGHT_BELOW } from './sun/daylight'
 import { isIsoDate, parseClock, parseFacing, solarPosition, todayIn, type SunPosition } from './sun/solar'
 import type { Vec2 } from './model/types'
+import { FLIPPABLE, isFlippable, type FlippableView } from './project/cameraSides'
 
 export type ViewMode = 'dollhouse' | 'xray'
 export type ViewPreset = 'iso-balcony' | 'iso-entry' | 'top' | 'from-balcony' | 'from-entry'
@@ -24,6 +25,10 @@ export interface SunSettings {
   facing: number
 }
 
+/** Play speeds: 1 = a whole day in 12 s. */
+export const PLAY_SPEEDS = [0.5, 1, 2] as const
+export type PlaySpeed = (typeof PLAY_SPEEDS)[number]
+
 /** Quick presets behind the Day / Evening toggle and the L key. */
 export const LIGHTING_PRESETS: Record<Lighting, number> = { day: 15 * 60, evening: 21 * 60 }
 
@@ -42,6 +47,9 @@ interface ViewState {
   dusk: number
   /** The day is animating. */
   playing: boolean
+  /** How fast the day plays (1 = 12 s a day). */
+  playSpeed: PlaySpeed
+  setPlaySpeed: (speed: PlaySpeed) => void
   /** Evening only: the recessed ceiling downlights. */
   downlights: boolean
   /** Jumps to today at the preset time. */
@@ -51,6 +59,10 @@ interface ViewState {
   toggleDownlights: () => void
   setMode: (mode: ViewMode) => void
   goTo: (preset: ViewPreset) => void
+  /** Iso views seen from the other long side (mirrored across the plan's center z). Kept for the browser session. */
+  isoFlip: Record<FlippableView, boolean>
+  /** Flips the current iso view to the other side; no-op for top and eye-level views. */
+  flipView: () => void
   toggleDims: () => void
   /** First-person walk mode; the orbit view comes back when it ends. */
   walking: boolean
@@ -103,6 +115,22 @@ function derive(sun: SunSettings) {
 
 const sun0 = initialSun()
 
+const FLIP_KEY = 'monoambiente.isoFlip'
+
+/** ?flip=1 opens the ?view iso view from its other side; otherwise the session's choice. */
+function initialFlip(): Record<FlippableView, boolean> {
+  const flip = Object.fromEntries(FLIPPABLE.map((v) => [v, false])) as Record<FlippableView, boolean>
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(FLIP_KEY) ?? '{}')
+    for (const v of FLIPPABLE) flip[v] = saved?.[v] === true
+  } catch {
+    /* storage blocked: start unflipped */
+  }
+  const view = params.get('view')
+  if (params.has('flip') && view && isFlippable(view)) flip[view] = params.get('flip') === '1'
+  return flip
+}
+
 export const useView = create<ViewState>((set) => ({
   mode: params.get('mode') === 'xray' ? 'xray' : 'dollhouse',
   preset: (params.get('view') as ViewPreset) || 'iso-balcony',
@@ -111,6 +139,8 @@ export const useView = create<ViewState>((set) => ({
   sun: sun0,
   ...derive(sun0),
   playing: false,
+  playSpeed: 1,
+  setPlaySpeed: (playSpeed) => set({ playSpeed }),
   downlights: params.get('downlights') !== '0',
   setLighting: (lighting) =>
     set((s) => {
@@ -128,6 +158,12 @@ export const useView = create<ViewState>((set) => ({
   setMode: (mode) => set({ mode }),
   // A camera preset ends a walk: the preset takes over the camera.
   goTo: (preset) => set((s) => ({ preset, presetNonce: s.presetNonce + 1, walking: false })),
+  isoFlip: initialFlip(),
+  flipView: () =>
+    set((s) => {
+      if (!isFlippable(s.preset)) return {}
+      return { isoFlip: { ...s.isoFlip, [s.preset]: !s.isoFlip[s.preset] }, presetNonce: s.presetNonce + 1, walking: false }
+    }),
   toggleDims: () => set((s) => ({ showDims: !s.showDims })),
   walking: false,
   walkFrom: null,
@@ -158,3 +194,12 @@ if (!params.has('sun') && !params.has('facing') && !params.has('light')) {
     }, 300)
   })
 }
+
+useView.subscribe((s, prev) => {
+  if (s.isoFlip === prev.isoFlip) return
+  try {
+    sessionStorage.setItem(FLIP_KEY, JSON.stringify(s.isoFlip))
+  } catch {
+    /* storage blocked: this page only */
+  }
+})
