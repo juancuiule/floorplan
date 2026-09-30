@@ -227,6 +227,8 @@ function Downlight({ at }: { at: Vec3 }) {
 export function Scene() {
   return (
     <Canvas
+      // Its own stacking context: overlays placed in the scene (the TV's video) stay under the toolbar and panel.
+      className="scene"
       onPointerMissed={() => {
         const d = useDecor.getState()
         const v = useView.getState()

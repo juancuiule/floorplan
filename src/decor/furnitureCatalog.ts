@@ -2,10 +2,15 @@ import type { FurnitureOption, FurnitureType } from '../model/decor'
 import type { Vec3 } from '../model/types'
 import type { Mount } from './catalog'
 
-export type OptionSpec =
+export type OptionSpec = (
   | { key: string; label: string; kind: 'toggle' }
   | { key: string; label: string; kind: 'chips'; choices: { id: FurnitureOption; label: string }[] }
   | { key: string; label: string; kind: 'range'; min: number; max: number; step: number; unit?: string }
+  | { key: string; label: string; kind: 'text'; placeholder?: string; hint?: string }
+) & {
+  /** Shown only while another option has this value. */
+  when?: [key: string, value: FurnitureOption]
+}
 
 export interface FurnitureSpec {
   label: string
@@ -94,8 +99,17 @@ const tvScreen: OptionSpec = {
   kind: 'chips',
   choices: [
     { id: 'off', label: 'Off' },
-    { id: 'on', label: 'On' },
+    { id: 'on', label: 'Picture' },
+    { id: 'youtube', label: 'YouTube' },
   ],
+}
+const tvYouTube: OptionSpec = {
+  key: 'youtube',
+  label: 'YouTube link',
+  kind: 'text',
+  placeholder: 'https://youtu.be/…',
+  hint: 'Plays on the screen. Drag the TV by its frame; clicks on the picture go to YouTube.',
+  when: ['screen', 'youtube'],
 }
 
 export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
@@ -911,7 +925,7 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     },
     uses: ['metal'],
     finish: finish(PLY, '#161718'),
-    options: { inches: 55, stand: 'feet', screen: 'off' },
+    options: { inches: 55, stand: 'feet', screen: 'off', youtube: '' },
     optionSpecs: [
       { key: 'inches', label: 'Size', kind: 'chips', choices: tvSizeChoices },
       {
@@ -924,6 +938,7 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
         ],
       },
       tvScreen,
+      tvYouTube,
     ],
     editable: [],
   },
@@ -938,8 +953,8 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     sizeFor: (o) => [...tvPanel(Number(o.inches ?? 55)), 0.06],
     uses: ['metal'],
     finish: finish(PLY, '#161718'),
-    options: { inches: 55, screen: 'off' },
-    optionSpecs: [{ key: 'inches', label: 'Size', kind: 'chips', choices: tvSizeChoices }, tvScreen],
+    options: { inches: 55, screen: 'off', youtube: '' },
+    optionSpecs: [{ key: 'inches', label: 'Size', kind: 'chips', choices: tvSizeChoices }, tvScreen, tvYouTube],
     editable: [],
   },
   fridge: {

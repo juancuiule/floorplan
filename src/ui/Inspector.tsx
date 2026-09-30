@@ -1,9 +1,10 @@
-import { memo, type ReactNode } from 'react'
+import { memo, useState, type ReactNode } from 'react'
 import { FRAME_COLORS, FRAME_STYLES, LAMPS, MAT_WIDTHS, PLANTS, POT_SIZES, POTS, SIZE_PRESETS, WARMTH } from '../decor/catalog'
 import { BODY_FINISHES, FABRIC_FINISHES, FURNITURE, METAL_FINISHES, type OptionSpec } from '../decor/furnitureCatalog'
 import { isPendant, MAX_CORD, MIN_CORD, pendantBottom, pendantDrop } from '../decor/pendant'
 import { mountOf } from '../decor/placement'
 import { useDecor } from '../decor/store'
+import { parseYouTube } from '../decor/youtube'
 import type { ArtworkItem, DecorItem, FurnitureItem, LampItem, PlantItem, PlantSpecies, PotSize, SizePreset } from '../model/decor'
 import { structureOf } from '../model/finishes'
 import type { Vec3 } from '../model/types'
@@ -425,7 +426,9 @@ function FurnitureControls({ item }: { item: FurnitureItem }) {
       )}
       {spec.optionSpecs.length > 0 && (
         <Section title="Options">
-          {spec.optionSpecs.map((o) => (
+          {spec.optionSpecs
+            .filter((o) => !o.when || (item.options?.[o.when[0]] ?? spec.options[o.when[0]]) === o.when[1])
+            .map((o) => (
             <OptionControl
               key={o.key}
               spec={o}
@@ -455,6 +458,7 @@ function FurnitureControls({ item }: { item: FurnitureItem }) {
 }
 
 function OptionControl({ spec, value, onChange }: { spec: OptionSpec; value: FurnitureItem['options'][string]; onChange: (v: FurnitureItem['options'][string]) => void }) {
+  if (spec.kind === 'text') return <TextOption spec={spec} value={String(value ?? '')} onChange={onChange} />
   if (spec.kind === 'toggle') return <Switch label={spec.label} checked={value !== false} onChange={onChange} />
   if (spec.kind === 'chips')
     return (
@@ -467,5 +471,53 @@ function OptionControl({ spec, value, onChange }: { spec: OptionSpec; value: Fur
     <Field label={spec.label} value={`${value}${unit}`}>
       <Slider value={Number(value)} min={spec.min} max={spec.max} step={spec.step} format={(v) => `${v}${unit}`} onChange={onChange} />
     </Field>
+  )
+}
+
+/** A free-text option (a link): applies on Enter or when the field loses focus. */
+function TextOption({ spec, value, onChange }: { spec: Extract<OptionSpec, { kind: 'text' }>; value: string; onChange: (v: string) => void }) {
+  const [draft, setDraft] = useState<string | null>(null)
+  const commit = () => {
+    if (draft !== null && draft.trim() !== value) onChange(draft.trim())
+    setDraft(null)
+  }
+  const shown = draft ?? value
+  const bad = spec.key === 'youtube' && shown.trim() !== '' && !parseYouTube(shown)
+  return (
+    <Field label={spec.label}>
+      <TextOptionInput
+        value={shown}
+        placeholder={spec.placeholder}
+        invalid={bad}
+        onChange={setDraft}
+        onCommit={commit}
+        onCancel={() => setDraft(null)}
+      />
+      {bad ? <p className="hint-text warn-text">That doesn’t look like a YouTube link.</p> : spec.hint && <p className="hint-text">{spec.hint}</p>}
+    </Field>
+  )
+}
+
+function TextOptionInput(p: { value: string; placeholder?: string; invalid: boolean; onChange: (v: string) => void; onCommit: () => void; onCancel: () => void }) {
+  const id = useFieldControlId()
+  return (
+    <input
+      id={id}
+      className="text-option"
+      type="url"
+      spellCheck={false}
+      value={p.value}
+      placeholder={p.placeholder}
+      aria-invalid={p.invalid || undefined}
+      onChange={(e) => p.onChange(e.target.value)}
+      onBlur={p.onCommit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+        else if (e.key === 'Escape') {
+          p.onCancel()
+          ;(e.target as HTMLInputElement).blur()
+        }
+      }}
+    />
   )
 }
