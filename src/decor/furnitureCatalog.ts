@@ -12,6 +12,12 @@ export interface FurnitureSpec {
   note: string
   group: 'Sleep' | 'Sit' | 'Work & dine' | 'Storage' | 'Kitchen & wall' | 'Balcony' | 'Decor' | 'Appliances & electronics'
   mount: Mount
+  /**
+   * Small pieces that stand on counters, desks and shelves (a mixer, mugs,
+   * speakers): they settle onto other furniture, unlike floor pieces, which
+   * slide along the floor underneath it.
+   */
+  tabletop?: boolean
   /** Default [w, h, d] in meters. */
   size: Vec3
   /** Wall pieces: the usual height of the bottom edge; placing near it settles there. */
@@ -544,6 +550,7 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     note: 'Speckled stoneware, a few colors',
     group: 'Kitchen & wall',
     mount: 'surface',
+    tabletop: true,
     size: [0.44, 0.1, 0.15],
     sizeFor: (o, s) => [round2(Math.max(1, Math.min(6, Math.round(Number(o.count ?? 4)))) * 0.11), s[1], s[2]],
     uses: ['body'],
@@ -764,6 +771,7 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     note: 'Pair of bookshelf speakers',
     group: 'Appliances & electronics',
     mount: 'surface',
+    tabletop: true,
     size: [round2(2 * SPEAKER_W + 0.6), 0.24, 0.2],
     sizeFor: (o, s) => [round2(2 * SPEAKER_W + Number(o.spacing ?? 60) / 100), s[1], s[2]],
     uses: ['body'],
@@ -780,6 +788,7 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     note: 'Tilt-head stand mixer',
     group: 'Appliances & electronics',
     mount: 'surface',
+    tabletop: true,
     size: [0.24, 0.36, 0.36],
     uses: ['metal'],
     finish: finish(PLY, '#dfe2e5'),
@@ -805,6 +814,7 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     note: 'Barista espresso machine',
     group: 'Appliances & electronics',
     mount: 'surface',
+    tabletop: true,
     size: [0.22, 0.3, 0.28],
     uses: ['metal'],
     finish: finish(PLY, '#d9dcdf'),
@@ -817,6 +827,7 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     note: 'USB turntable, direct drive',
     group: 'Appliances & electronics',
     mount: 'surface',
+    tabletop: true,
     size: [0.45, 0.157, 0.352],
     uses: ['metal'],
     finish: finish(PLY, '#d3d6d8'),
@@ -890,6 +901,7 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     note: '16:9, for a sideboard or desk',
     group: 'Appliances & electronics',
     mount: 'surface',
+    tabletop: true,
     size: [tvPanel(55)[0], round2(tvPanel(55)[1] + TV_LIFT.feet), 0.25],
     sizeFor: (o) => {
       const [w, h] = tvPanel(Number(o.inches ?? 55))

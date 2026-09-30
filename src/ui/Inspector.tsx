@@ -1,6 +1,7 @@
 import { memo, type ReactNode } from 'react'
 import { FRAME_COLORS, FRAME_STYLES, LAMPS, MAT_WIDTHS, PLANTS, POT_SIZES, POTS, SIZE_PRESETS, WARMTH } from '../decor/catalog'
 import { BODY_FINISHES, FABRIC_FINISHES, FURNITURE, METAL_FINISHES, type OptionSpec } from '../decor/furnitureCatalog'
+import { isPendant, MAX_CORD, MIN_CORD, pendantBottom, pendantDrop } from '../decor/pendant'
 import { mountOf } from '../decor/placement'
 import { useDecor } from '../decor/store'
 import type { ArtworkItem, DecorItem, FurnitureItem, LampItem, PlantItem, PlantSpecies, PotSize, SizePreset } from '../model/decor'
@@ -273,6 +274,21 @@ function SpeciesSelect({ item, onChange }: { item: PlantItem; onChange: (s: Plan
 
 // ---------- lights ----------
 
+/** Cord length of a pendant: automatic (clear of heads, low over a table) or set by hand. */
+function PendantCord({ item, set }: { item: LampItem; set: (patch: Partial<LampItem>) => void }) {
+  const drop = useDecor((s) => pendantDrop(item, s.items))
+  const bottom = useDecor((s) => pendantBottom(item, s.items))
+  const fmt = (v: number) => `${cm(v)} cm`
+  return (
+    <>
+      <Switch label="Automatic height" checked={item.drop === undefined} onChange={(auto) => set({ drop: auto ? undefined : drop })} />
+      <Field label="Cord" value={`${fmt(drop)} · bottom at ${bottom.toFixed(2)} m`}>
+        <Slider value={drop} min={MIN_CORD} max={MAX_CORD} step={0.01} format={fmt} onChange={(v) => set({ drop: v })} />
+      </Field>
+    </>
+  )
+}
+
 function LampControls({ item }: { item: LampItem }) {
   const update = useDecor((s) => s.update<LampItem>)
   const set = (patch: Partial<LampItem>) => update(item.id, patch)
@@ -298,6 +314,7 @@ function LampControls({ item }: { item: LampItem }) {
             <Slider value={item.length ?? 2.4} min={0.8} max={4} step={0.1} format={(v) => `${v.toFixed(1)} m`} onChange={(length) => set({ length })} />
           </Field>
         )}
+        {isPendant(item.type) && <PendantCord item={item} set={set} />}
       </Section>
       <PositionSection item={item}>
         {mount === 'wall' ? (

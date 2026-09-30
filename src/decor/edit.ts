@@ -50,7 +50,12 @@ export const editRefs: {
   lastHit: SurfaceHit | null
   lastFloorHit: SurfaceHit | null
   pointerInCanvas: boolean
-} = { camera: null, lastHit: null, lastFloorHit: null, pointerInCanvas: false }
+  /**
+   * The scene's root, set by the decor layer: surface items moved without the
+   * pointer (arrow keys, align) settle onto what is under them (see rest.ts).
+   */
+  sceneRoot: THREE.Object3D | null
+} = { camera: null, lastHit: null, lastFloorHit: null, pointerInCanvas: false, sceneRoot: null }
 
 /** Camera-relative screen axes snapped to the nearest plan axis: [right, away] as [x, z] unit vectors. */
 export function screenAxes(): { right: [number, number]; away: [number, number] } {

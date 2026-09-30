@@ -6,7 +6,8 @@ import type { Vec3 } from '../model/types'
 import { copyOffset, followLead, rotateAround, sameWall, type Patches } from './arrange'
 import { editRefs } from './edit'
 import { isWallItem, translated } from './extent'
-import { isFloorPiece, mountOf, placeAt } from './placement'
+import { mountOf, placeAt, slidesOnFloor } from './placement'
+import { settleMoved } from './rest'
 
 export interface LibraryImage {
   name: string
@@ -253,8 +254,10 @@ export const useDecor = create<DecorState>((set, get) => ({
     if (!item) return
     const r = (v: number) => Math.round(v * 1000) / 1000
     const at: Vec3 = [r(item.at[0] + dx), r(Math.max(0, item.at[1] + dy)), r(item.at[2] + dz)]
+    // Slid sideways, a piece on a counter or a shelf settles onto what is under it now.
+    const moved = dy === 0 ? settleMoved([{ ...item, at } as DecorItem])[0] : ({ ...item, at } as DecorItem)
     pendingKey = `nudge:${id}`
-    set((s) => ({ items: s.items.map((i) => (i.id === id ? ({ ...i, at } as DecorItem) : i)) }))
+    set((s) => ({ items: s.items.map((i) => (i.id === id ? moved : i)) }))
   },
   rotateBy: (id, deg) => {
     const item = get().items.find((i) => i.id === id)
@@ -370,14 +373,18 @@ export const useDecor = create<DecorState>((set, get) => ({
     const ids = Object.keys(deltas)
     if (!ids.length) return
     pendingKey = `nudge:${ids.sort().join(',')}`
+    const flat = Object.values(deltas).every((d) => d[1] === 0)
+    const moved = new Map<string, DecorItem>()
+    for (const i of get().items) {
+      const d = deltas[i.id]
+      if (!d) continue
+      const at = translated(i.at, d)
+      at[1] = Math.max(0, at[1])
+      moved.set(i.id, { ...i, at } as DecorItem)
+    }
+    if (flat) for (const m of settleMoved([...moved.values()])) moved.set(m.id, m)
     set((s) => ({
-      items: s.items.map((i) => {
-        const d = deltas[i.id]
-        if (!d) return i
-        const at = translated(i.at, d)
-        at[1] = Math.max(0, at[1])
-        return { ...i, at } as DecorItem
-      }),
+      items: s.items.map((i) => moved.get(i.id) ?? i),
     }))
   },
   rotateSelection: (deg) => {
@@ -476,7 +483,7 @@ export function cloneSet(src: DecorItem[], all: DecorItem[], fresh = true): Deco
 /** Pastes several items at once: under the pointer when it is over a fitting surface, else next to the originals. */
 function pasteSet(copies: DecorItem[]) {
   const lead = copies[0]
-  const hit = editRefs.pointerInCanvas ? (isFloorPiece(lead) ? editRefs.lastFloorHit : editRefs.lastHit) : null
+  const hit = editRefs.pointerInCanvas ? (slidesOnFloor(lead) ? editRefs.lastFloorHit : editRefs.lastHit) : null
   const patch = hit && placeAt(lead, { ...hit, point: hit.point.clone() }, { free: true })
   let placed: DecorItem[]
   if (patch) {
@@ -494,7 +501,7 @@ function pasteSet(copies: DecorItem[]) {
 /** Starts placing a copy (with its own id already), under the pointer when it is over the scene. */
 function placeCopy(copy: DecorItem) {
   const src = copy
-  const hit = editRefs.pointerInCanvas ? (isFloorPiece(src) ? editRefs.lastFloorHit : editRefs.lastHit) : null
+  const hit = editRefs.pointerInCanvas ? (slidesOnFloor(src) ? editRefs.lastFloorHit : editRefs.lastHit) : null
   const patch = hit && placeAt(copy, hit)
   useDecor.getState().startPlacing(patch ? ({ ...copy, ...patch } as DecorItem) : copy)
 }

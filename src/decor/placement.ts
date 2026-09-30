@@ -28,7 +28,9 @@ export function readIntersection(i: Pick<THREE.Intersection, 'object' | 'face' |
   if (!obj.visible || (mat && !Array.isArray(mat) && !mat.visible) || !i.face) return null
   tmpNormal.copy(i.face.normal).transformDirection(obj.matrixWorld)
   let host: string | undefined
+  let decor = false
   for (let o: THREE.Object3D | null = obj; o; o = o.parent) {
+    decor ||= !!o.userData.decorId
     if (o.userData.host) {
       host = o.userData.host as string
       break
@@ -36,6 +38,9 @@ export function readIntersection(i: Pick<THREE.Intersection, 'object' | 'face' |
   }
   const kind = tmpNormal.y > 0.7 ? 'up' : tmpNormal.y < -0.7 ? 'down' : Math.abs(tmpNormal.y) < 0.3 ? 'wall' : null
   if (!kind) return null
+  // The top of a wall-hung piece (a floating shelf, a rail table) is somewhere to
+  // set things down, unlike the top of the wall it hangs on.
+  if (kind === 'up' && decor) host = undefined
   return { point: i.point.clone(), normal: tmpNormal.clone(), kind, host }
 }
 
@@ -77,10 +82,26 @@ export function mountOf(item: DecorItem): Mount {
   return LAMPS[item.type].mount
 }
 
+/** Small furniture that stands on counters, desks and shelves (mugs, a mixer, speakers). */
+export function isTabletop(item: DecorItem): boolean {
+  return item.kind === 'furniture' && FURNITURE[item.type].tabletop === true
+}
+
+/** Floor furniture: it slides along the floor under other decor and never climbs onto it. */
+export function slidesOnFloor(item: DecorItem): boolean {
+  return item.kind === 'furniture' && FURNITURE[item.type].mount === 'surface' && !isTabletop(item)
+}
+
 const round = (v: number) => Math.round(v * 100) / 100
+/**
+ * Heights are kept to the millimeter: a surface is where it is (a balcony floor
+ * at 6 mm, a cooktop 6 mm over the counter), and rounding it to the centimeter
+ * leaves things floating over it or sunk into it.
+ */
+export const roundY = (v: number) => Math.round(v * 1000) / 1000 + 0 // (no -0)
 /** How close (m) to a piece's usual mounting height the pointer pulls it there. */
 const MOUNT_PULL = 0.35
-const vec = (p: THREE.Vector3): Vec3 => [round(p.x), round(p.y), round(p.z)]
+const vec = (p: THREE.Vector3): Vec3 => [round(p.x), roundY(p.y), round(p.z)]
 
 /** The patch that moves `item` to the hit, or null if it cannot go there. */
 export function placeAt(item: DecorItem, hit: SurfaceHit, opts: { free?: boolean; report?: { snap: SnapFace[] } } = {}): Partial<DecorItem> | null {
@@ -88,7 +109,7 @@ export function placeAt(item: DecorItem, hit: SurfaceHit, opts: { free?: boolean
   const mount = mountOf(item)
   if (mount === 'wall') {
     if (hit.kind !== 'wall') return null
-    const at = vec(hit.point)
+    const at = [round(hit.point.x), round(hit.point.y), round(hit.point.z)] as Vec3
     // Wall furniture is anchored by its bottom edge; center it on the pointer.
     if (item.kind === 'furniture') {
       at[1] = round(Math.max(0, hit.point.y - item.size[1] / 2))
@@ -104,7 +125,7 @@ export function placeAt(item: DecorItem, hit: SurfaceHit, opts: { free?: boolean
     if (item.kind === 'furniture' && !opts.free && SNAPS.has(item.type) && hit.point.y < 0.05) {
       const snapped = snapToWalls(hit.point.x, hit.point.z, item)
       if (snapped && opts.report) opts.report.snap = snapped.faces
-      if (snapped) return { at: [snapped.x, round(hit.point.y), snapped.z], rotation: snapped.rotation } as Partial<FurnitureItem>
+      if (snapped) return { at: [snapped.x, roundY(hit.point.y), snapped.z], rotation: snapped.rotation } as Partial<FurnitureItem>
     }
     return { at: vec(hit.point) }
   }

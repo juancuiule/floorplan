@@ -1,3 +1,4 @@
+import { isPendant, PENDANT_RADIUS, pendantBottom } from '../decor/pendant'
 import type { DecorItem } from '../model/decor'
 import type { Vec2 } from '../model/types'
 import { FLOOR_BOUNDS } from '../project/derived'
@@ -14,8 +15,24 @@ const BOUNDS = { x0: bx0, x1: bx1, z0: bz0, z1: bz1 }
 const STEP = 0.05
 const ITERATIONS = 4
 
+/** Walk-mode eye height (Walk.tsx). */
+export const EYE = 1.6
+/** A pendant whose bottom is lower than this is in the way of a head: walk around it. */
+export const HEAD_TOP = EYE + 0.2
+
+/** Pendants hanging low enough to walk into (a long cord, a big lantern under a low ceiling). */
+export function lowPendants(items: DecorItem[]): Obstacle[] {
+  const out: Obstacle[] = []
+  for (const i of items) {
+    if (i.kind !== 'lamp' || !isPendant(i.type) || i.at[1] < 0 || pendantBottom(i, items) >= HEAD_TOP) continue
+    const r = PENDANT_RADIUS[i.type] ?? 0.2
+    out.push({ id: i.id, kind: 'furniture', cx: i.at[0], cz: i.at[2], hw: r, hd: r, rotation: 0, top: i.at[1] })
+  }
+  return out
+}
+
 export function walkObstacles(items: DecorItem[]): Obstacle[] {
-  return [...shellObstacles(walkable), ...furnitureObstacles(items)]
+  return [...shellObstacles(walkable), ...furnitureObstacles(items), ...lowPendants(items)]
 }
 
 export function insideFlat(x: number, z: number): boolean {

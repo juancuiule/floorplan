@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { useDecor } from '../decor/store'
 import type { Vec2 } from '../model/types'
 import type { Obstacle } from '../plan/obstacles'
-import { ENTRY_SPOT, insideFlat, resolve, walk, walkObstacles } from '../plan/walk'
+import { ENTRY_SPOT, EYE, insideFlat, resolve, walk, walkObstacles } from '../plan/walk'
 import { onStructure } from '../project/structure'
 import { useView } from '../store'
 import { pick, worldNormal } from './pick'
@@ -62,7 +62,7 @@ export function Walk() {
   const invalidate = useThree((s) => s.invalidate)
   const walking = useView((s) => s.walking)
 
-  const pose = useRef<WalkPose>({ x: ENTRY_SPOT[0], z: ENTRY_SPOT[1], eye: 1.6, yaw: 0, pitch: 0 })
+  const pose = useRef<WalkPose>({ x: ENTRY_SPOT[0], z: ENTRY_SPOT[1], eye: EYE, yaw: 0, pitch: 0 })
   const vel = useRef<Vec2>([0, 0])
   const keys = useRef(new Set<string>())
   const shift = useRef(false)
