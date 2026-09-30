@@ -717,21 +717,6 @@
       ]
     },
     {
-      "id": "fridge",
-      "type": "fridge",
-      "position": [
-        2.52,
-        0,
-        2.69
-      ],
-      "rotation": 180,
-      "size": [
-        0.6,
-        1.75,
-        0.62
-      ]
-    },
-    {
       "id": "counter",
       "type": "counter",
       "position": [

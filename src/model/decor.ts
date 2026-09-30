@@ -152,6 +152,7 @@ export type FurnitureType =
   | 'acOutdoor'
   | 'tv'
   | 'tvWall'
+  | 'fridge'
 
 export type FurnitureOption = number | boolean | string
 

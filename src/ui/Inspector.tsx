@@ -407,8 +407,8 @@ function FurnitureControls({ item }: { item: FurnitureItem }) {
       {finishes.length > 0 && (
         <Section title="Finish">
           {finishes.includes('body') && (
-            <Field label="Body" value={colorName(item.finish.body, BODY_FINISHES)}>
-              <Swatches value={item.finish.body} colors={BODY_FINISHES} onChange={(body) => set({ finish: { ...item.finish, body } })} />
+            <Field label={spec.bodyColors ? 'Color' : 'Body'} value={colorName(item.finish.body, spec.bodyColors ?? BODY_FINISHES)}>
+              <Swatches value={item.finish.body} colors={spec.bodyColors ?? BODY_FINISHES} onChange={(body) => set({ finish: { ...item.finish, body } })} />
             </Field>
           )}
           {finishes.includes('metal') && (

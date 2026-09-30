@@ -25,6 +25,8 @@ export interface FurnitureSpec {
   /** Pieces whose size follows their options (a speaker pair's spacing): the size for these options. */
   sizeFor?: (options: Record<string, FurnitureOption>, size: Vec3) => Vec3
   presets?: { label: string; size: Vec3 }[]
+  /** Body colors to offer instead of the wood and paint finishes (appliances). */
+  bodyColors?: { label: string; color: string }[]
   /** Which of the three finish colors the piece uses. */
   uses: ('body' | 'metal' | 'fabric')[]
   finish: { body: string; metal: string; fabric: string }
@@ -940,6 +942,55 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     optionSpecs: [{ key: 'inches', label: 'Size', kind: 'chips', choices: tvSizeChoices }, tvScreen],
     editable: [],
   },
+  fridge: {
+    label: 'Fridge',
+    note: 'Built-in look or retro, any color',
+    group: 'Appliances & electronics',
+    mount: 'surface',
+    size: [0.6, 1.75, 0.62],
+    presets: [
+      { label: 'Compact 55', size: [0.55, 1.45, 0.6] },
+      { label: 'Standard 60', size: [0.6, 1.75, 0.62] },
+      { label: 'Tall 60', size: [0.6, 1.9, 0.66] },
+      { label: 'Wide 70', size: [0.7, 1.9, 0.7] },
+      { label: 'Retro FAB28', size: [0.6, 1.5, 0.73] },
+    ],
+    uses: ['body', 'metal'],
+    bodyColors: [
+      { label: 'White', color: '#e2e3e4' },
+      { label: 'Stainless', color: '#c9ccce' },
+      { label: 'Black', color: '#2a2b2d' },
+      { label: 'Cream', color: '#efe3c8' },
+      { label: 'Pastel blue', color: '#9fc3d6' },
+      { label: 'Pastel green', color: '#b5d3b0' },
+      { label: 'Pink', color: '#eab8c0' },
+      { label: 'Red', color: '#b8322a' },
+    ],
+    finish: finish('#e2e3e4', METAL_FINISHES[3].color),
+    options: { style: 'modern', freezer: 'top' },
+    optionSpecs: [
+      {
+        key: 'style',
+        label: 'Style',
+        kind: 'chips',
+        choices: [
+          { id: 'modern', label: 'Modern' },
+          { id: 'retro', label: 'Retro (rounded)' },
+        ],
+      },
+      {
+        key: 'freezer',
+        label: 'Freezer',
+        kind: 'chips',
+        choices: [
+          { id: 'top', label: 'On top' },
+          { id: 'bottom', label: 'At the bottom' },
+          { id: 'none', label: 'None (one door)' },
+        ],
+      },
+    ],
+    editable: ['w', 'h', 'd'],
+  },
 }
 
 export const FURNITURE_GROUPS: FurnitureSpec['group'][] = ['Sleep', 'Sit', 'Work & dine', 'Storage', 'Kitchen & wall', 'Balcony', 'Decor', 'Appliances & electronics']
@@ -975,6 +1026,7 @@ export const FURNITURE_KEYWORDS: Partial<Record<FurnitureType, string>> = {
   acOutdoor: 'air conditioner condenser compressor split balcony',
   tv: 'television tele screen smart tv 32 43 50 55 65 75 inch pulgadas',
   tvWall: 'television tele screen smart tv wall mounted 32 43 50 55 65 75 inch pulgadas',
+  fridge: 'refrigerator heladera freezer smeg retro kitchen',
   loftBed: 'loft mezzanine high bed stairs steps drawers',
   glassDivider: 'partition screen reeded fluted glass wall',
   officeChair: 'desk task swivel ergonomic mesh',

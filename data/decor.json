@@ -1286,6 +1286,31 @@
         "headShelf": "head",
         "books": false
       }
+    },
+    {
+      "kind": "furniture",
+      "id": "furniture-fridge",
+      "type": "fridge",
+      "at": [
+        2.52,
+        0,
+        2.69
+      ],
+      "rotation": 180,
+      "size": [
+        0.6,
+        1.75,
+        0.62
+      ],
+      "finish": {
+        "body": "#e2e3e4",
+        "metal": "#b7babd",
+        "fabric": "#e6e0d4"
+      },
+      "options": {
+        "style": "modern",
+        "freezer": "top"
+      }
     }
   ]
 }

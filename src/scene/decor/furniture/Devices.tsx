@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 import { CONDENSER_H, SPEAKER_W, TV_BEZEL, TV_LIFT, tvPanel } from '../../../decor/furnitureCatalog'
 import type { FurnitureItem } from '../../../model/decor'
 import type { Vec3 } from '../../../model/types'
@@ -644,6 +645,67 @@ export function Tv({ item }: { item: FurnitureItem }) {
           </group>
         ))
       )}
+    </group>
+  )
+}
+
+// ---------- fridge ----------
+
+/**
+ * A fridge that stands against a wall, door on +z. Modern: a plain cabinet with
+ * split doors and bar handles. Retro: a SMEG-like rounded body with chrome
+ * handles and a chrome badge strip.
+ */
+export function Fridge({ item }: { item: FurnitureItem }) {
+  const [w, h, d] = item.size
+  const retro = item.options.style === 'retro'
+  const freezer = String(item.options.freezer ?? 'top')
+  const body = mat(item.finish.body, retro ? 'gloss' : 'matte')
+  const handle = mat(item.finish.metal, 'metal')
+  const dark = mat('#2b2c2e', 'matte')
+  const plinth = retro ? 0.07 : 0.03
+  const bodyH = h - plinth
+  // Where the two doors meet, from the floor: a third of the way from the freezer end.
+  const split = freezer === 'top' ? plinth + bodyH * 0.68 : freezer === 'bottom' ? plinth + bodyH * 0.36 : null
+  const hx = retro ? -w / 2 + 0.07 : w / 2 - 0.06
+  const doorZ = d / 2
+  const shell = geo(`fridge${w},${bodyH},${d},${retro}`, () => (retro ? new RoundedBoxGeometry(w, bodyH, d, 4, Math.min(0.07, w * 0.12)) : new THREE.BoxGeometry(w, bodyH, d)))
+  const handles: [number, number][] =
+    split === null
+      ? [[plinth + bodyH * 0.45, plinth + bodyH * 0.75]]
+      : freezer === 'top'
+        ? [
+            [split - (retro ? 0.45 : 0.4), split - 0.08],
+            [split + 0.05, split + Math.min(0.25, (h - split) * 0.6)],
+          ]
+        : [
+            [split + 0.08, split + (retro ? 0.45 : 0.4)],
+            [split - Math.min(0.25, (split - plinth) * 0.6), split - 0.05],
+          ]
+  return (
+    <group>
+      {retro ? (
+        // Chrome-tipped legs under a rounded body.
+        [-1, 1].flatMap((sx) => [-1, 1].map((sz) => <Rod key={`${sx}${sz}`} a={[sx * (w / 2 - 0.08), 0, sz * (d / 2 - 0.1)]} b={[sx * (w / 2 - 0.08), plinth, sz * (d / 2 - 0.1)]} radius={0.015} m={handle} />))
+      ) : (
+        <B s={[w - 0.04, plinth, d - 0.06]} p={[0, plinth / 2, -0.02]} m={dark} edges={false} />
+      )}
+      <S g={shell} m={body} p={[0, plinth + bodyH / 2, 0]} edges={!retro} />
+      {/* door gaps */}
+      {split !== null && <B s={[w - (retro ? 0.1 : 0.004), 0.004, 0.004]} p={[0, split, doorZ + 0.001]} m={dark} edges={false} />}
+      {!retro && <B s={[0.004, bodyH - 0.01, 0.004]} p={[-w / 2 + 0.002, plinth + bodyH / 2, doorZ + 0.001]} m={dark} edges={false} />}
+      {handles.map(([y0, y1], i) =>
+        retro ? (
+          <group key={i}>
+            <Rod a={[hx, y0, doorZ + 0.04]} b={[hx, y1, doorZ + 0.04]} radius={0.012} m={handle} />
+            <Rod a={[hx, y0, doorZ]} b={[hx, y0, doorZ + 0.04]} radius={0.01} m={handle} />
+            <Rod a={[hx, y1, doorZ]} b={[hx, y1, doorZ + 0.04]} radius={0.01} m={handle} />
+          </group>
+        ) : (
+          <B key={i} s={[0.02, y1 - y0, 0.03]} p={[hx, (y0 + y1) / 2, doorZ + 0.015]} m={handle} edges={false} />
+        ),
+      )}
+      {retro && <B s={[0.16, 0.025, 0.004]} p={[w / 2 - 0.14, plinth + bodyH * 0.9, doorZ + 0.002]} m={mat('#dfe2e4', 'gloss')} edges={false} />}
     </group>
   )
 }
