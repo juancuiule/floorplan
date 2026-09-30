@@ -472,6 +472,18 @@ export const useDecor = create<DecorState>((set, get) => ({
   },
 }))
 
+declare global {
+  interface Window {
+    /**
+     * Dev only: the live decor store, for test scripts. Importing /src/decor/store.ts
+     * from a script is not enough: after an HMR update the app runs store.ts?t=…, a
+     * different module instance.
+     */
+    __decor?: typeof useDecor
+  }
+}
+if (import.meta.env.DEV && typeof window !== 'undefined') window.__decor = useDecor
+
 // ---------- copy / duplicate ----------
 
 let clipboard: DecorItem[] | null = null
@@ -712,7 +724,9 @@ if (import.meta.hot) {
   import.meta.hot.on('decor:changed', async (data: { file: string | null }) => {
     if ((data.file ?? null) !== (decorFile ?? null)) return
     const text = await fetch(decorUrl()).then((r) => r.text()).catch(() => null)
-    if (text === null || text === lastSaved || written.includes(text)) return
+    // While saving is paused (the file was broken) any good version is news, even the one last loaded.
+    const paused = !!useDecor.getState().error?.startsWith('Saving')
+    if (text === null || (!paused && (text === lastSaved || written.includes(text)))) return
     clearTimeout(saveTimer)
     await useDecor.getState().load()
   })

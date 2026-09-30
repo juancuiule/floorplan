@@ -98,7 +98,8 @@ async function step(name, fn) {
 const inApp = (page, fn, arg) =>
   page.evaluate(
     async ([src, a]) => {
-      const store = await import('/src/decor/store.ts')
+      // The app's own store: importing store.ts here may give another instance after HMR.
+      const store = { useDecor: window.__decor }
       const f = new Function('store', 'arg', `return (${src})(store, arg)`)
       return f(store, a)
     },

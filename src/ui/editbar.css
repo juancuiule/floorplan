@@ -1,9 +1,10 @@
-/* Floating actions for the selected item. Sits bottom center of the canvas (left of the 320px panel). */
+/* Floating actions for the selected item. Sits bottom center of the canvas (left of the panel). */
 .editbar {
+  --editbar-x: calc(-50% - (var(--panel-w) + var(--gutter)) / 2);
   position: absolute;
   left: 50%;
   bottom: 20px;
-  transform: translateX(calc(-50% - 168px));
+  transform: translateX(var(--editbar-x));
   display: flex;
   align-items: center;
   gap: 6px;
@@ -21,8 +22,13 @@
 @keyframes editbar-in {
   from {
     opacity: 0;
-    transform: translateX(calc(-50% - 168px)) translateY(4px);
+    transform: translateX(var(--editbar-x)) translateY(4px);
   }
+}
+
+/* The panel is hidden: center on the whole canvas. */
+[data-panel-closed] .editbar {
+  --editbar-x: -50%;
 }
 
 .editbar-name {
@@ -111,9 +117,32 @@
 }
 
 @media (max-width: 800px) {
+  /* Above the bottom sheet panel (same height as in index.css), or at the bottom when it is hidden. */
   .editbar {
-    transform: translateX(-50%);
-    bottom: calc(45vh + 32px);
+    --editbar-x: -50%;
+    bottom: calc(min(52dvh, 560px) + 32px);
+    width: max-content;
+    max-width: calc(100vw - 2 * var(--gutter));
+    /* The selection tools don't fit one row on a phone: the name on top, the tools wrap below. */
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 2px;
+  }
+
+  .editbar-name {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
+    max-width: 100%;
+  }
+
+  .editbar:has(.editbar-group ~ .editbar-group ~ .editbar-group ~ .editbar-group) .editbar-name {
+    flex-basis: 100%;
+    justify-content: center;
+  }
+
+  [data-panel-closed] .editbar {
+    bottom: 24px;
   }
 
   @keyframes editbar-in {
