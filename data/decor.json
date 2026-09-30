@@ -5,7 +5,7 @@
       "main": "oakLight",
       "hall": "oakLight",
       "bath": "porcelainGrey",
-      "balcony": "balconyGrey"
+      "balcony": "concrete"
     },
     "hexBlend": false,
     "wallPaint": "#f8f7f3",
@@ -31,12 +31,12 @@
       "id": "artwork-gallery-a3",
       "image": "/artwork/image%2054.png",
       "at": [
-        2.2,
-        1.74,
-        0.435
+        3.97,
+        0.01,
+        -0.16
       ],
-      "facing": "x+",
-      "host": "entry-main",
+      "facing": "z+",
+      "host": "side-bath",
       "size": {
         "preset": "50x70",
         "w": 0.5,
@@ -54,8 +54,8 @@
       "id": "artwork-gallery-square",
       "image": "/artwork/IMG_3585.png",
       "at": [
-        4.82,
-        1.135,
+        3.13,
+        2.08,
         0
       ],
       "facing": "z+",
@@ -1259,31 +1259,6 @@
       },
       "options": {
         "legs": true
-      }
-    },
-    {
-      "kind": "furniture",
-      "id": "furniture-munfl3cja6z0",
-      "type": "loftBed",
-      "at": [
-        3.48,
-        0,
-        0.75
-      ],
-      "rotation": 0,
-      "size": [
-        2.55,
-        1,
-        1.5
-      ],
-      "finish": {
-        "body": "#dcc196",
-        "metal": "#1d1d1d",
-        "fabric": "#e6e0d4"
-      },
-      "options": {
-        "stairs": "right",
-        "drawers": 3
       }
     }
   ]
