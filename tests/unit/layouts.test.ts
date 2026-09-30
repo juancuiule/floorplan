@@ -43,7 +43,7 @@ const writeLayout = async (slug: string | null, body: unknown) => {
   await fs.mkdir(data(), { recursive: true })
   await fs.writeFile(file(slug), JSON.stringify(body))
 }
-const list = async (q = '') => (await (await fetch(`${base}/api/layouts${q}`)).json()) as { slug: string | null; name: string; items: number; updated: string }[]
+const list = async (q = '') => (await (await fetch(`${base}/api/layouts${q}`)).json()) as { slug: string | null; name: string; items: number; updated: string; plan: string }[]
 const post = (body: unknown) => fetch(`${base}/api/layouts`, { method: 'POST', body: JSON.stringify(body) })
 const patch = (slug: string | null, body: unknown) => fetch(`${base}/api/layouts${slug ? `?file=${slug}` : ''}`, { method: 'PATCH', body: JSON.stringify(body) })
 const del = (slug: string | null) => fetch(`${base}/api/layouts${slug ? `?file=${slug}` : ''}`, { method: 'DELETE' })
@@ -78,6 +78,8 @@ describe('GET /api/layouts', () => {
     await writeLayout('plan-loft', { version: 1, plan: 'loft', items: [] })
     const byslug = Object.fromEntries((await list()).map((l) => [String(l.slug), l.plan]))
     expect(byslug).toEqual({ null: 'monoambiente', 'plan-loft': 'loft' })
+    // Another plan's main layout is its "Current", not "plan-loft".
+    expect((await list()).find((l) => l.slug === 'plan-loft')?.name).toBe('Current')
   })
 
   it('lists names, item counts and update times; main first, then by name; hides test files', async () => {
@@ -137,7 +139,21 @@ describe('PATCH /api/layouts', () => {
     await writeLayout('plan', { version: 1, name: 'plan', items: [] })
     await writeLayout('other', { version: 1, items: [] })
     expect(await (await patch('plan', { name: 'Plan' })).json()).toEqual({ slug: 'plan', name: 'Plan' })
-    expect(await (await patch('other', { name: 'Plan' })).json()).toEqual({ slug: 'plan-2', name: 'Plan' })
+    // plan-2 would be the main layout of a plan called "2".
+    expect(await (await patch('other', { name: 'Plan' })).json()).toEqual({ slug: 'layout-plan-2', name: 'Plan' })
+  })
+
+  it('never gives a named layout a plan-<id> slug (another plan’s main layout)', async () => {
+    expect(await (await post({ name: 'Plan B', data: { version: 1, items: [] } })).json()).toEqual({ slug: 'layout-plan-b', name: 'Plan B' })
+    await writeLayout('x', { version: 1, items: [] })
+    expect((await (await patch('x', { name: 'Plan loft' })).json()).slug).toBe('layout-plan-loft')
+    await expect(fs.access(file('plan-b'))).rejects.toThrow()
+  })
+
+  it('renames another plan’s main layout in place: it keeps its file', async () => {
+    await writeLayout('plan-loft', { version: 1, plan: 'loft', items: [plant] })
+    expect(await (await patch('plan-loft', { name: 'Loft as built' })).json()).toEqual({ slug: 'plan-loft', name: 'Loft as built' })
+    expect(await read('plan-loft')).toEqual({ version: 1, name: 'Loft as built', plan: 'loft', items: [plant] })
   })
 
   it('renames the main layout in place', async () => {
@@ -168,5 +184,11 @@ describe('DELETE /api/layouts', () => {
     expect((await del('UP')).status).toBe(400)
     expect((await del('nope')).status).toBe(404)
     expect((await read(null)).items).toHaveLength(1)
+  })
+
+  it('refuses another plan’s main layout', async () => {
+    await writeLayout('plan-loft', { version: 1, plan: 'loft', items: [plant] })
+    expect((await del('plan-loft')).status).toBe(400)
+    expect((await read('plan-loft')).items).toHaveLength(1)
   })
 })
