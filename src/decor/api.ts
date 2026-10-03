@@ -1,4 +1,3 @@
-import type { DecorFile } from '../model/decor'
 import type { LayoutInfo } from '../model/layoutNames'
 
 export type { LayoutInfo }
@@ -15,12 +14,12 @@ export interface LibraryImage {
 /** A request the server answered with an error, or did not answer. */
 export class ApiError extends Error {}
 
-/** Reading a layout file: its exact text (to recognize this tab's own writes) and its data. */
+/** Reading a layout file: its exact text (to recognize this tab's own writes) and its parsed JSON, unchecked. */
 export type LayoutRead =
-  | { ok: true; text: string; file: DecorFile }
+  | { ok: true; text: string; json: unknown }
   /** No dev API: a static build answers with its index.html, or not at all. */
   | { ok: false; reason: 'no-api' }
-  /** The file is not a layout (a hand edit half done). */
+  /** The file is not JSON (a hand edit half done). */
   | { ok: false; reason: 'broken-file' }
 
 const fileQuery = (slug: string | null) => (slug ? `?file=${encodeURIComponent(slug)}` : '')
@@ -51,10 +50,7 @@ export async function readLayout(slug: string | null): Promise<LayoutRead> {
   if (!res.ok || /html/.test(res.headers.get('Content-Type') ?? '')) return { ok: false, reason: 'no-api' }
   const text = await res.text()
   try {
-    const file = JSON.parse(text) as DecorFile
-    if (!file || typeof file !== 'object' || !Array.isArray(file.items ?? []))
-      return { ok: false, reason: 'broken-file' }
-    return { ok: true, text, file }
+    return { ok: true, text, json: JSON.parse(text) as unknown }
   } catch {
     return { ok: false, reason: 'broken-file' }
   }

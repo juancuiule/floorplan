@@ -3,7 +3,7 @@ import { shell } from '../project'
 import { launch, showLayoutInUrl } from '../project/launch'
 import { migrateAccent, paintFaces } from '../project/paintFaces'
 import { isDefaultPlan, plan } from '../project/plan'
-import { isPlaced, type DecorItem, type DecorKind } from '../model/decor'
+import { isPlaced, type DecorFile, type DecorItem, type DecorKind } from '../model/decor'
 import { DEFAULT_FINISHES, normalizeFinishes, type Finishes } from '../model/finishes'
 import type { Vec3 } from '../model/types'
 import { listArtwork, readLayout, readLayoutText, uploadArtwork, writeLayout, type LibraryImage } from './api'
@@ -17,6 +17,7 @@ import { namesOf, serialize } from './layoutFile'
 import { createSaver } from './persistence'
 import { mountOf, placeAt, slidesOnFloor } from './placement'
 import { settleMoved } from './rest'
+import { validateLayout } from './validateLayout'
 import { planMainSlug } from '../model/layoutNames'
 
 // The open layout: its decor items, finishes and groups, the selection, and the
@@ -38,13 +39,15 @@ export type SaveStatus = 'ok' | 'no-api' | 'broken-file'
 
 export const SAVE_STATUS_MESSAGE: Record<Exclude<SaveStatus, 'ok'>, string> = {
   'no-api': 'Saving is only available while running the dev server.',
-  'broken-file': 'Saving paused: the layout file on disk is not valid JSON. Fix it and this tab reloads it.',
+  'broken-file': 'Saving paused: the layout file on disk is not a valid layout. Fix it and this tab reloads it.',
 }
 
 interface DecorState {
   items: DecorItem[]
   loaded: boolean
   saveStatus: SaveStatus
+  /** With saveStatus 'broken-file': what is wrong with the file, for the person fixing it. */
+  fileProblem: string | null
   /** The primary selected item: the one last clicked, shown in the inspector. */
   selectedId: string | null
   /** Every selected item (includes selectedId); more than one is a multi-selection. */
@@ -267,6 +270,7 @@ export const useDecor = create<DecorState>((rawSet, get) => {
     items: [],
     loaded: false,
     saveStatus: 'ok',
+    fileProblem: null,
     selectedId: null,
     selectedIds: [],
     groupNames: {},
@@ -294,10 +298,20 @@ export const useDecor = create<DecorState>((rawSet, get) => {
         // Without an API, start empty and do not persist. With a broken file (a
         // hand edit half done), keep what is on screen and do not overwrite it;
         // fixing the file reloads it.
-        rawSet({ loaded: true, saveStatus: read.reason })
+        rawSet({
+          loaded: true,
+          saveStatus: read.reason,
+          fileProblem: read.reason === 'broken-file' ? 'not valid JSON' : null,
+        })
         return
       }
-      const data = read.file
+      const problems = validateLayout(read.json)
+      if (problems.length) {
+        const more = problems.length > 1 ? ` (and ${problems.length - 1} more)` : ''
+        rawSet({ loaded: true, saveStatus: 'broken-file', fileProblem: problems[0] + more })
+        return
+      }
+      const data = read.json as DecorFile
       const items = data.items ?? []
       // A layout from before per-face paint: its accent wall becomes a painted face.
       const finishes = migrateAccent(normalizeFinishes(data.finishes, plan), paintFaces(shell.walls), shell.walls)
@@ -315,6 +329,7 @@ export const useDecor = create<DecorState>((rawSet, get) => {
         items: next,
         loaded: true,
         saveStatus: 'ok',
+        fileProblem: null,
         finishes,
         layoutName,
         groupNames,

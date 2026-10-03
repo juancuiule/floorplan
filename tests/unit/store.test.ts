@@ -430,6 +430,14 @@ describe('a broken layout file', () => {
     expect(lastSavedItems()?.[0]).toMatchObject({ id: 'p1', scale: 1.4 })
   })
 
+  it('treats a layout with an unknown catalog entry as broken, and says why', async () => {
+    const { useDecor } = await freshStore()
+    fileOnDisk = { version: 1, items: [{ ...plant('p1'), species: 'triffid' } as unknown as DecorItem] }
+    await useDecor.getState().load()
+    expect(useDecor.getState().saveStatus).toBe('broken-file')
+    expect(useDecor.getState().fileProblem).toMatch(/^items\[0\]\.species: .*"triffid"$/)
+  })
+
   it('stays paused after an upload succeeds', async () => {
     const { useDecor } = await freshStore()
     await useDecor.getState().load()
