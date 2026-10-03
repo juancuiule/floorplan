@@ -2,9 +2,13 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { checkedPlan, validatePlan } from '../../src/model/validate'
 
-const PLANS = 'src/plans'
-const read = (file: string) => JSON.parse(readFileSync(`${PLANS}/${file}`, 'utf8'))
-const plans = readdirSync(PLANS).filter((f) => f.endsWith('.plan.json'))
+// Every plan in every example workspace.
+const plans = readdirSync('examples').flatMap((ws) =>
+  readdirSync(`examples/${ws}/plans`)
+    .filter((f) => f.endsWith('.plan.json'))
+    .map((f) => `examples/${ws}/plans/${f}`),
+)
+const read = (file: string) => JSON.parse(readFileSync(file, 'utf8'))
 
 describe('validatePlan', () => {
   it.each(plans)('accepts the bundled plan %s', (file) => {
@@ -12,7 +16,7 @@ describe('validatePlan', () => {
   })
 
   it('reports what is wrong, by path', () => {
-    const plan = read('loft.plan.json')
+    const plan = read('examples/loft/plans/loft.plan.json')
     plan.shell.walls[0].thickness = 0
     plan.shell.walls[0].openings = [{ id: 'w', kind: 'window', offset: 100, width: 1, height: 1 }]
     plan.shell.bulges = [{ id: 'b', host: 'nowhere', min: [0, 0, 0], max: [1, 1, 1], material: 'x' }]
@@ -36,6 +40,6 @@ describe('validatePlan', () => {
   })
 
   it('checkedPlan names the file in its error', () => {
-    expect(() => checkedPlan({}, 'src/plans/x.plan.json')).toThrow(/^src\/plans\/x\.plan\.json is not a valid plan:/)
+    expect(() => checkedPlan({}, 'plans/x.plan.json')).toThrow(/^plans\/x\.plan\.json is not a valid plan:/)
   })
 })

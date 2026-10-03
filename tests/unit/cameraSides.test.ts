@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { isFlippable, mirrorCamera, sideNames, sideOf } from '../../src/project/cameraSides'
 import { CAMERAS, CENTER_Z, FLOOR_BOUNDS, SIDE_NAMES } from '../../src/project/derived'
-import loft from '../../src/plans/loft.plan.json'
+import loft from '../../examples/loft/plans/loft.plan.json'
 
 describe('iso views from either side', () => {
   it('mirrors position and target across the center z, keeping x, height and label', () => {

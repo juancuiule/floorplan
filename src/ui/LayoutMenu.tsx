@@ -7,11 +7,11 @@ import { Icon } from './icons'
 import './layoutMenu.css'
 
 // Layout variants: the menu at the top of the panel lists every saved
-// arrangement of the apartment (data/decor.json is "Current"), switches between
+// arrangement of the apartment (layouts/decor.json is "Current"), switches between
 // them, saves the current one under a new name, renames and deletes. The A/B
 // button (or B) flips between this layout and the one to compare with.
 
-/** A main layout (data/decor.json, or another plan's data/decor.plan-<id>.json) is "Current" until renamed. */
+/** A main layout (layouts/decor.json, or another plan's layouts/decor.plan-<id>.json) is "Current" until renamed. */
 const displayName = (slug: string | null, name: string) =>
   name || (slug === null || slug === MAIN_SLUG ? MAIN_NAME : slug)
 

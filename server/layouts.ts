@@ -11,14 +11,10 @@ import {
   slugify,
   slugOfFileName,
 } from '../src/model/layoutNames.ts'
-import { DEFAULT_PLAN_ID } from '../src/plans/default.ts'
 
-// Layout variants on disk: data/decor.json is the main layout ("Current"),
-// data/decor.<slug>.json are named ones. A file may carry its display name
+// Layout variants on disk, in the workspace's layouts/ folder: decor.json is the
+// default plan's main layout ("Current"), decor.<slug>.json are the others. A file may carry its display name
 // ({ version, name, finishes, items }); the slug is the file identity.
-
-/** The plan a layout belongs to when its file doesn't say (the owner's flat). */
-export const DEFAULT_PLAN = DEFAULT_PLAN_ID
 
 export class LayoutError extends Error {
   status: number
@@ -71,7 +67,7 @@ async function freeSlug(dataDir: string, wanted: string) {
 }
 
 /** Every layout: the main one first, then named ones by name. Test files are left out unless `all`. */
-export async function listLayouts(dataDir: string, all = false): Promise<LayoutInfo[]> {
+export async function listLayouts(dataDir: string, defaultPlan: string, all = false): Promise<LayoutInfo[]> {
   await fs.mkdir(dataDir, { recursive: true })
   const files = await fs.readdir(dataDir)
   const out: LayoutInfo[] = []
@@ -86,11 +82,11 @@ export async function listLayouts(dataDir: string, all = false): Promise<LayoutI
       name: typeof data.name === 'string' && data.name ? data.name : isMainSlug(slug) ? MAIN_NAME : slug!,
       items: Array.isArray(data.items) ? data.items.length : 0,
       updated: stat.mtime.toISOString(),
-      plan: typeof data.plan === 'string' && data.plan ? data.plan : DEFAULT_PLAN,
+      plan: typeof data.plan === 'string' && data.plan ? data.plan : defaultPlan,
     })
   }
   if (!out.some((l) => l.slug === null))
-    out.push({ slug: null, name: MAIN_NAME, items: 0, updated: new Date(0).toISOString(), plan: DEFAULT_PLAN })
+    out.push({ slug: null, name: MAIN_NAME, items: 0, updated: new Date(0).toISOString(), plan: defaultPlan })
   return out.sort((a, b) =>
     a.slug === null ? -1 : b.slug === null ? 1 : a.name.localeCompare(b.name, undefined, { numeric: true }),
   )

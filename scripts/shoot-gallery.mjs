@@ -1,14 +1,15 @@
 // Screenshots of the gallery-wall tools: a selection with the align tools in the
 // edit bar, a finished gallery wall over a sofa, and smart guides on the floor.
-// Uses data/decor.test-gallery.json (git-ignored), never your real layout.
+// Uses the scratch layout test-gallery (git-ignored), never your real layout.
 // Usage: node scripts/shoot-gallery.mjs <outDir> [baseUrl]
 import { chromium } from 'playwright'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { layoutFile } from '../tests/e2e/workspace.mjs'
 
 const [outDir = 'test-results/gallery', base = 'http://localhost:5173'] = process.argv.slice(2)
 mkdirSync(outDir, { recursive: true })
-writeFileSync('data/decor.test-gallery.json', JSON.stringify({ version: 1, items: [] }, null, 2) + '\n')
+writeFileSync(await layoutFile(base, 'test-gallery'), JSON.stringify({ version: 1, items: [] }, null, 2) + '\n')
 
 const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || undefined,

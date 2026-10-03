@@ -13,7 +13,8 @@ A real-time 3D model of a studio apartment, for planning the interior: hang artw
 
 ```sh
 pnpm install
-pnpm dev            # http://localhost:5173
+pnpm dev                                                # the loft example, http://localhost:5173
+FLOORPLAN_WORKSPACE=examples/monoambiente pnpm dev      # the apartment in the screenshots
 ```
 
 ## Docs
@@ -24,13 +25,23 @@ pnpm dev            # http://localhost:5173
 - **[Architecture](docs/architecture.md)**: layers, state, the life of an edit, rendering. The decisions behind it are in [docs/adr](docs/adr/), and the vocabulary in [GLOSSARY.md](GLOSSARY.md).
 - **[Contributing](CONTRIBUTING.md)**: conventions for code, commits and docs.
 
-## Plans and layouts
+## Workspaces, plans and layouts
 
-Each apartment is a plan file in `src/plans/<id>.plan.json` (type in `src/model/plan.ts`): its walls and openings, rooms, floors and ceilings, fixed fittings, materials, where it is (for the sun), and design rules: which partitions can come out, which walls take an accent color, which wall is the facade, a raisable dropped ceiling, and optional camera presets. Anything the file leaves out is derived from its geometry (`src/project/derived.ts`).
+The app opens one **workspace**: a folder with an apartment's data, chosen by `FLOORPLAN_WORKSPACE` (set it in `.env.local` to keep it). The repo has two:
 
-- `?plan=<id>` opens another plan; the default is set in `src/plans/default.ts`. `loft` is a small test plan in Madrid.
-- A layout is a furnished version of a plan: `data/decor.json` for the default plan, `data/decor.<slug>.json` for named layouts and `data/decor.plan-<id>.json` for another plan's main layout. Layout files record their `plan`, so the layouts menu only lists the open plan's.
-- The panel saves every change to the open layout, and editing the file by hand (or asking Claude to) updates open tabs live.
-- `public/artwork/` is the image library. Uploads from the panel land here.
+- `examples/loft`: a small, made-up flat in Madrid. It opens by default.
+- `examples/monoambiente`: the studio apartment in Buenos Aires the project was built for, with its own layouts and artwork.
 
-In this apartment, `x` runs from the inner face of the entry wall (0) to the balcony window (6.9), `z` from the bathroom side (0) to the kitchen side (3.0), and `y` is up.
+```
+examples/loft/
+  workspace.json        name, and the plan that opens by default
+  plans/loft.plan.json  the apartment: walls, openings, rooms, fittings, materials, location, design rules
+  layouts/decor.json    furnished versions of it: decor items, groups, finishes, walls taken out
+  artwork/              the image library (uploads land here)
+```
+
+- A **plan** (type in `src/model/plan.ts`) describes the apartment; anything it leaves out is derived from its geometry (`src/project/derived.ts`). `?plan=<id>` opens another plan in the workspace.
+- A **layout** is a furnished version of a plan: `layouts/decor.json` is the default plan's main one, `layouts/decor.<slug>.json` the others. The panel saves every change, and editing a file by hand (or asking Claude to) updates open tabs live.
+- Both are checked when they load: a mistake shows up as a list of problems, not a broken scene.
+
+To model your own apartment, see [docs/your-own-floorplan.md](docs/your-own-floorplan.md).

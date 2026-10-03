@@ -1,7 +1,7 @@
 import type { Plan } from './plan'
 
 // Checks for data that comes from files people and agents write by hand: plans
-// (src/plans/*.plan.json) and layouts (see src/decor/validateLayout.ts). A check
+// (plans/*.plan.json) and layouts (see src/decor/validateLayout.ts). A check
 // returns problems as readable lines ("shell.walls[2].thickness: expected a
 // positive number"), empty when the data is fine. Only what the app relies on
 // is checked; unknown extra fields are allowed.

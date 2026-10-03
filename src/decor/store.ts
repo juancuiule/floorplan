@@ -68,7 +68,7 @@ interface DecorState {
   tab: PanelTab
   /** Floors, paint, tiles and walls taken out of this layout (saved in its file, part of undo). */
   finishes: Finishes
-  /** The layout being edited: null for data/decor.json, else the <slug> of data/decor.<slug>.json. */
+  /** The layout being edited: null for layouts/decor.json, else the <slug> of layouts/decor.<slug>.json. */
   layout: string | null
   /** Display name stored in the file ('' when it has none). */
   layoutName: string
@@ -140,10 +140,10 @@ interface DecorState {
   renamed: (slug: string | null, name: string) => void
 }
 
-/** The open plan's main layout ("Current"): data/decor.json for the default plan. */
+/** The open plan's main layout ("Current"): layouts/decor.json for the default plan. */
 export const MAIN_SLUG: string | null = isDefaultPlan ? null : planMainSlug(plan.id)
 
-// Another plan's main layout lives in data/decor.plan-<id>.json, so it never opens the default plan's layouts.
+// Another plan's main layout lives in layouts/decor.plan-<id>.json, so it never opens the default plan's layouts.
 let decorFile = launch.layout ?? MAIN_SLUG
 
 /** What is saved: a new item still following the pointer is left out; a relocated one keeps its old spot. */

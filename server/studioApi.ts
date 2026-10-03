@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import path from 'node:path'
 import type { Plugin } from 'vite'
 import { slugOfFileName } from '../src/model/layoutNames.ts'
+import type { Workspace } from './workspace.ts'
 import {
   assertSlug,
   createLayout,
@@ -13,12 +14,14 @@ import {
   renameLayout,
 } from './layouts.ts'
 
-// Dev-only API so the browser can write back into the project:
-//   GET  /api/artwork          list images in public/artwork
+// Dev-only API so the browser can write back into the open workspace
+// (server/workspace.ts); <layouts> and <artwork> are its folders:
+//   GET  /api/workspace        { name, defaultPlan, layouts } for scripts and tests
+//   GET  /api/artwork          list images in <artwork>
 //   POST /api/artwork?name=..  upload one image (raw body), returns { url, name }
-//   GET  /api/decor            read data/decor.json
-//   PUT  /api/decor            replace data/decor.json
-// /api/decor takes ?file=<name> to use data/decor.<name>.json instead (tests use this).
+//   GET  /api/decor            read <layouts>/decor.json
+//   PUT  /api/decor            replace <layouts>/decor.json
+// /api/decor takes ?file=<slug> to use <layouts>/decor.<slug>.json instead.
 //   GET    /api/layouts             list layouts (main first; ?all=1 includes e2e*/test* files)
 //   POST   /api/layouts             { name, data? | from? } save a new layout, returns { slug, name }
 //   PATCH  /api/layouts?file=<slug> { name } rename (no ?file= renames the main one), returns { slug, name }
@@ -126,21 +129,24 @@ async function fetchImage(raw: string): Promise<{ type: string; body: Buffer }> 
   return out
 }
 
-export function studioApi(): Plugin {
+/** Where the API reads and writes: the open workspace's folders (server/workspace.ts). */
+export type ApiDirs = Pick<Workspace, 'layoutsDir' | 'artworkDir' | 'defaultPlan' | 'name'>
+
+export function studioApi(ws: ApiDirs): Plugin {
   return {
     name: 'studio-api',
     apply: 'serve',
     configureServer(server) {
       const root = server.config.root
-      const artDir = path.join(root, 'public', 'artwork')
-      const dataDir = path.join(root, 'data')
+      const artDir = ws.artworkDir
+      const dataDir = ws.layoutsDir
       const decorFileFor = (slug: string | null) => {
         if (slug) assertSlug(slug)
         return layoutFile(dataDir, slug)
       }
 
       server.watcher.add(path.join(dataDir, 'decor*.json'))
-      /** The slug of a layout file in data/ (null for decor.json), undefined for any other file. */
+      /** The slug of a layout file (null for decor.json), undefined for any other file. */
       const layoutOf = (file: string) =>
         path.dirname(file) === dataDir ? slugOfFileName(path.basename(file)) : undefined
       server.watcher.on('change', (file) => {
@@ -158,6 +164,10 @@ export function studioApi(): Plugin {
         const url = new URL(req.url ?? '/', 'http://localhost')
         if (!url.pathname.startsWith('/api/')) return next()
         try {
+          if (url.pathname === '/api/workspace' && req.method === 'GET') {
+            // For scripts and browser tests that seed layout files on disk.
+            return send(res, 200, { name: ws.name, defaultPlan: ws.defaultPlan, layouts: path.relative(root, dataDir) })
+          }
           if (url.pathname === '/api/artwork' && req.method === 'GET') {
             await fs.mkdir(artDir, { recursive: true })
             const files = (await fs.readdir(artDir))
@@ -188,7 +198,7 @@ export function studioApi(): Plugin {
           if (url.pathname === '/api/layouts') {
             const file = url.searchParams.get('file')
             if (req.method === 'GET')
-              return send(res, 200, await listLayouts(dataDir, url.searchParams.get('all') === '1'))
+              return send(res, 200, await listLayouts(dataDir, ws.defaultPlan, url.searchParams.get('all') === '1'))
             if (req.method === 'POST') {
               const body = JSON.parse((await readBody(req, 5 * 1024 * 1024)).toString('utf8') || '{}')
               return send(res, 201, await createLayout(dataDir, body))

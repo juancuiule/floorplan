@@ -4,6 +4,10 @@ A 3D model of an apartment for planning its interior: the apartment as it is bui
 
 ## The apartment
 
+**Workspace**:
+A folder with one apartment's data: its plans, layouts and artwork. The app opens one at a time.
+_Avoid_: project, data folder
+
 **Plan**:
 One apartment as data: its shell, fixtures, materials, location and the design rules that apply to it (which partitions can come out, which walls take an accent color).
 _Avoid_: project, floorplan, model

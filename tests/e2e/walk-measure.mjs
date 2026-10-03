@@ -7,35 +7,13 @@ import { BASE_URL, eventually, launch, runner, shot, waitForScene } from './lib.
 const DECOR = 'e2e-walk'
 const url = (params = '') => `${BASE_URL}/?decor=${DECOR}&dims=0${params ? `&${params}` : ''}`
 
-// A desk and a wardrobe in the main room (or your own layout with SEED=data/decor.furn.json, for screenshots).
-const seed =
-  process.env.SEED && existsSync(process.env.SEED)
-    ? JSON.parse(readFileSync(process.env.SEED, 'utf8'))
-    : {
-        version: 1,
-        items: [
-          {
-            kind: 'furniture',
-            id: 'f-desk',
-            type: 'standingDesk',
-            at: [4.8, 0, 2.65],
-            rotation: 180,
-            size: [1.4, 0.72, 0.7],
-            finish: { body: '#6a4731', metal: '#1d1d1d', fabric: '#e6e0d4' },
-            options: {},
-          },
-          {
-            kind: 'furniture',
-            id: 'f-wardrobe',
-            type: 'wardrobe',
-            at: [5.14, 0, 0.3],
-            rotation: 0,
-            size: [1.6, 2.4, 0.6],
-            finish: { body: '#c9a57a', metal: '#1d1d1d', fabric: '#e6e0d4' },
-            options: {},
-          },
-        ],
-      }
+// A desk and a wardrobe in the main room (or your own layout with SEED=<path to a layout file>, for screenshots).
+const seed = JSON.parse(
+  readFileSync(
+    process.env.SEED && existsSync(process.env.SEED) ? process.env.SEED : 'tests/e2e/fixtures/desk-and-wardrobe.json',
+    'utf8',
+  ),
+)
 const put = await fetch(`${BASE_URL}/api/decor?file=${DECOR}`, {
   method: 'PUT',
   body: JSON.stringify(seed),

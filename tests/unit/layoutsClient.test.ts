@@ -85,7 +85,7 @@ describe('saveAs', () => {
 })
 
 describe('remove', () => {
-  it('on another plan, deleting the open layout goes back to that plan’s main layout, not data/decor.json', async () => {
+  it('on another plan, deleting the open layout goes back to that plan’s main layout, not layouts/decor.json', async () => {
     files['mine'] = { version: 1, plan: 'loft', items: [plant('a')] }
     const { useDecor, useLayouts } = await fresh('?plan=loft&decor=mine')
     await useDecor.getState().load()

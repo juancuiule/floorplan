@@ -3,9 +3,10 @@
 import assert from 'node:assert/strict'
 import { copyFileSync } from 'node:fs'
 import { BASE_URL, launch, runner } from './lib.mjs'
+import { layoutFile } from './workspace.mjs'
 
 const FILE = 'test-shortcuts'
-copyFileSync('tests/e2e/fixtures/shortcuts.json', `data/decor.${FILE}.json`)
+copyFileSync('tests/e2e/fixtures/shortcuts.json', await layoutFile(BASE_URL, FILE))
 
 const t = runner('shortcuts')
 const { browser, page, errors } = await launch()

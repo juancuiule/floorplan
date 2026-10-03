@@ -58,7 +58,7 @@ export const useLayouts = create<LayoutsState>((set, get) => ({
       const d = useDecor.getState()
       if (slug === d.layout) {
         // Leave it first so no pending save writes it back. Another plan's main
-        // layout is data/decor.plan-<id>.json, never data/decor.json.
+        // layout is layouts/decor.plan-<id>.json, never layouts/decor.json.
         if (slug === MAIN_SLUG) throw new Error('The current layout cannot be deleted')
         await d.switchLayout(MAIN_SLUG)
       }
