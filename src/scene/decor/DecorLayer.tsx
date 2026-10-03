@@ -26,6 +26,7 @@ import { decorIdOf, firstSolid, hidden } from '../pick'
 import { requestShadowUpdate } from '../shadows'
 import { cutWalls } from '../cutWalls'
 import { Artwork } from './Artwork'
+import { ArtworkBoundary } from './ArtworkBoundary'
 import { Furniture } from './furniture/Furniture'
 import { EditOverlays } from './Gizmo'
 import { Lamp } from './Lamp'
@@ -430,7 +431,12 @@ function DecorNode({ item, selected }: { item: DecorItem; selected: boolean }) {
   return (
     <group ref={ref} position={item.at} rotation={[0, rotationY, 0]} userData={{ decorId: item.id, host }}>
       <Suspense fallback={null}>
-        {item.kind === 'artwork' && <Artwork item={item} />}
+        {item.kind === 'artwork' && (
+          // Keyed by image: picking another image after a failed one tries again.
+          <ArtworkBoundary key={item.image} item={item}>
+            <Artwork item={item} />
+          </ArtworkBoundary>
+        )}
         {item.kind === 'plant' && <Plant item={item} />}
         {item.kind === 'lamp' && <Lamp item={item} />}
         {item.kind === 'furniture' && <Furniture item={item} />}

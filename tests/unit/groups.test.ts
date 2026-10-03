@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ArtworkItem, DecorFile, DecorItem, PlantItem } from '../../src/model/decor'
 import { cloneSet } from '../../src/decor/clone'
 import { serialize } from '../../src/decor/layoutFile'
+import { openTestPlan } from './plans'
 
 // Multi-selection, groups and their persistence. Like store.test.ts, each test
 // gets a fresh store module with fetch stubbed.
@@ -17,8 +18,8 @@ function stubFetch() {
     'fetch',
     vi.fn(async (input: string, init?: RequestInit) => {
       const method = init?.method ?? 'GET'
-      if (String(input).startsWith('/api/decor') && method === 'GET') return new Response(JSON.stringify(fileOnDisk))
-      if (String(input).startsWith('/api/decor') && method === 'PUT') {
+      if (String(input).includes('/decor') && method === 'GET') return new Response(JSON.stringify(fileOnDisk))
+      if (String(input).includes('/decor') && method === 'PUT') {
         puts.push(init!.body as string)
         return new Response('{"ok":true}')
       }
@@ -30,6 +31,7 @@ function stubFetch() {
 async function freshStore(): Promise<Store> {
   window.history.replaceState(null, '', '/?decor=unit')
   vi.resetModules()
+  await openTestPlan()
   return import('../../src/decor/store')
 }
 

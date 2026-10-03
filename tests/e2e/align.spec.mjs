@@ -7,13 +7,13 @@ import { expect, test } from '@playwright/test'
 import { BASE_URL, SHOTS, watchErrors } from './lib.mjs'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { layoutFile } from './workspace.mjs'
+import { appUrl, layoutFile } from './space.mjs'
 
 test('gallery wall: align, distribute, group, guides, hang as a gallery', async ({ page }) => {
   const base = BASE_URL
   const outDir = join(SHOTS, 'align')
   mkdirSync(outDir, { recursive: true })
-  const FILE = await layoutFile(base, 'test-align')
+  const FILE = layoutFile('test-align')
   writeFileSync(FILE, JSON.stringify({ version: 1, items: [] }, null, 2) + '\n')
 
   const errors = watchErrors(page)
@@ -42,7 +42,7 @@ test('gallery wall: align, distribute, group, guides, hang as a gallery', async 
   }
 
   // Straight at the kitchen-side wall (z = 3), from the bath side.
-  await page.goto(`${base}/?cam=5.3,1.45,0.15,4.75,1.45,3,62&decor=test-align&dims=0`)
+  await page.goto(`${appUrl(base)}&cam=5.3,1.45,0.15,4.75,1.45,3,62&decor=test-align&dims=0`)
   await page.waitForFunction(() => (window.__frames ?? 0) > 30 && window.__edit, null, { timeout: 60000 })
   await page.waitForTimeout(1200)
   const panel = page.locator('#decor-panel')

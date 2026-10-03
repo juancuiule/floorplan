@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DecorItem } from '../../src/model/decor'
+import { openTestPlan, planUrl } from './plans'
 
 // The client side of the layouts menu (src/decor/layouts.ts) against a stubbed dev API.
 
@@ -32,13 +33,13 @@ function stubFetch() {
       const method = init?.method ?? 'GET'
       calls.push({ url, method, body: init?.body as string | undefined })
       const slug = new URL(url, 'http://x').searchParams.get('file') ?? 'main'
-      if (url.startsWith('/api/decor') && method === 'GET')
+      if (url.includes('/decor') && method === 'GET')
         return new Response(JSON.stringify(files[slug] ?? { version: 1, items: [] }))
-      if (url.startsWith('/api/decor') && method === 'PUT') return new Response('{"ok":true}')
-      if (url === '/api/layouts' && method === 'POST')
+      if (url.includes('/decor') && method === 'PUT') return new Response('{"ok":true}')
+      if (url.endsWith('/layouts') && method === 'POST')
         return new Response(JSON.stringify({ slug: 'copy', name: 'Copy' }), { status: 201 })
-      if (url.startsWith('/api/layouts') && method === 'GET') return new Response('[]')
-      if (url.startsWith('/api/layouts') && method === 'DELETE') return new Response('{"ok":true}')
+      if (url.includes('/layouts') && method === 'GET') return new Response('[]')
+      if (url.includes('/layouts') && method === 'DELETE') return new Response('{"ok":true}')
       return new Response('{}', { status: 404 })
     }),
   )
@@ -47,6 +48,7 @@ function stubFetch() {
 async function fresh(search: string) {
   window.history.replaceState(null, '', `/${search}`)
   vi.resetModules()
+  await openTestPlan()
   const store = await import('../../src/decor/store')
   const layouts = await import('../../src/decor/layouts')
   return { ...store, ...layouts }
@@ -85,22 +87,22 @@ describe('saveAs', () => {
 })
 
 describe('remove', () => {
-  it('on another plan, deleting the open layout goes back to that plan’s main layout, not layouts/decor.json', async () => {
-    files['mine'] = { version: 1, plan: 'loft', items: [plant('a')] }
+  it('deleting the open layout goes back to the plan’s main layout, on that plan’s routes', async () => {
+    files['mine'] = { version: 1, items: [plant('a')] }
     const { useDecor, useLayouts } = await fresh('?plan=loft&decor=mine')
     await useDecor.getState().load()
     await useLayouts.getState().remove('mine')
-    expect(useDecor.getState().layout).toBe('plan-loft')
-    expect(calls.filter((c) => c.method === 'GET' && c.url.startsWith('/api/decor')).map((c) => c.url)).not.toContain(
-      '/api/decor',
+    expect(useDecor.getState().layout).toBeNull()
+    expect(calls.some((c) => c.method === 'DELETE' && c.url === planUrl('layouts?file=mine', 'loft'))).toBe(true)
+    expect(calls.filter((c) => c.method === 'GET' && c.url.includes('/decor')).map((c) => c.url)).toContain(
+      planUrl('decor', 'loft'),
     )
-    expect(calls.some((c) => c.method === 'DELETE' && c.url === '/api/layouts?file=mine')).toBe(true)
   })
 
-  it('refuses to delete a plan’s main layout', async () => {
-    const { useDecor, useLayouts } = await fresh('?plan=loft')
+  it('refuses to delete the main layout', async () => {
+    const { useDecor, useLayouts } = await fresh('')
     await useDecor.getState().load()
-    await useLayouts.getState().remove('plan-loft')
+    await useLayouts.getState().remove(null)
     expect(calls.some((c) => c.method === 'DELETE')).toBe(false)
     expect(useLayouts.getState().error).toMatch(/cannot be deleted/)
   })

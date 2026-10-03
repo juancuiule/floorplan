@@ -1,5 +1,6 @@
 // Walk mode, the measure tool and the clearance overlay, driven through the UI.
 // Needs a running dev server: BASE_URL=http://localhost:5194 node tests/e2e/walk-measure.mjs
+import { appUrl, planApi } from './space.mjs'
 import { test } from '@playwright/test'
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
@@ -7,7 +8,7 @@ import { BASE_URL, eventually, shot, waitForScene, watchErrors } from './lib.mjs
 
 test('walk + measure', async ({ page }) => {
   const DECOR = 'e2e-walk'
-  const url = (params = '') => `${BASE_URL}/?decor=${DECOR}&dims=0${params ? `&${params}` : ''}`
+  const url = (params = '') => `${appUrl(BASE_URL)}&decor=${DECOR}&dims=0${params ? `&${params}` : ''}`
 
   // A desk and a wardrobe in the main room (or your own layout with SEED=<path to a layout file>, for screenshots).
   const seed = JSON.parse(
@@ -16,7 +17,7 @@ test('walk + measure', async ({ page }) => {
       'utf8',
     ),
   )
-  const put = await fetch(`${BASE_URL}/api/decor?file=${DECOR}`, {
+  const put = await fetch(`${planApi(BASE_URL)}/decor?file=${DECOR}`, {
     method: 'PUT',
     body: JSON.stringify(seed),
     headers: { 'Content-Type': 'application/json' },

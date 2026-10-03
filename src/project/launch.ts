@@ -16,9 +16,16 @@ export const VIEW_PRESETS = [
   'from-entry',
 ] as const satisfies readonly CameraId[]
 
+/** Space and plan ids (server/storage.ts). */
+const ID = /^[a-z0-9][a-z0-9-]{0,39}$/
+
 export interface Launch {
-  /** ?plan=<id>: the plan to open (null: the default plan). */
+  /** ?space=<id>: the space (docs/adr/0010); without one the page is the home page. */
+  space: string | null
+  /** ?plan=<id>: the plan to open; without one the page lists the space's plans. */
   plan: string | null
+  /** ?edit=floorplan: the floor plan editor, for the plan or (without ?plan=) a new one. */
+  floorplanEditor: boolean
   /** ?decor=<slug>: the layout to open (undefined: the plan's main layout). */
   layout: string | undefined
   /** ?view=<preset> */
@@ -48,7 +55,9 @@ export function readLaunch(search: string): Launch {
   const date = p.get('date')
   const layout = p.get('decor')
   return {
-    plan: p.get('plan') || null,
+    space: ID.test(p.get('space') ?? '') ? p.get('space') : null,
+    plan: ID.test(p.get('plan') ?? '') ? p.get('plan') : null,
+    floorplanEditor: p.get('edit') === 'floorplan',
     layout: layout && LAYOUT_SLUG.test(layout) ? layout : undefined,
     view: VIEW_PRESETS.includes(view as CameraId) ? (view as CameraId) : null,
     xray: p.get('mode') === 'xray',
@@ -76,6 +85,14 @@ export function readLaunch(search: string): Launch {
 
 /** This page's launch options. */
 export const launch: Launch = readLaunch(typeof window === 'undefined' ? '' : window.location.search)
+
+/** Links between pages: the home page, a space, a plan, the floor plan editor. */
+export const links = {
+  home: () => '/',
+  space: (space: string) => `/?space=${space}`,
+  plan: (space: string, plan: string) => `/?space=${space}&plan=${plan}`,
+  floorplan: (space: string, plan?: string) => `/?space=${space}${plan ? `&plan=${plan}` : ''}&edit=floorplan`,
+}
 
 /** Keeps ?decor= in the address bar in step with the open layout, without a reload. */
 export function showLayoutInUrl(slug: string | null) {

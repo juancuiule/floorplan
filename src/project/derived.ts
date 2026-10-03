@@ -44,6 +44,16 @@ export const INSIDE: Vec2 = (() => {
 /** Floor patterns are anchored here in plan z, so they run on across neighboring floors. */
 export const FLOOR_ORIGIN_Z = Math.max(...shell.baseFloors.map((f) => f.rect[3]))
 
+/** Where along z the front door is: the first door in the wall at the entry end (x min), if there is one. */
+const ENTRY_DOOR_Z: number | undefined = shell.walls
+  .filter((w) => Math.abs(w.a[0] - w.b[0]) < 1e-6 && Math.abs(w.a[0] - FLOOR_BOUNDS[0]) < 0.3)
+  .flatMap((w) =>
+    (w.openings ?? []).filter((o) => o.kind === 'door').map((o) => Math.min(w.a[1], w.b[1]) + o.offset + o.width / 2),
+  )[0]
+
+/** Where walk mode starts: just inside the front door, or the middle of the entry end without one. */
+export const ENTRY_SPOT: Vec2 = [FLOOR_BOUNDS[0] + 0.55, ENTRY_DOOR_Z ?? (FLOOR_BOUNDS[1] + FLOOR_BOUNDS[3]) / 2]
+
 /** Camera presets: the plan's own, or views derived from its bounds. */
 export const CAMERAS: Record<CameraId, CameraDef> = (() => {
   const [x0, z0, x1, z1] = FLOOR_BOUNDS
@@ -52,12 +62,7 @@ export const CAMERAS: Record<CameraId, CameraDef> = (() => {
   const span = Math.max(x1 - x0, z1 - z0)
   const eye = 1.55
   // Stand just inside the front door (the first door in a wall at the plan's entry end), else mid-wall.
-  const door = shell.walls
-    .filter((w) => Math.abs(w.a[0] - w.b[0]) < 1e-6 && Math.abs(w.a[0] - x0) < 0.3)
-    .flatMap((w) =>
-      (w.openings ?? []).filter((o) => o.kind === 'door').map((o) => Math.min(w.a[1], w.b[1]) + o.offset + o.width / 2),
-    )[0]
-  const doorZ = door ?? cz
+  const doorZ = ENTRY_DOOR_Z ?? cz
   const derived: Record<CameraId, CameraDef> = {
     'iso-balcony': {
       label: 'Iso · far end',

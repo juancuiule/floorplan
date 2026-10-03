@@ -7,12 +7,12 @@ import { test } from '@playwright/test'
 import assert from 'node:assert/strict'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { api, BASE_URL, eventually, shot, waitForScene, watchErrors } from './lib.mjs'
-import { layoutFile } from './workspace.mjs'
+import { appUrl, layoutFile } from './space.mjs'
 
 test('panel', async ({ page, browser }) => {
   const DECOR = 'e2e-panel'
-  const FILE = await layoutFile(BASE_URL, DECOR)
-  const url = `${BASE_URL}/?decor=${DECOR}&dims=0&view=iso-balcony`
+  const FILE = layoutFile(DECOR)
+  const url = `${appUrl(BASE_URL)}&decor=${DECOR}&dims=0&view=iso-balcony`
   const desk = {
     kind: 'furniture',
     id: 'desk-1',
@@ -26,7 +26,7 @@ test('panel', async ({ page, browser }) => {
   const art = (id, x) => ({
     kind: 'artwork',
     id,
-    image: '/artwork/image%2010.png',
+    image: '/api/spaces/e2e/artwork/image%2010.png',
     at: [x, 1.5, 2.99],
     facing: 'z-',
     host: 'side-kitchen',

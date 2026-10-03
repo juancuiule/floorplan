@@ -5,11 +5,11 @@
 import { chromium } from 'playwright'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { layoutFile } from '../tests/e2e/workspace.mjs'
+import { appUrl, layoutFile } from '../tests/e2e/space.mjs'
 
 const [outDir = 'test-results/gallery', base = 'http://localhost:5173'] = process.argv.slice(2)
 mkdirSync(outDir, { recursive: true })
-writeFileSync(await layoutFile(base, 'test-gallery'), JSON.stringify({ version: 1, items: [] }, null, 2) + '\n')
+writeFileSync(layoutFile('test-gallery'), JSON.stringify({ version: 1, items: [] }, null, 2) + '\n')
 
 const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || undefined,
@@ -18,7 +18,7 @@ const browser = await chromium.launch({
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
 page.on('pageerror', (e) => console.log('[pageerror]', e.message))
 
-await page.goto(`${base}/?cam=5.9,1.75,0.25,4.45,1.2,3&decor=test-gallery&dims=0`)
+await page.goto(`${appUrl(base)}&cam=5.9,1.75,0.25,4.45,1.2,3&decor=test-gallery&dims=0`)
 await page.waitForFunction(() => (window.__frames ?? 0) > 30 && window.__edit, null, { timeout: 60000 })
 await page.waitForTimeout(800)
 
@@ -85,7 +85,7 @@ await page.screenshot({ path: join(outDir, 'gallery-3-finished.png') })
 
 // 3. Floor guides, from above: drag the chair toward the sofa's end until their sides line up.
 await page.waitForTimeout(600) // let the layout save
-await page.goto(`${base}/?cam=4.9,4.2,0.9,4.9,0,2.1&decor=test-gallery&dims=0`)
+await page.goto(`${appUrl(base)}&cam=4.9,4.2,0.9,4.9,0,2.1&decor=test-gallery&dims=0`)
 await page.waitForFunction(() => (window.__frames ?? 0) > 30 && window.__edit, null, { timeout: 60000 })
 await page.waitForTimeout(1200)
 const screen = (p) => page.evaluate((p) => window.__edit.toScreen(p), p)

@@ -39,6 +39,8 @@
 }
 
 .title {
+  color: inherit;
+  text-decoration: none;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -47,6 +49,19 @@
   border-radius: var(--radius);
   background: var(--panel);
   box-shadow: 0 0 0 1px var(--line);
+}
+
+.title:hover {
+  background: var(--surface);
+}
+
+.title:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.title h1 span {
+  color: var(--muted);
 }
 
 .title h1 {

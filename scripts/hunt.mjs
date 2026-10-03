@@ -8,6 +8,7 @@
 // Works on a scratch copy of the workspace's main layout (test-hunt,
 // git-ignored): the main layout is only read. Layouts it saves are test-* ones
 // (hidden and git-ignored) and are deleted at the end.
+import { appUrl, planApi } from '../tests/e2e/space.mjs'
 import { chromium } from 'playwright'
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -31,13 +32,13 @@ const note = (step, kind, text) => {
 }
 
 // Fresh copy of the main layout (only read).
-const main = await (await fetch(`${BASE}/api/decor`)).text()
-await fetch(`${BASE}/api/decor?file=${DECOR}`, {
+const main = await (await fetch(`${planApi(BASE)}/decor`)).text()
+await fetch(`${planApi(BASE)}/decor?file=${DECOR}`, {
   method: 'PUT',
   body: main,
   headers: { 'Content-Type': 'application/json' },
 })
-const readDecor = async (name = DECOR) => (await fetch(`${BASE}/api/decor?file=${name}`)).json()
+const readDecor = async (name = DECOR) => (await fetch(`${planApi(BASE)}/decor?file=${name}`)).json()
 
 const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || undefined,
@@ -72,7 +73,7 @@ async function newPage(viewport = { width: 1440, height: 900 }) {
 }
 
 async function open(page, query = '') {
-  await page.goto(`${BASE}/?decor=${DECOR}&dims=0${query ? `&${query}` : ''}`)
+  await page.goto(`${appUrl(BASE)}&decor=${DECOR}&dims=0${query ? `&${query}` : ''}`)
   await page.locator('canvas').first().waitFor({ state: 'visible', timeout: 60000 })
   await page.waitForFunction(() => (window.__frames ?? 0) >= 3, null, { timeout: 30000 }).catch(() => {})
   await page.waitForTimeout(1200)
@@ -580,7 +581,7 @@ await step('wide viewport (1920 px)', async () => {
 await step('?plan=loft', async () => {
   const p = await newPage()
   current = '?plan=loft'
-  await p.goto(`${BASE}/?plan=loft&decor=test-hunt-loft&dims=0`)
+  await p.goto(`${appUrl(BASE)}&plan=loft&decor=test-hunt-loft&dims=0`)
   await p.locator('canvas').first().waitFor({ state: 'visible', timeout: 60000 })
   await p.waitForTimeout(2000)
   await shot(p, 'loft')
@@ -603,7 +604,7 @@ await step('?plan=loft', async () => {
 await browser.close()
 // Clean up layouts this run saved.
 for (const slug of ['test-hunt-b', 'test-hunt-c'])
-  await fetch(`${BASE}/api/layouts?file=${slug}`, { method: 'DELETE' }).catch(() => {})
+  await fetch(`${planApi(BASE)}/layouts?file=${slug}`, { method: 'DELETE' }).catch(() => {})
 
 writeFileSync(join(outDir, 'findings.json'), JSON.stringify({ steps: log, findings }, null, 2))
 const failed = log.filter((l) => !l.ok).length
