@@ -112,7 +112,7 @@ The Furniture, Plants and Lights tabs place pieces from the built-in catalog. Ev
 Furniture is parametric code, not imported 3D models. Each piece is built from boxes and simple shapes, with editable dimensions and finishes. Adding one takes four changes:
 
 1. Add its name to `FurnitureType` in `src/model/decor.ts`.
-2. Describe it in `FURNITURE` in `src/decor/furnitureCatalog.ts`: label, group, how it mounts (floor, wall, ceiling), default size, which finishes it uses, and its options (toggles, choices, ranges).
+2. Describe it in its catalog group's file under `src/decor/furniture/` (`sleep.ts`, `sit.ts`, `devices.ts`…; the type is `FurnitureSpec` in `spec.ts`): label, group, how it mounts (floor, wall, ceiling), default size, which finishes it uses, and its options (toggles, choices, ranges).
 3. Draw it: a component in the matching file under `src/scene/decor/furniture/` (`Seating.tsx`, `Storage.tsx`, `Devices.tsx`…), registered in `VIEWS` in `Furniture.tsx`. Look at a similar piece first; `common.tsx` has the shared helpers.
 4. Run `pnpm test`: `tests/unit/catalog.test.ts` checks every catalog entry.
 
