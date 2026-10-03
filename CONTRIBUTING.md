@@ -11,7 +11,7 @@
 pnpm check     # typecheck, lint (warnings fail), format check, unit tests
 ```
 
-CI runs the same and the build. For changes to editing, placement or the scene, also run the browser tests that cover them (see [docs/development.md](docs/development.md#tests)) against a dev server.
+CI runs the same and the build. For changes to editing, placement or the scene, also run `pnpm test:e2e` (or one test: `pnpm test:e2e smoke`); see [docs/development.md](docs/development.md#tests).
 
 ## Code
 

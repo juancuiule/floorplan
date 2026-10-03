@@ -1,9 +1,9 @@
 // Drives the decor panel like a person would and saves screenshots.
-// Usage: node tests/e2e/decor-panel.mjs <outDir> [baseUrl]   (uses the scratch layout e2e, never your real layout)
+// Usage: node scripts/decor-panel.mjs <outDir> [baseUrl]   (uses the scratch layout e2e, never your real layout)
 import { chromium } from 'playwright'
 import { mkdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { layoutFile } from './workspace.mjs'
+import { layoutFile } from '../tests/e2e/workspace.mjs'
 
 const [outDir = 'test-results/decor-panel', base = 'http://localhost:5173'] = process.argv.slice(2)
 mkdirSync(outDir, { recursive: true })

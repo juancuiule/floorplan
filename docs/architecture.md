@@ -111,8 +111,8 @@ Walls come from the active shell ([ADR 0008](adr/0008-structure-as-layout-data.m
 | Level | Where | What it covers |
 |---|---|---|
 | Unit | `tests/unit/` (vitest, jsdom) | Pure logic: geometry, placement, guides, arranging, carry, solar math, catalogs, the store's history and saving, the dev API. |
-| Browser | `tests/e2e/` (Playwright scripts) | The app in Chrome against a running dev server, on scratch layouts that never touch real ones. |
-| Visual | `scripts/` | Screenshots, sun studies and performance numbers, checked by eye. |
+| Browser | `tests/e2e/` (Playwright Test) | The app in Chrome against a dev server on the monoambiente example, on scratch layouts that never touch real ones. |
+| Visual | `scripts/` | Screenshots, sun studies, performance numbers and an exploratory bug hunt, checked by eye. |
 
 `pnpm check` runs the unit level plus types, lint and format; CI runs it on every push and pull request.
 
@@ -120,4 +120,4 @@ Walls come from the active shell ([ADR 0008](adr/0008-structure-as-layout-data.m
 
 Tracked here until they are fixed:
 
-- Browser tests are plain scripts rather than a test runner, and only the smoke test runs from `pnpm test:e2e`.
+- Browser tests are not in CI: they need WebGL, which hosted Linux runners only have in software.
