@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { plan } from '../../src/project/plan'
 import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_FINISHES,
@@ -22,19 +23,22 @@ const withFloors = (floors: Partial<Finishes['floors']>, rest: Partial<Finishes>
 describe('normalizeFinishes', () => {
   it('defaults to the original look for missing or broken input', () => {
     for (const raw of [undefined, null, 42, 'x', {}, { floors: 'oak' }])
-      expect(normalizeFinishes(raw)).toEqual(DEFAULT_FINISHES)
-    expect(isDefaultFinishes(normalizeFinishes(undefined))).toBe(true)
+      expect(normalizeFinishes(raw, plan)).toEqual(DEFAULT_FINISHES)
+    expect(isDefaultFinishes(normalizeFinishes(undefined, plan))).toBe(true)
   })
 
   it('keeps valid values and replaces invalid ones field by field', () => {
-    const f = normalizeFinishes({
-      floors: { main: 'walnut', hall: 'nope', bath: 'cementQuarter', balcony: 'oakLight' },
-      hexBlend: 'yes',
-      wallPaint: '#ABCDEF',
-      accentWall: 'facade',
-      accentColor: 'red',
-      bathTile: { layout: 'subway', color: '#123' },
-    })
+    const f = normalizeFinishes(
+      {
+        floors: { main: 'walnut', hall: 'nope', bath: 'cementQuarter', balcony: 'oakLight' },
+        hexBlend: 'yes',
+        wallPaint: '#ABCDEF',
+        accentWall: 'facade',
+        accentColor: 'red',
+        bathTile: { layout: 'subway', color: '#123' },
+      },
+      plan,
+    )
     expect(f.floors).toEqual({ main: 'walnut', hall: 'oakLight', bath: 'cementQuarter', balcony: 'balconyGrey' })
     expect(f.hexBlend).toBe(false)
     expect(f.wallPaint).toBe('#abcdef')
@@ -45,7 +49,7 @@ describe('normalizeFinishes', () => {
 
   it('round-trips through JSON', () => {
     const f = withFloors({ main: 'herringbone', hall: 'hexGrey' }, { hexBlend: true, accentWall: 'entry-main' })
-    expect(normalizeFinishes(JSON.parse(JSON.stringify(f)))).toEqual(f)
+    expect(normalizeFinishes(JSON.parse(JSON.stringify(f)), plan)).toEqual(f)
   })
 
   it('every zone default is the first allowed floor', () => {
@@ -136,19 +140,19 @@ describe('setFinishes', () => {
 describe('shower finishes', () => {
   it('defaults to a glass door with brushed chrome fittings', () => {
     expect(DEFAULT_FINISHES.shower).toEqual({ screen: 'glass', curtainColor: '#f2f0ea', fittings: 'chrome' })
-    expect(normalizeFinishes({}).shower).toEqual(DEFAULT_FINISHES.shower)
+    expect(normalizeFinishes({}, plan).shower).toEqual(DEFAULT_FINISHES.shower)
   })
 
   it('keeps valid choices and falls back on unknown ones', () => {
     expect(
-      normalizeFinishes({ shower: { screen: 'curtain', curtainColor: '#C07A5C', fittings: 'brass' } }).shower,
+      normalizeFinishes({ shower: { screen: 'curtain', curtainColor: '#C07A5C', fittings: 'brass' } }, plan).shower,
     ).toEqual({
       screen: 'curtain',
       curtainColor: '#c07a5c',
       fittings: 'brass',
     })
-    expect(normalizeFinishes({ shower: { screen: 'bathtub', curtainColor: 'red', fittings: 'gold' } }).shower).toEqual(
-      DEFAULT_FINISHES.shower,
-    )
+    expect(
+      normalizeFinishes({ shower: { screen: 'bathtub', curtainColor: 'red', fittings: 'gold' } }, plan).shower,
+    ).toEqual(DEFAULT_FINISHES.shower)
   })
 })

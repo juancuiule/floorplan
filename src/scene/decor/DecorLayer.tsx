@@ -1,6 +1,5 @@
 import type { CameraControls } from '@react-three/drei'
 import { paintAt } from '../../decor/paint'
-import { useUi } from '../../ui/uiStore'
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Suspense, useEffect, useMemo, useRef, type ReactNode } from 'react'
 import * as THREE from 'three'
@@ -203,7 +202,7 @@ export function SurfaceEvents({ children }: { children: ReactNode }) {
   const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
     const s = useDecor.getState()
     // Paint brush: a press on a wall paints the side of it under the pointer.
-    const brush = useUi.getState().paintBrush
+    const brush = useEdit.getState().paintBrush
     if (brush !== null && e.button === 0 && !s.movingId) {
       const first = firstSolid(e.intersections)
       const hit = first && !decorIdOf(first.object) ? readIntersection(first) : null

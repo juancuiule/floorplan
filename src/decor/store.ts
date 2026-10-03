@@ -308,7 +308,7 @@ export const useDecor = create<DecorState>((rawSet, get) => {
       const data = read.file
       const items = data.items ?? []
       // A layout from before per-face paint: its accent wall becomes a painted face.
-      const finishes = migrateAccent(normalizeFinishes(data.finishes), paintFaces(shell.walls), shell.walls)
+      const finishes = migrateAccent(normalizeFinishes(data.finishes, plan), paintFaces(shell.walls), shell.walls)
       const layoutName = typeof data.name === 'string' ? data.name : ''
       const groupNames = namesOf(data.groups)
       // Keep the item under the pointer when the file is reloaded mid-placement.

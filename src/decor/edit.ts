@@ -21,6 +21,8 @@ export interface EditState {
   guides: Guides | null
   /** Shift-drag rubber band over the canvas, in client pixels. */
   marquee: { x0: number; y0: number; x1: number; y1: number } | null
+  /** Paint brush: clicking a wall paints that side this color ('base' puts back the base color). Null: off. */
+  paintBrush: string | null
   set: (patch: Partial<Omit<EditState, 'set'>>) => void
 }
 
@@ -40,6 +42,7 @@ export const useEdit = create<EditState>((set) => ({
   handleHover: false,
   guides: null,
   marquee: null,
+  paintBrush: null,
   set: (patch) => set(patch),
 }))
 

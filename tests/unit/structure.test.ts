@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
+import { plan } from '../../src/project/plan'
 import { collisionsOf, snapToWalls } from '../../src/decor/placement'
 import { FURNITURE } from '../../src/decor/furnitureCatalog'
 import { serialize } from '../../src/decor/layoutFile'
@@ -36,27 +37,30 @@ afterEach(() => void setStructure(DEFAULT_STRUCTURE))
 describe('structure in the layout file', () => {
   it('reads missing or broken input as the flat as built', () => {
     for (const raw of [undefined, null, 3, 'x', {}, { removedWalls: 'entry-main' }])
-      expect(normalizeStructure(raw)).toEqual(DEFAULT_STRUCTURE)
+      expect(normalizeStructure(raw, plan)).toEqual(DEFAULT_STRUCTURE)
   })
 
   it('keeps only removable partitions, in plan order, without duplicates', () => {
-    const s = normalizeStructure({
-      removedWalls: ['entry-main', 'facade', 'side-bath', 'bath-hall', 'entry-main', 'column-kitchen'],
-      raiseEntryCeiling: true,
-    })
+    const s = normalizeStructure(
+      {
+        removedWalls: ['entry-main', 'facade', 'side-bath', 'bath-hall', 'entry-main', 'column-kitchen'],
+        raiseEntryCeiling: true,
+      },
+      plan,
+    )
     expect(s).toEqual({ removedWalls: ['bath-hall', 'entry-main'], raiseEntryCeiling: true })
   })
 
   it('toggles a wall out and back', () => {
-    const out = toggleWall(DEFAULT_STRUCTURE, 'entry-main')
+    const out = toggleWall(DEFAULT_STRUCTURE, 'entry-main', plan)
     expect(out.removedWalls).toEqual(['entry-main'])
-    expect(toggleWall(out, 'entry-main').removedWalls).toEqual([])
+    expect(toggleWall(out, 'entry-main', plan).removedWalls).toEqual([])
   })
 
   it('is left out of finishes (and the file) unless something differs', () => {
-    expect('structure' in normalizeFinishes({})).toBe(false)
-    expect('structure' in normalizeFinishes({ structure: { removedWalls: ['facade'] } })).toBe(false)
-    const f = normalizeFinishes({ structure: { removedWalls: ['entry-main'] } })
+    expect('structure' in normalizeFinishes({}, plan)).toBe(false)
+    expect('structure' in normalizeFinishes({ structure: { removedWalls: ['facade'] } }, plan)).toBe(false)
+    const f = normalizeFinishes({ structure: { removedWalls: ['entry-main'] } }, plan)
     expect(structureOf(f)).toEqual({ removedWalls: ['entry-main'], raiseEntryCeiling: false })
     expect(structureOf(DEFAULT_FINISHES)).toEqual(DEFAULT_STRUCTURE)
     // Back to as built: the key goes.
@@ -66,7 +70,7 @@ describe('structure in the layout file', () => {
     const saved = JSON.parse(serialize([], f))
     expect(saved.finishes.structure).toEqual({ removedWalls: ['entry-main'], raiseEntryCeiling: false })
     // Round trip.
-    expect(normalizeFinishes(saved.finishes)).toEqual(f)
+    expect(normalizeFinishes(saved.finishes, plan)).toEqual(f)
     // Other finishes without walls removed: no structure key in the file.
     expect(JSON.parse(serialize([], { ...DEFAULT_FINISHES, hexBlend: true })).finishes).not.toHaveProperty('structure')
   })

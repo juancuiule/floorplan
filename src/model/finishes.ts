@@ -2,8 +2,7 @@
 // in the layout file next to the decor items. Every field has a default that
 // reproduces the original look, so a file without `finishes` renders as before.
 
-import { plan } from '../project/plan'
-
+import type { Plan } from './plan'
 import { DEFAULT_STRUCTURE, isDefaultStructure, normalizeStructure, type Structure } from './structure'
 
 /** Floor finishes, see src/project/finishes.ts for how each one looks. */
@@ -43,8 +42,11 @@ export const ZONE_FLOORS: Record<FloorZone, readonly FloorId[]> = {
   balcony: ['balconyGrey', 'terracotta', 'concrete', 'hexGrey', 'hexCharcoal', 'cementQuarter'],
 }
 
-/** Main-room walls that can take an accent color. */
-export const ACCENT_WALLS: readonly string[] = ['none', ...Object.keys(plan.walls.accent ?? {})]
+/** Main-room walls that can take an accent color: 'none' and the plan's `walls.accent`. */
+export const accentWalls = (plan: Pick<Plan, 'walls'>): readonly string[] => [
+  'none',
+  ...Object.keys(plan.walls.accent ?? {}),
+]
 /** 'none' or a wall id from the plan's `walls.accent`. */
 export type AccentWall = string
 
@@ -102,14 +104,15 @@ const oneOf = <T extends string>(v: unknown, options: readonly T[], fallback: T)
 /**
  * Reads `finishes` from a layout file: missing or unknown values fall back to
  * the default (the original look), so old files and hand edits never break.
+ * Wall ids are checked against `plan`, the plan the layout furnishes.
  */
-export function normalizeFinishes(raw: unknown): Finishes {
+export function normalizeFinishes(raw: unknown, plan: Pick<Plan, 'walls'>): Finishes {
   const d = DEFAULT_FINISHES
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
   const floors = (r.floors && typeof r.floors === 'object' ? r.floors : {}) as Record<string, unknown>
   const tile = (r.bathTile && typeof r.bathTile === 'object' ? r.bathTile : {}) as Record<string, unknown>
   const shower = (r.shower && typeof r.shower === 'object' ? r.shower : {}) as Record<string, unknown>
-  const structure = normalizeStructure(r.structure)
+  const structure = normalizeStructure(r.structure, plan)
   return {
     floors: {
       main: oneOf(floors.main, ZONE_FLOORS.main, d.floors.main),
@@ -125,7 +128,7 @@ export function normalizeFinishes(raw: unknown): Finishes {
       ),
     ),
     ceilingPaint: color(r.ceilingPaint, d.ceilingPaint),
-    accentWall: oneOf(r.accentWall, ACCENT_WALLS, d.accentWall),
+    accentWall: oneOf(r.accentWall, accentWalls(plan), d.accentWall),
     accentColor: color(r.accentColor, d.accentColor),
     bathTile: {
       layout: oneOf(tile.layout, TILE_LAYOUTS, d.bathTile.layout),
