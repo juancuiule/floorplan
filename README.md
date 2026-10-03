@@ -21,6 +21,8 @@ pnpm dev            # http://localhost:5173
 - **[Model your own apartment](docs/your-own-floorplan.md)**: clone the repo, describe your place as a plan file, add your artwork and furnish it. Also covers how this could become a multi-user platform.
 - **[Features](docs/features.md)**: views, the decor panel, layouts and finishes, keyboard shortcuts.
 - **[Development](docs/development.md)**: project map, the dev API, tests, screenshot and performance tools.
+- **[Architecture](docs/architecture.md)**: layers, state, the life of an edit, rendering. The decisions behind it are in [docs/adr](docs/adr/), and the vocabulary in [GLOSSARY.md](GLOSSARY.md).
+- **[Contributing](CONTRIBUTING.md)**: conventions for code, commits and docs.
 
 ## Plans and layouts
 
