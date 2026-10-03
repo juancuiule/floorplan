@@ -5,8 +5,8 @@
 //
 //   CHROME_PATH=... node tests/e2e/hunt.mjs [outDir] [baseUrl]
 //
-// Works on a scratch copy of the owner's layout (data/decor.test-hunt.json,
-// git-ignored): data/decor.json is only read. Layouts it saves are test-* ones
+// Works on a scratch copy of the workspace's main layout (test-hunt,
+// git-ignored): the main layout is only read. Layouts it saves are test-* ones
 // (hidden and git-ignored) and are deleted at the end.
 import { chromium } from 'playwright'
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
@@ -30,7 +30,7 @@ const note = (step, kind, text) => {
   console.log(`  ! [${step}] ${kind}: ${text}`)
 }
 
-// Fresh copy of the owner's layout (read-only on data/decor.json).
+// Fresh copy of the main layout (only read).
 const main = await (await fetch(`${BASE}/api/decor`)).text()
 await fetch(`${BASE}/api/decor?file=${DECOR}`, {
   method: 'PUT',

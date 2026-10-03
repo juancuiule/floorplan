@@ -1,7 +1,7 @@
 import type { Finishes } from './finishes'
 import type { Vec3 } from './types'
 
-// Movable decor, saved to data/decor.json. Positions are plan coordinates (meters).
+// Movable decor, saved to layouts/decor.json. Positions are plan coordinates (meters).
 
 /** Which way a wall-mounted item faces: the outward normal of the surface it hangs on. */
 export type Facing = 'x+' | 'x-' | 'z+' | 'z-'
@@ -200,12 +200,12 @@ export const unplacedAt = (): Vec3 => [0, UNPLACED_Y - 1, 0]
 
 export const isPlaced = (item: DecorItem) => item.at[1] > UNPLACED_Y
 
-/** One layout variant: data/decor.json ("Current") or data/decor.<slug>.json. */
+/** One layout variant: layouts/decor.json ("Current") or layouts/decor.<slug>.json. */
 export interface DecorFile {
   version: 1
   /** Display name in the layouts menu; the file name (slug) when missing. */
   name?: string
-  /** The plan (src/plans/<id>.plan.json) this layout furnishes; missing means the default plan. */
+  /** The plan (plans/<id>.plan.json) this layout furnishes; missing means the default plan. */
   plan?: string
   /** Floors, paint and tiles for this layout; omitted when they are the defaults. */
   finishes?: Partial<Finishes>

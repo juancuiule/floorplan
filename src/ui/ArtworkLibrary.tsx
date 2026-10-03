@@ -9,7 +9,7 @@ import { NoResults } from './Libraries'
 import { unplacedAt } from '../model/decor'
 import { ACCEPT, uploadFiles, useUploads } from './uploads'
 
-// The artwork library: the images in public/artwork, searchable, and a drop
+// The artwork library: the images in the workspace's artwork folder, searchable, and a drop
 // zone for uploading more.
 
 function naturalSize(url: string, el: HTMLImageElement | null): Promise<[number, number]> {
@@ -63,7 +63,8 @@ export function ArtworkLibrary({ query, onClear }: { query: string; onClear: () 
         <div className="empty">
           <p className="empty-title">No images yet</p>
           <p className="note">
-            Upload a photo or a print to hang it on a wall. Files also appear here when you add them to public/artwork.
+            Upload a photo or a print to hang it on a wall. Files also appear here when you add them to your workspace's
+            artwork folder.
           </p>
         </div>
       ) : shown.length === 0 ? (

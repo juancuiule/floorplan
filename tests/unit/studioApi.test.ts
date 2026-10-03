@@ -32,7 +32,12 @@ beforeAll(async () => {
     ws: { send: (msg: unknown) => wsSent.push(msg) },
     middlewares: { use: (fn: Handler) => (handler = fn) },
   }
-  const plugin = studioApi()
+  const plugin = studioApi({
+    layoutsDir: path.join(root, 'data'),
+    artworkDir: path.join(root, 'public', 'artwork'),
+    defaultPlan: 'monoambiente',
+    name: 'Test',
+  })
   expect(plugin.apply).toBe('serve')
   ;(plugin.configureServer as (s: unknown) => void)(fakeServer)
   expect(handler).toBeDefined()
@@ -108,7 +113,7 @@ describe('/api/artwork', () => {
     await expect(fs.readdir(artDir())).rejects.toThrow()
   })
 
-  it('keeps uploads inside public/artwork and sanitizes odd characters', async () => {
+  it('keeps uploads inside the artwork folder and sanitizes odd characters', async () => {
     const a = (await (await upload('../../../escape.png')).json()) as { name: string }
     expect(a.name).toBe('escape.png')
     const b = (await (await upload('we?ird<>:name.JPG')).json()) as { name: string }
@@ -144,7 +149,7 @@ describe('/api/decor', () => {
     await expect(fs.access(path.join(root, 'data', 'decor.json'))).rejects.toThrow()
   })
 
-  it('uses data/decor.json without ?file=', async () => {
+  it('uses decor.json without ?file=', async () => {
     await fetch(`${base}/api/decor`, { method: 'PUT', body: JSON.stringify(doc) })
     expect(JSON.parse(await fs.readFile(path.join(root, 'data', 'decor.json'), 'utf8'))).toEqual(doc)
   })

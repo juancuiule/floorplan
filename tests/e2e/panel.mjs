@@ -2,14 +2,15 @@
 //
 //   BASE_URL=http://localhost:5184 CHROME_PATH=... node tests/e2e/panel.mjs
 //
-// Writes only data/decor.e2e-panel.json (git-ignored), directly and through the dev API.
+// Writes only the scratch layout e2e-panel (git-ignored), directly and through the dev API.
 import assert from 'node:assert/strict'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { chromium } from 'playwright'
 import { api, BASE_URL, eventually, launch, runner, shot, waitForScene } from './lib.mjs'
+import { layoutFile } from './workspace.mjs'
 
 const DECOR = 'e2e-panel'
-const FILE = `data/decor.${DECOR}.json`
+const FILE = await layoutFile(BASE_URL, DECOR)
 const url = `${BASE_URL}/?decor=${DECOR}&dims=0&view=iso-balcony`
 const desk = {
   kind: 'furniture',

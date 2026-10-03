@@ -27,7 +27,7 @@ export interface FloorFill {
 
 type Removal = RemovalDef
 
-/** What each removable partition takes with it, from the plan (src/plans/*.plan.json). */
+/** What each removable partition takes with it, from the plan (plans/*.plan.json). */
 export const REMOVALS: Record<RemovableWall, Removal> = plan.walls.removable ?? {}
 
 /** Every wall in the plan, for the Room tab's list and diagram. */

@@ -25,7 +25,14 @@ beforeAll(async () => {
     ws: { send: () => {} },
     middlewares: { use: (fn: Handler) => (handler = fn) },
   }
-  ;(studioApi().configureServer as (s: unknown) => void)(fake)
+  ;(
+    studioApi({
+      layoutsDir: path.join(root, 'data'),
+      artworkDir: path.join(root, 'public', 'artwork'),
+      defaultPlan: 'monoambiente',
+      name: 'Test',
+    }).configureServer as (s: unknown) => void
+  )(fake)
   server = http.createServer((req, res) => handler!(req, res, () => res.end()))
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', r))
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`

@@ -1,15 +1,16 @@
 // Gallery-wall workflow end to end: hang three artworks, Shift-select them, align
 // tops, distribute, group, drag the group, undo, smart guides during a drag,
 // rubber-band select and "hang as a gallery". Checks what gets saved each step.
-// Uses data/decor.test-align.json (git-ignored), never your real layout.
+// Uses the scratch layout test-align (git-ignored), never your real layout.
 // Usage: node tests/e2e/align.mjs <outDir> [baseUrl]
 import { chromium } from 'playwright'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { layoutFile } from './workspace.mjs'
 
 const [outDir = 'test-results/align', base = 'http://localhost:5173'] = process.argv.slice(2)
 mkdirSync(outDir, { recursive: true })
-const FILE = 'data/decor.test-align.json'
+const FILE = await layoutFile(base, 'test-align')
 writeFileSync(FILE, JSON.stringify({ version: 1, items: [] }, null, 2) + '\n')
 
 const browser = await chromium.launch({

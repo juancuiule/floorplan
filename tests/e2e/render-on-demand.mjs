@@ -4,11 +4,15 @@
 import { chromium } from 'playwright'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { layoutFile } from './workspace.mjs'
 
 const [outDir = 'test-results/render-on-demand', base = 'http://localhost:5173'] = process.argv.slice(2)
 mkdirSync(outDir, { recursive: true })
-const file = 'data/decor.furn.json'
-const original = readFileSync(file, 'utf8')
+// A desk and a wardrobe in the main room of the monoambiente example, in a scratch layout.
+const DECOR = 'test-render'
+const file = await layoutFile(base, DECOR)
+const original = readFileSync('tests/e2e/fixtures/desk-and-wardrobe.json', 'utf8')
+writeFileSync(file, original)
 
 const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || undefined,
@@ -19,7 +23,7 @@ page.on('pageerror', (e) => console.log('[pageerror]', e.message))
 const frames = () => page.evaluate(() => window.__frames)
 const shot = (n) => page.screenshot({ path: join(outDir, `${n}.png`) })
 
-await page.goto(`${base}/?view=iso-balcony&decor=furn&dims=0`)
+await page.goto(`${base}/?view=iso-balcony&decor=${DECOR}&dims=0`)
 await page.waitForFunction(() => (window.__frames ?? 0) > 40, null, { timeout: 60000 })
 await page.waitForTimeout(1500)
 let f = await frames()
@@ -37,7 +41,8 @@ await page.getByRole('radio', { name: 'Dollhouse' }).click()
 await page.waitForTimeout(1200)
 
 f = await frames()
-await page.getByRole('button', { name: 'Iso · entry' }).click()
+// Camera presets by their documented keys (1 iso · balcony … 5 from the entry).
+await page.locator('canvas').press('2')
 await page.waitForTimeout(250)
 await shot('preset-mid')
 await page.waitForTimeout(2000)
@@ -45,11 +50,11 @@ console.log('frames during preset move:', (await frames()) - f)
 await shot('preset-iso-entry')
 
 f = await frames()
-await page.getByRole('button', { name: 'From entry' }).click()
+await page.locator('canvas').press('5')
 await page.waitForTimeout(2500)
 console.log('frames to from-entry:', (await frames()) - f)
 await shot('preset-from-entry')
-await page.getByRole('button', { name: 'Iso · balcony' }).click()
+await page.locator('canvas').press('1')
 await page.waitForTimeout(2500)
 
 // Raise the desk by editing the layout on disk (the dev server pushes the change).

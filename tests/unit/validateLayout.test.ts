@@ -2,9 +2,13 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { validateLayout } from '../../src/decor/validateLayout'
 
-// Every layout in data/, including scratch files from test runs that happen to be on disk.
-const layouts = readdirSync('data').filter((f) => /^decor(\.[a-z0-9-]+)?\.json$/.test(f))
-const read = (file: string) => JSON.parse(readFileSync(`data/${file}`, 'utf8'))
+// Every layout in every example workspace, including scratch files from test runs that happen to be on disk.
+const layouts = readdirSync('examples').flatMap((ws) =>
+  readdirSync(`examples/${ws}/layouts`)
+    .filter((f) => /^decor(\.[a-z0-9-]+)?\.json$/.test(f))
+    .map((f) => `examples/${ws}/layouts/${f}`),
+)
+const read = (file: string) => JSON.parse(readFileSync(file, 'utf8'))
 
 describe('validateLayout', () => {
   it.each(layouts)('accepts %s', (file) => {

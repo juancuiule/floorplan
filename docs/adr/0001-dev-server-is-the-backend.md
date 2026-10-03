@@ -1,6 +1,6 @@
 # The dev server is the backend; layouts are files in the repo
 
-Status: accepted
+Status: accepted, amended by [0009](0009-workspaces.md) (layouts and artwork live in a workspace)
 
 The app saves through a small API added to the Vite dev server (`server/studioApi.ts`), which reads and writes layout JSON in `data/` and images in `public/artwork/`. There is no database or hosted backend. A layout is then a plain file that can be diffed, committed, branched and edited by hand or by an agent, with open tabs reloading it live, which suits a single owner planning one apartment.
 

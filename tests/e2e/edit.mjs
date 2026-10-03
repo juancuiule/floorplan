@@ -1,15 +1,17 @@
 // Exercises the editing interactions (place, drag, undo/redo, nudge, rotate, copy/paste,
-// delete) and checks what gets saved. Uses data/decor.edit.json, seeded from
-// data/decor.furn.json when that exists (both git-ignored), never your real layout.
+// delete) and checks what gets saved. Uses the scratch layout test-edit, seeded from
+// the scratch layout test-furn when that exists (both git-ignored), never your real layout.
 // Usage: node tests/e2e/edit.mjs <outDir> [baseUrl]
 import { chromium } from 'playwright'
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { layoutFile } from './workspace.mjs'
 
 const [outDir = 'test-results/edit', base = 'http://localhost:5173'] = process.argv.slice(2)
 mkdirSync(outDir, { recursive: true })
-const FILE = 'data/decor.edit.json'
-if (existsSync('data/decor.furn.json')) copyFileSync('data/decor.furn.json', FILE)
+const FILE = await layoutFile(base, 'test-edit')
+const SEED = await layoutFile(base, 'test-furn')
+if (existsSync(SEED)) copyFileSync(SEED, FILE)
 else writeFileSync(FILE, JSON.stringify({ version: 1, items: [] }, null, 2) + '\n')
 
 const browser = await chromium.launch({
@@ -45,7 +47,7 @@ async function glide(from, to, steps = 12) {
   }
 }
 
-await page.goto(`${base}/?view=iso-balcony&decor=edit&dims=0`)
+await page.goto(`${base}/?view=iso-balcony&decor=test-edit&dims=0`)
 await page.waitForFunction(() => (window.__frames ?? 0) > 30 && window.__edit, null, { timeout: 60000 })
 await page.waitForTimeout(1200)
 const before = saved().length

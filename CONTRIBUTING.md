@@ -3,7 +3,7 @@
 ## Before you start
 
 - Read [docs/architecture.md](docs/architecture.md) for where things go, and [GLOSSARY.md](GLOSSARY.md) for what things are called. Use the glossary's terms in code, comments, commits and docs; if a concept has no term yet, add one.
-- `pnpm install`, then `pnpm dev`.
+- `pnpm install`, then `pnpm dev` (the loft example), or `FLOORPLAN_WORKSPACE=examples/monoambiente pnpm dev` for the apartment the tests are written against.
 
 ## Before you commit
 
@@ -27,7 +27,7 @@ CI runs the same and the build. For changes to editing, placement or the scene, 
 
 - Layout files and plans are a contract with people and agents who edit them by hand. Change their shape only additively, give every new field a default that keeps old files rendering the same, and update the type in `src/model/` and its check (`src/model/validate.ts` for plans, `src/decor/validateLayout.ts` for layouts).
 - New URL parameters go in `src/project/launch.ts`, checked, and in `docs/features.md`.
-- Commit layout changes (`data/`) separately from code changes.
+- Commit changes to the example workspaces (`examples/`) separately from code changes.
 
 ## Decisions
 

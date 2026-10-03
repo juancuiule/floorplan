@@ -3,7 +3,7 @@
 //
 //   BASE_URL=http://localhost:5184 CHROME_PATH=... node tests/e2e/smoke.mjs
 //
-// Writes only data/decor.e2e-smoke.json (git-ignored) through the dev API, and
+// Writes only the scratch layout e2e-smoke (git-ignored) through the dev API, and
 // screenshots to test-results/e2e/ (git-ignored).
 import assert from 'node:assert/strict'
 import { api, BASE_URL, eventually, hover, launch, runner, shot, waitForScene } from './lib.mjs'

@@ -1,8 +1,9 @@
 // Drives the decor panel like a person would and saves screenshots.
-// Usage: node tests/e2e/decor-panel.mjs <outDir> [baseUrl]   (uses data/decor.e2e.json, never your real layout)
+// Usage: node tests/e2e/decor-panel.mjs <outDir> [baseUrl]   (uses the scratch layout e2e, never your real layout)
 import { chromium } from 'playwright'
 import { mkdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { layoutFile } from './workspace.mjs'
 
 const [outDir = 'test-results/decor-panel', base = 'http://localhost:5173'] = process.argv.slice(2)
 mkdirSync(outDir, { recursive: true })
@@ -50,7 +51,7 @@ await page.mouse.click(763, 470)
 await page.waitForTimeout(800)
 await page.screenshot({ path: join(outDir, '3-all-placed.png') })
 
-const saved = JSON.parse(readFileSync('data/decor.e2e.json', 'utf8'))
+const saved = JSON.parse(readFileSync(await layoutFile(base, 'e2e'), 'utf8'))
 console.log(
   'saved items:',
   saved.items.map((i) => `${i.kind}@${i.at.map((v) => v.toFixed(2)).join(',')}${i.facing ? ' ' + i.facing : ''}`),
