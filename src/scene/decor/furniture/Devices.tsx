@@ -1,7 +1,7 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { screenImageSrc } from '../../../decor/screenImage'
+import { screenImageSrc } from '../../../decor/api'
 import { embedUrl, parseYouTube } from '../../../decor/youtube'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 import { CONDENSER_H, SPEAKER_W, TV_BEZEL, TV_LIFT, tvPanel } from '../../../decor/furnitureCatalog'

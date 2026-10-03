@@ -1,17 +1,12 @@
 import { create } from 'zustand'
-import { flushSave, MAIN_SLUG, serialize, useDecor } from './store'
+import { createLayout, deleteLayout, listLayouts, renameLayout, type LayoutInfo } from './api'
+import { serialize } from './layoutFile'
+import { committedItems, flushSave, MAIN_SLUG, useDecor } from './store'
 
 // Client side of the layouts API (server/layouts.ts): the list for the menu
 // and the actions on it. Switching itself lives in the decor store.
 
-export interface LayoutInfo {
-  slug: string | null
-  name: string
-  items: number
-  updated: string
-  /** The plan it furnishes. */
-  plan: string
-}
+export type { LayoutInfo }
 
 export const MAIN_NAME = 'Current'
 
@@ -25,25 +20,12 @@ interface LayoutsState {
   remove: (slug: string | null) => Promise<void>
 }
 
-async function call<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init)
-  const body = (await res.json().catch(() => ({}))) as T & { error?: string }
-  if (!res.ok) throw new Error(body.error ?? `Request failed (${res.status})`)
-  return body
-}
-
-const q = (slug: string | null) => (slug ? `?file=${encodeURIComponent(slug)}` : '')
-const json = (body: unknown): RequestInit => ({
-  body: JSON.stringify(body),
-  headers: { 'Content-Type': 'application/json' },
-})
-
 export const useLayouts = create<LayoutsState>((set, get) => ({
   list: [],
   error: null,
   refresh: async () => {
     try {
-      set({ list: await call<LayoutInfo[]>('/api/layouts'), error: null })
+      set({ list: await listLayouts(), error: null })
     } catch (e) {
       set({ error: e instanceof Error ? e.message : String(e) })
     }
@@ -52,13 +34,9 @@ export const useLayouts = create<LayoutsState>((set, get) => ({
     await flushSave()
     const d = useDecor.getState()
     try {
-      // What is saved: a new piece still following the pointer stays out, one being moved keeps its spot.
-      const items = d.isDraft
-        ? d.items.flatMap((i) => (i.id !== d.movingId ? [i] : d.backup ? [d.backup] : []))
-        : d.items
       // Group names travel with the copy; the server writes the new name.
-      const data = JSON.parse(serialize(items, d.finishes, '', d.groupNames))
-      const { slug } = await call<{ slug: string }>('/api/layouts', { method: 'POST', ...json({ name, data }) })
+      const data = JSON.parse(serialize(committedItems(d), d.finishes, '', d.groupNames))
+      const { slug } = await createLayout(name, data)
       await useDecor.getState().switchLayout(slug)
       await get().refresh()
     } catch (e) {
@@ -69,10 +47,7 @@ export const useLayouts = create<LayoutsState>((set, get) => ({
     const d = useDecor.getState()
     if (slug === d.layout) await flushSave()
     try {
-      const out = await call<{ slug: string | null; name: string }>(`/api/layouts${q(slug)}`, {
-        method: 'PATCH',
-        ...json({ name }),
-      })
+      const out = await renameLayout(slug, name)
       if (slug === useDecor.getState().layout) useDecor.getState().renamed(out.slug, out.name)
       if (slug === useDecor.getState().compareWith) useDecor.getState().setCompareWith(out.slug)
       await get().refresh()
@@ -89,7 +64,7 @@ export const useLayouts = create<LayoutsState>((set, get) => ({
         if (slug === MAIN_SLUG) throw new Error('The current layout cannot be deleted')
         await d.switchLayout(MAIN_SLUG)
       }
-      await call(`/api/layouts${q(slug)}`, { method: 'DELETE' })
+      await deleteLayout(slug)
       if (useDecor.getState().compareWith === slug) useDecor.getState().setCompareWith(undefined)
       await get().refresh()
     } catch (e) {

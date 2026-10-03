@@ -8,7 +8,7 @@
 | `src/plans/default.ts` | Which plan opens without `?plan=` (its main layout is `data/decor.json`). |
 | `src/project/` | Everything derived from the open plan: the active shell after walls are removed (`structure.ts`), finishes applied to materials, camera sides, defaults for what the plan leaves out (`derived.ts`). |
 | `src/model/` | Data types: plan geometry (`types.ts`, `plan.ts`), decor items (`decor.ts`), finishes and structure choices. |
-| `src/decor/` | Decor logic without React: the store (load, save, undo), placement and wall snapping, smart guides, selection, arranging, the catalogs of plants, lamps and furniture (`catalog.ts`, `furnitureCatalog.ts`). |
+| `src/decor/` | Decor logic without React: the store and the modules behind it (API client, undo history, saving, the layout file format), placement and wall snapping, smart guides, selection, arranging, the catalogs of plants, lamps and furniture (`catalog.ts`, `furnitureCatalog.ts`). |
 | `src/scene/` | The three.js scene (React Three Fiber): walls, floors, fixtures, lights and shadows, and every decor model under `scene/decor/`. |
 | `src/ui/` | Panels, toolbar, inspector, edit bar. |
 | `src/sun/` | Solar position and daylight. |

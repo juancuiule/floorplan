@@ -43,7 +43,8 @@ export async function uploadFiles(files: File[]) {
     useUploads.setState({ current: f.name })
     try {
       const img = await upload(f)
-      if (!img) fail(`Unable to upload “${f.name}”. ${useDecor.getState().error ?? ''} Try again.`.replace(/\s+/g, ' '))
+      if (!img)
+        fail(`Unable to upload “${f.name}”. ${useDecor.getState().uploadError ?? ''} Try again.`.replace(/\s+/g, ' '))
     } catch {
       fail(`Unable to upload “${f.name}”. Check that the dev server is running, then try again.`)
     }

@@ -48,6 +48,17 @@ flowchart TD
 
 State is split into zustand stores by how long it lives ([ADR 0004](adr/0004-stores-split-by-lifetime.md)). The one to know is `useDecor` in `src/decor/store.ts`: everything in it is saved to the layout file and recorded in history, so transient editing state (hover, snapping, guides) lives in `useEdit` instead.
 
+The decor store delegates to modules with small interfaces, each testable alone:
+
+| Module | Interface | Hides |
+|---|---|---|
+| `decor/api.ts` | `readLayout`, `writeLayout`, `listLayouts`, `uploadArtwork`… | Routes, query strings, telling a static build (no API) from a broken file. |
+| `decor/history.ts` | `createHistory()`: `record(snapshot, merge)`, `undo`, `redo`, `reset` | Merging steps by key or gesture, the step limit, dropping a gesture that went nowhere. |
+| `decor/persistence.ts` | `createSaver()`: `change`, `flush`, `synced`, `isOwn` | Debouncing, skipping writes of what is on disk, recognizing this tab's own writes when the file watcher echoes them. |
+| `decor/layoutFile.ts` | `serialize`, `namesOf` | The file format's optional fields. |
+
+Every write to the store goes through one `set(change, merge)`: it carries what rests on moved pieces and says how the change merges into history. Two subscribers do the rest: one records history, one saves while `saveStatus` is `'ok'`.
+
 Components subscribe to the narrowest slice they need, so dragging an item re-renders the inspector for that item and nothing else in the panel.
 
 ## Life of an edit
@@ -108,7 +119,6 @@ Walls come from the active shell ([ADR 0008](adr/0008-structure-as-layout-data.m
 
 Tracked here until they are fixed:
 
-- `src/decor/store.ts` mixes selection, clipboard, history, persistence and layout switching, and its actions pass undo merge keys through a module variable.
 - Plan and layout files are cast to their types without validation.
 - `model/finishes.ts` and `model/structure.ts` read the open plan (accent walls, removable partitions), so the model layer is not independent of `project/`.
 - `scene/decor/DecorLayer.tsx` reads the paint brush from the UI store; the brush is editing state and belongs with `useEdit`.

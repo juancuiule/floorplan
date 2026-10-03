@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
-import { useDecor, type PanelTab } from '../decor/store'
+import { SAVE_STATUS_MESSAGE, useDecor, type PanelTab } from '../decor/store'
 import { ArtworkLibrary } from './ArtworkLibrary'
 import { dragHasFiles, uploadFiles } from './uploads'
 import { TABS, tabOfKind } from './format'
@@ -36,7 +36,7 @@ function PanelBody() {
   const setTab = useDecor((s) => s.setTab)
   const selectedId = useDecor((s) => s.selectedId)
   const selectedKind = useDecor((s) => s.items.find((i) => i.id === s.selectedId)?.kind)
-  const error = useDecor((s) => (s.error?.startsWith('Saving') ? s.error : null))
+  const error = useDecor((s) => (s.saveStatus === 'ok' ? null : SAVE_STATUS_MESSAGE[s.saveStatus]))
   const [query, setQuery] = useState('')
   const [dropping, setDropping] = useState(false)
   const dragDepth = useRef(0)

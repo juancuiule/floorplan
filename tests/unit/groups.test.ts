@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ArtworkItem, DecorFile, DecorItem, PlantItem } from '../../src/model/decor'
+import { cloneSet } from '../../src/decor/clone'
+import { serialize } from '../../src/decor/layoutFile'
 
 // Multi-selection, groups and their persistence. Like store.test.ts, each test
 // gets a fresh store module with fetch stubbed.
@@ -209,11 +211,11 @@ describe('groups', () => {
     fileOnDisk = { version: 1, groups: { G: { name: 'Gallery' } }, items: [art('x', 1, 'G'), art('y', 2, 'G')] }
     await useDecor.getState().load()
     expect(useDecor.getState().groupNames).toEqual({ G: 'Gallery' })
-    expect(mod.serialize(useDecor.getState().items, undefined, '', useDecor.getState().groupNames)).toBe(
+    expect(serialize(useDecor.getState().items, undefined, '', useDecor.getState().groupNames)).toBe(
       JSON.stringify(fileOnDisk, null, 2) + '\n',
     )
     // A layout without groups serializes without the key.
-    expect(mod.serialize([art('x', 1)])).not.toContain('groups')
+    expect(serialize([art('x', 1)])).not.toContain('groups')
   })
 
   it('duplicating a whole group makes a new group; a lone member is copied ungrouped', () => {
@@ -232,7 +234,7 @@ describe('groups', () => {
     expect(copies[0].at[0]).toBeCloseTo(1.1, 6)
 
     const items = useDecor.getState().items
-    const lone = mod.cloneSet([items[0]], items)
+    const lone = cloneSet([items[0]], items)
     expect(lone[0].groupId).toBeUndefined()
   })
 

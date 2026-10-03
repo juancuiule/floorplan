@@ -12,4 +12,4 @@ History is a stack of before/after snapshots of the layout as it would be saved 
 
 - Loading a layout file starts a fresh history: undo never reverts someone else's edit made on disk.
 - Group names and the selection are not part of history.
-- The store's actions set a merge key just before they write. This coupling is the first thing to make explicit when the store is split.
+- History is a subscriber, so it sees every write, including ones made outside the store's actions. Actions pass a merge key with the write; an open gesture overrides it.

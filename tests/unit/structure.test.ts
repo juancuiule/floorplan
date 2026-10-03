@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { collisionsOf, snapToWalls } from '../../src/decor/placement'
 import { FURNITURE } from '../../src/decor/furnitureCatalog'
-import { serialize } from '../../src/decor/store'
+import { serialize } from '../../src/decor/layoutFile'
 import type { FurnitureItem, FurnitureType } from '../../src/model/decor'
 import { DEFAULT_FINISHES, normalizeFinishes, structureOf, withStructure } from '../../src/model/finishes'
 import { DEFAULT_STRUCTURE, normalizeStructure, toggleWall, type Structure } from '../../src/model/structure'
