@@ -71,7 +71,8 @@ export function screenAxes(): { right: [number, number]; away: [number, number] 
     fx = u.x
     fz = u.z
   }
-  const snap = (x: number, z: number): [number, number] => (Math.abs(x) >= Math.abs(z) ? [Math.sign(x) || 1, 0] : [0, Math.sign(z) || 1])
+  const snap = (x: number, z: number): [number, number] =>
+    Math.abs(x) >= Math.abs(z) ? [Math.sign(x) || 1, 0] : [0, Math.sign(z) || 1]
   const away = snap(fx, fz)
   const right = snap(-fz, fx)
   return { right, away }

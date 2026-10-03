@@ -116,16 +116,7 @@ export interface Shell {
 }
 
 export type ObjectType =
-  | 'box'
-  | 'toilet'
-  | 'basin'
-  | 'showerTray'
-  | 'counter'
-  | 'kitchenSink'
-  | 'cooktop'
-  | 'fridge'
-  | 'downlight'
-  | 'railing'
+  'box' | 'toilet' | 'basin' | 'showerTray' | 'counter' | 'kitchenSink' | 'cooktop' | 'fridge' | 'downlight' | 'railing'
 
 export interface SceneObject {
   id: string

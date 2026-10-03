@@ -9,7 +9,10 @@ import { sideNames } from './cameraSides'
 const { shell } = plan
 
 function union(rects: Rect[]): Rect {
-  return rects.reduce<Rect>((u, r) => [Math.min(u[0], r[0]), Math.min(u[1], r[1]), Math.max(u[2], r[2]), Math.max(u[3], r[3])], [Infinity, Infinity, -Infinity, -Infinity])
+  return rects.reduce<Rect>(
+    (u, r) => [Math.min(u[0], r[0]), Math.min(u[1], r[1]), Math.max(u[2], r[2]), Math.max(u[3], r[3])],
+    [Infinity, Infinity, -Infinity, -Infinity],
+  )
 }
 
 const area = (r: Rect) => (r[2] - r[0]) * (r[3] - r[1])
@@ -51,11 +54,21 @@ export const CAMERAS: Record<CameraId, CameraDef> = (() => {
   // Stand just inside the front door (the first door in a wall at the plan's entry end), else mid-wall.
   const door = shell.walls
     .filter((w) => Math.abs(w.a[0] - w.b[0]) < 1e-6 && Math.abs(w.a[0] - x0) < 0.3)
-    .flatMap((w) => (w.openings ?? []).filter((o) => o.kind === 'door').map((o) => Math.min(w.a[1], w.b[1]) + o.offset + o.width / 2))[0]
+    .flatMap((w) =>
+      (w.openings ?? []).filter((o) => o.kind === 'door').map((o) => Math.min(w.a[1], w.b[1]) + o.offset + o.width / 2),
+    )[0]
   const doorZ = door ?? cz
   const derived: Record<CameraId, CameraDef> = {
-    'iso-balcony': { label: 'Iso · far end', position: [x1 + span * 0.35, span * 0.9, z0 - span * 0.55], target: [cx, 0.4, cz] },
-    'iso-entry': { label: 'Iso · entry', position: [x0 - span * 0.5, span * 0.9, z1 + span * 0.5], target: [cx, 0.4, cz] },
+    'iso-balcony': {
+      label: 'Iso · far end',
+      position: [x1 + span * 0.35, span * 0.9, z0 - span * 0.55],
+      target: [cx, 0.4, cz],
+    },
+    'iso-entry': {
+      label: 'Iso · entry',
+      position: [x0 - span * 0.5, span * 0.9, z1 + span * 0.5],
+      target: [cx, 0.4, cz],
+    },
     top: { label: 'Top', position: [cx, span * 1.6, cz + 0.0001], target: [cx, 0, cz] },
     'from-balcony': { label: 'From the far end', position: [x1 - 0.25, eye, cz], target: [x0, 1.2, cz] },
     'from-entry': { label: 'From entry', position: [x0 + 0.6, eye, doorZ], target: [x1, 1.1, cz] },

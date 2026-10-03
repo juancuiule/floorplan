@@ -30,7 +30,8 @@ export function normalizeStructure(raw: unknown): Structure {
   }
 }
 
-export const isDefaultStructure = (s: Structure | undefined) => !s || (s.removedWalls.length === 0 && !s.raiseEntryCeiling)
+export const isDefaultStructure = (s: Structure | undefined) =>
+  !s || (s.removedWalls.length === 0 && !s.raiseEntryCeiling)
 
 /** Takes a partition out, or puts it back. */
 export function toggleWall(s: Structure, id: RemovableWall, removed = !s.removedWalls.includes(id)): Structure {

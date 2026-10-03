@@ -14,7 +14,11 @@ await page.waitForFunction(() => window.__decor?.getState().loaded)
 await page.waitForTimeout(1200)
 
 const decor = (fn, arg) => page.evaluate(fn, arg)
-const state = () => decor(() => { const s = window.__decor.getState(); return { n: s.items.length, sel: s.selectedIds, canUndo: s.canUndo } })
+const state = () =>
+  decor(() => {
+    const s = window.__decor.getState()
+    return { n: s.items.length, sel: s.selectedIds, canUndo: s.canUndo }
+  })
 const item = (id) => decor((id) => window.__decor.getState().items.find((i) => i.id === id), id)
 const view = () => decor(() => window.__view?.getState() ?? null)
 const select = (ids) => decor((ids) => window.__decor.getState().selectMany(ids, ids[ids.length - 1]), ids)
@@ -23,7 +27,8 @@ const key = async (k) => {
   await page.waitForTimeout(250)
 }
 // Focus the scene, as after a click in the room.
-const focusScene = () => page.evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : undefined))
+const focusScene = () =>
+  page.evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : undefined))
 
 await t.step('undo and redo after a nudge, from the scene', async () => {
   await select(['desk'])

@@ -24,7 +24,8 @@ function stubFetch() {
       calls.push({ url: String(input), method, body: init?.body as string | undefined })
       if (String(input).startsWith('/api/decor') && method === 'GET') return new Response(JSON.stringify(fileOnDisk))
       if (String(input).startsWith('/api/decor') && method === 'PUT') return new Response('{"ok":true}')
-      if (String(input) === '/api/artwork') return new Response(JSON.stringify([{ name: 'a.png', url: '/artwork/a.png' }]))
+      if (String(input) === '/api/artwork')
+        return new Response(JSON.stringify([{ name: 'a.png', url: '/artwork/a.png' }]))
       return new Response('{}', { status: 404 })
     }),
   )
@@ -36,8 +37,26 @@ async function freshStore(search = '?decor=unit'): Promise<Store> {
   return import('../../src/decor/store')
 }
 
-const plant = (id: string, x = 4): PlantItem => ({ kind: 'plant', id, species: 'monstera', pot: 'ceramic', at: [x, 0, 1], rotation: 0, scale: 1 })
-const lamp = (id: string): LampItem => ({ kind: 'lamp', id, type: 'arc', at: [3, 0, 2], rotation: 0, on: true, brightness: 1, warmth: 2700, color: '#ffffff' })
+const plant = (id: string, x = 4): PlantItem => ({
+  kind: 'plant',
+  id,
+  species: 'monstera',
+  pot: 'ceramic',
+  at: [x, 0, 1],
+  rotation: 0,
+  scale: 1,
+})
+const lamp = (id: string): LampItem => ({
+  kind: 'lamp',
+  id,
+  type: 'arc',
+  at: [3, 0, 2],
+  rotation: 0,
+  on: true,
+  brightness: 1,
+  warmth: 2700,
+  color: '#ffffff',
+})
 
 const puts = () => calls.filter((c) => c.method === 'PUT')
 const lastSavedItems = () => {
@@ -87,14 +106,19 @@ describe('load', () => {
   })
 
   it('reports that saving is unavailable without the dev API and never writes', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new Error('offline'))))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.reject(new Error('offline'))),
+    )
     const { useDecor } = await freshStore()
     await useDecor.getState().load()
     expect(useDecor.getState().error).toMatch(/dev server/)
     useDecor.getState().startPlacing(plant('x'))
     useDecor.getState().stopMoving()
     await vi.advanceTimersByTimeAsync(1000)
-    expect(vi.mocked(fetch).mock.calls.filter((c) => (c[1] as RequestInit | undefined)?.method === 'PUT')).toHaveLength(0)
+    expect(vi.mocked(fetch).mock.calls.filter((c) => (c[1] as RequestInit | undefined)?.method === 'PUT')).toHaveLength(
+      0,
+    )
   })
 })
 
@@ -312,7 +336,10 @@ describe('library', () => {
 
   it('upload surfaces the server error', async () => {
     const { useDecor } = await freshStore()
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ error: 'Only png' }), { status: 400 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ error: 'Only png' }), { status: 400 })),
+    )
     const img = await useDecor.getState().upload(new File([], 'x.txt'))
     expect(img).toBeNull()
     expect(useDecor.getState().error).toBe('Only png')
@@ -381,7 +408,9 @@ describe('a broken layout file', () => {
       'fetch',
       vi.fn(async (url: string, init?: RequestInit) => {
         calls.push({ url: String(url), method: init?.method ?? 'GET', body: init?.body as string | undefined })
-        return init?.method === 'PUT' ? new Response('{"ok":true}') : new Response(text, { headers: { 'Content-Type': 'application/json' } })
+        return init?.method === 'PUT'
+          ? new Response('{"ok":true}')
+          : new Response(text, { headers: { 'Content-Type': 'application/json' } })
       }),
     )
     await useDecor.getState().load()
@@ -402,7 +431,10 @@ describe('a broken layout file', () => {
 
   it('treats a file without an items array as broken', async () => {
     const { useDecor } = await freshStore()
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('{"version":1,"items":{}}')))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('{"version":1,"items":{}}')),
+    )
     await useDecor.getState().load()
     expect(useDecor.getState().error).toMatch(/^Saving paused/)
   })

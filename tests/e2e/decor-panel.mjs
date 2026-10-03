@@ -51,5 +51,8 @@ await page.waitForTimeout(800)
 await page.screenshot({ path: join(outDir, '3-all-placed.png') })
 
 const saved = JSON.parse(readFileSync('data/decor.e2e.json', 'utf8'))
-console.log('saved items:', saved.items.map((i) => `${i.kind}@${i.at.map((v) => v.toFixed(2)).join(',')}${i.facing ? ' ' + i.facing : ''}`))
+console.log(
+  'saved items:',
+  saved.items.map((i) => `${i.kind}@${i.at.map((v) => v.toFixed(2)).join(',')}${i.facing ? ' ' + i.facing : ''}`),
+)
 await browser.close()

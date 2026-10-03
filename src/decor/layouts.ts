@@ -33,7 +33,10 @@ async function call<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 const q = (slug: string | null) => (slug ? `?file=${encodeURIComponent(slug)}` : '')
-const json = (body: unknown): RequestInit => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
+const json = (body: unknown): RequestInit => ({
+  body: JSON.stringify(body),
+  headers: { 'Content-Type': 'application/json' },
+})
 
 export const useLayouts = create<LayoutsState>((set, get) => ({
   list: [],
@@ -50,7 +53,9 @@ export const useLayouts = create<LayoutsState>((set, get) => ({
     const d = useDecor.getState()
     try {
       // What is saved: a new piece still following the pointer stays out, one being moved keeps its spot.
-      const items = d.isDraft ? d.items.flatMap((i) => (i.id !== d.movingId ? [i] : d.backup ? [d.backup] : [])) : d.items
+      const items = d.isDraft
+        ? d.items.flatMap((i) => (i.id !== d.movingId ? [i] : d.backup ? [d.backup] : []))
+        : d.items
       // Group names travel with the copy; the server writes the new name.
       const data = JSON.parse(serialize(items, d.finishes, '', d.groupNames))
       const { slug } = await call<{ slug: string }>('/api/layouts', { method: 'POST', ...json({ name, data }) })
@@ -64,7 +69,10 @@ export const useLayouts = create<LayoutsState>((set, get) => ({
     const d = useDecor.getState()
     if (slug === d.layout) await flushSave()
     try {
-      const out = await call<{ slug: string | null; name: string }>(`/api/layouts${q(slug)}`, { method: 'PATCH', ...json({ name }) })
+      const out = await call<{ slug: string | null; name: string }>(`/api/layouts${q(slug)}`, {
+        method: 'PATCH',
+        ...json({ name }),
+      })
       if (slug === useDecor.getState().layout) useDecor.getState().renamed(out.slug, out.name)
       if (slug === useDecor.getState().compareWith) useDecor.getState().setCompareWith(out.slug)
       await get().refresh()

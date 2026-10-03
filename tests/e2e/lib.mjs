@@ -35,7 +35,9 @@ export async function launch() {
 export async function waitForScene(page, { timeout = 60000 } = {}) {
   await page.locator('canvas').first().waitFor({ state: 'visible', timeout })
   await page
-    .waitForFunction(() => window.__ready === true || (window.__frames ?? 0) >= 3, null, { timeout: Math.min(timeout, 20000) })
+    .waitForFunction(() => window.__ready === true || (window.__frames ?? 0) >= 3, null, {
+      timeout: Math.min(timeout, 20000),
+    })
     .catch(() => {})
   // Let textures, decor and the first shadow maps settle.
   await page.waitForTimeout(800)
@@ -102,7 +104,12 @@ export function runner(title) {
         console.log(`  ✓ ${name} (${Date.now() - t0} ms)`)
       } catch (e) {
         results.push({ name, ok: false, e })
-        console.log(`  ✗ ${name}\n    ${String(e?.stack ?? e).split('\n').slice(0, 6).join('\n    ')}`)
+        console.log(
+          `  ✗ ${name}\n    ${String(e?.stack ?? e)
+            .split('\n')
+            .slice(0, 6)
+            .join('\n    ')}`,
+        )
       }
     },
     done() {

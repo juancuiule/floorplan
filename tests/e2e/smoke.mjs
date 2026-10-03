@@ -56,7 +56,9 @@ async function placeAtFirst(kind, candidates, before) {
 async function openTab(name) {
   const tab = panel.getByRole('tab', { name })
   await tab.click()
-  await assert.doesNotReject(eventually(async () => (await tab.getAttribute('aria-selected')) === 'true', { message: `${name} tab selected` }))
+  await assert.doesNotReject(
+    eventually(async () => (await tab.getAttribute('aria-selected')) === 'true', { message: `${name} tab selected` }),
+  )
 }
 
 /** Leaves the inspector (Esc deselects when nothing is being placed). */
@@ -91,7 +93,10 @@ await t.step('switches dollhouse / x-ray', async () => {
 await t.step('visits every camera preset', async () => {
   // Camera presets are a radio group in the toolbar; when the toolbar is narrow
   // (e.g. with the panel open) a select replaces it. Drive whichever is showing.
-  const buttons = await page.getByRole('radiogroup', { name: /^camera$/i }).getByRole('radio').all()
+  const buttons = await page
+    .getByRole('radiogroup', { name: /^camera$/i })
+    .getByRole('radio')
+    .all()
   if (buttons.length) {
     for (const [i, b] of buttons.entries()) {
       await b.click()
@@ -160,7 +165,11 @@ await t.step('opens every panel tab', async () => {
     assert.equal(await tab.getAttribute('aria-selected'), 'true')
     // Each library shows a heading and at least one choice.
     assert.ok(await panel.getByRole('heading').first().isVisible())
-    assert.ok((await panel.locator('.lib-row, .thumb, .samples [role="radio"]').count()) > 0 || /art/i.test(await tab.innerText()), 'library has choices')
+    assert.ok(
+      (await panel.locator('.lib-row, .thumb, .samples [role="radio"]').count()) > 0 ||
+        /art/i.test(await tab.innerText()),
+      'library has choices',
+    )
   }
   await shot(page, '05-tabs')
 })
@@ -178,7 +187,16 @@ await t.step('hangs artwork on the kitchen-side wall', async () => {
   await page.mouse.click(642, 600)
   await page.waitForTimeout(700)
   assert.equal((await placed()).filter((i) => i.kind === 'artwork').length, 0, 'artwork rejected on the floor')
-  const art = await placeAtFirst('artwork', [[520, 330], [560, 300], [480, 380], [600, 280]], before)
+  const art = await placeAtFirst(
+    'artwork',
+    [
+      [520, 330],
+      [560, 300],
+      [480, 380],
+      [600, 280],
+    ],
+    before,
+  )
   assert.equal(art.facing, 'z-', 'faces into the room from the kitchen-side wall')
   assert.ok(art.at[2] > 2.7 && art.at[2] <= 3.01, `on the wall surface, z=${art.at[2]}`)
   assert.ok(art.at[1] > 0.2 && art.at[1] < 2.6, `at a sensible height, y=${art.at[1]}`)
@@ -194,7 +212,15 @@ await t.step('sets a plant on the main-room floor', async () => {
   await openTab(/plant/i)
   const before = await placed()
   await panel.getByRole('button', { name: /monstera/i }).click()
-  const p = await placeAtFirst('plant', [[750, 440], [700, 470], [820, 420]], before)
+  const p = await placeAtFirst(
+    'plant',
+    [
+      [750, 440],
+      [700, 470],
+      [820, 420],
+    ],
+    before,
+  )
   assert.equal(p.species, 'monstera')
   assert.ok(Math.abs(p.at[1]) < 0.02, `on the floor, y=${p.at[1]}`)
   assert.ok(p.at[0] > 2.2 && p.at[0] < 6.9 && p.at[2] > 0 && p.at[2] < 3, `in the main room: ${p.at}`)
@@ -206,7 +232,15 @@ await t.step('sets a floor lamp down and hangs a pendant at the ceiling', async 
   await openTab(/light/i)
   let before = await placed()
   await panel.getByRole('button', { name: /arc/i }).first().click()
-  const arc = await placeAtFirst('lamp', [[620, 500], [600, 520], [660, 480]], before)
+  const arc = await placeAtFirst(
+    'lamp',
+    [
+      [620, 500],
+      [600, 520],
+      [660, 480],
+    ],
+    before,
+  )
   assert.equal(arc.type, 'arc')
   assert.ok(Math.abs(arc.at[1]) < 0.02, `arc on the floor, y=${arc.at[1]}`)
   assert.equal(arc.on, true)
@@ -214,8 +248,18 @@ await t.step('sets a floor lamp down and hangs a pendant at the ceiling', async 
 
   await openTab(/light/i)
   before = await placed()
-  await panel.getByRole('button', { name: /pendant/i }).first().click()
-  const pendant = await placeAtFirst('lamp', [[880, 380], [860, 400]], before)
+  await panel
+    .getByRole('button', { name: /pendant/i })
+    .first()
+    .click()
+  const pendant = await placeAtFirst(
+    'lamp',
+    [
+      [880, 380],
+      [860, 400],
+    ],
+    before,
+  )
   assert.ok(['pendant', 'globe'].includes(pendant.type))
   assert.equal(pendant.at[1], 2.6, 'hangs from the 2.60 main-room ceiling')
   await shot(page, '08-lamps')
@@ -227,10 +271,22 @@ await t.step('snaps a standing desk flush to the bath-side wall', async () => {
   const before = await placed()
   await panel.getByRole('button', { name: /standing desk/i }).click()
   // Near the bath-side (top) edge of the main room in the top view, z ≈ 0.3–0.5 m.
-  const desk = await placeAtFirst('furniture', [[760, 325], [740, 335], [800, 320]], before)
+  const desk = await placeAtFirst(
+    'furniture',
+    [
+      [760, 325],
+      [740, 335],
+      [800, 320],
+    ],
+    before,
+  )
   assert.equal(desk.type, 'standingDesk')
   assert.equal(desk.rotation, 0, 'faces into the room')
-  assert.equal(desk.at[2], Number((desk.size[2] / 2).toFixed(2)), `backed onto the wall at z = depth / 2, got ${desk.at[2]}`)
+  assert.equal(
+    desk.at[2],
+    Number((desk.size[2] / 2).toFixed(2)),
+    `backed onto the wall at z = depth / 2, got ${desk.at[2]}`,
+  )
   await shot(page, '09-desk')
   await deselect()
 })
@@ -274,10 +330,13 @@ await t.step('changes the main-room floor in the Room tab and saves it with the 
   const floors = panel.getByRole('radiogroup', { name: /main room floor/i })
   await floors.getByRole('radio', { name: /walnut/i }).click()
   assert.equal(await floors.getByRole('radio', { name: /walnut/i }).getAttribute('aria-checked'), 'true')
-  const saved = await eventually(async () => {
-    const f = (await api.readDecor(DECOR)).finishes
-    return f?.floors?.main === 'walnut' && f
-  }, { message: 'walnut floor saved' })
+  const saved = await eventually(
+    async () => {
+      const f = (await api.readDecor(DECOR)).finishes
+      return f?.floors?.main === 'walnut' && f
+    },
+    { message: 'walnut floor saved' },
+  )
   assert.equal(saved.floors.hall, 'oakLight', 'the hall keeps its floor')
   await page.waitForTimeout(600)
   // Swapped in place: same meshes, same draw calls.
@@ -291,7 +350,9 @@ await t.step('saves a second layout, flips A/B and keeps finishes per layout', a
   const menu = page.getByRole('dialog', { name: /layouts/i })
   await menu.getByLabel(/save a copy as/i).fill('E2E layout B')
   await menu.getByRole('button', { name: /save as new/i }).click()
-  await eventually(async () => new URL(page.url()).searchParams.get('decor') === LAYOUT_B, { message: 'URL follows the new layout' })
+  await eventually(async () => new URL(page.url()).searchParams.get('decor') === LAYOUT_B, {
+    message: 'URL follows the new layout',
+  })
   assert.equal(await page.getByTestId('layout-current').innerText(), 'E2E layout B')
   const b = await eventually(() => api.readDecor(LAYOUT_B), { message: 'layout B written' })
   assert.equal(b.name, 'E2E layout B')
@@ -300,8 +361,13 @@ await t.step('saves a second layout, flips A/B and keeps finishes per layout', a
 
   // Change B only.
   await openTab(/^room/i)
-  await panel.getByRole('radiogroup', { name: /main room floor/i }).getByRole('radio', { name: /concrete/i }).click()
-  await eventually(async () => (await api.readDecor(LAYOUT_B)).finishes?.floors?.main === 'concrete', { message: 'concrete saved to B' })
+  await panel
+    .getByRole('radiogroup', { name: /main room floor/i })
+    .getByRole('radio', { name: /concrete/i })
+    .click()
+  await eventually(async () => (await api.readDecor(LAYOUT_B)).finishes?.floors?.main === 'concrete', {
+    message: 'concrete saved to B',
+  })
   await shot(page, '12-layout-b-concrete')
 
   // A/B flips back to the first layout without a reload.
@@ -309,12 +375,21 @@ await t.step('saves a second layout, flips A/B and keeps finishes per layout', a
   await page.getByRole('button', { name: /compare/i }).click()
   await eventually(async () => new URL(page.url()).searchParams.get('decor') === DECOR, { message: 'back on A' })
   assert.equal(await page.evaluate(() => window.__noReload), true, 'no page reload')
-  await eventually(async () => (await panel.getByRole('radiogroup', { name: /main room floor/i }).getByRole('radio', { name: /walnut/i }).getAttribute('aria-checked')) === 'true', { message: 'A shows walnut' })
+  await eventually(
+    async () =>
+      (await panel
+        .getByRole('radiogroup', { name: /main room floor/i })
+        .getByRole('radio', { name: /walnut/i })
+        .getAttribute('aria-checked')) === 'true',
+    { message: 'A shows walnut' },
+  )
   assert.equal((await api.readDecor(DECOR)).finishes.floors.main, 'walnut', 'A untouched')
   // And the B key flips again.
   await page.mouse.move(700, 850)
   await page.keyboard.press('b')
-  await eventually(async () => new URL(page.url()).searchParams.get('decor') === LAYOUT_B, { message: 'B key flips to B' })
+  await eventually(async () => new URL(page.url()).searchParams.get('decor') === LAYOUT_B, {
+    message: 'B key flips to B',
+  })
   await page.keyboard.press('b')
   await eventually(async () => new URL(page.url()).searchParams.get('decor') === DECOR, { message: 'B key flips back' })
   assert.deepEqual(errors, [])
@@ -328,17 +403,25 @@ await t.step('renames and deletes a layout from the menu', async () => {
   const input = menu.getByRole('textbox', { name: /new name/i })
   await input.fill('E2E smoke renamed')
   await input.press('Enter')
-  await eventually(async () => new URL(page.url()).searchParams.get('decor') === 'e2e-smoke-renamed', { message: 'renamed slug in URL' })
+  await eventually(async () => new URL(page.url()).searchParams.get('decor') === 'e2e-smoke-renamed', {
+    message: 'renamed slug in URL',
+  })
   const renamed = await api.readDecor('e2e-smoke-renamed')
   assert.equal(renamed.name, 'E2E smoke renamed')
   assert.equal(renamed.finishes.floors.main, 'walnut')
   // Put it back under its test name, then delete layout B through the API the menu uses.
-  const back = await fetch(`${BASE_URL}/api/layouts?file=e2e-smoke-renamed`, { method: 'PATCH', body: JSON.stringify({ name: 'e2e smoke' }) })
+  const back = await fetch(`${BASE_URL}/api/layouts?file=e2e-smoke-renamed`, {
+    method: 'PATCH',
+    body: JSON.stringify({ name: 'e2e smoke' }),
+  })
   assert.equal((await back.json()).slug, DECOR)
   assert.equal((await dropLayout(LAYOUT_B)).status, 200)
   const all = await (await fetch(`${BASE_URL}/api/layouts?all=1`)).json()
   assert.ok(!all.some((l) => l.slug === LAYOUT_B), 'B deleted')
-  assert.ok(!(await (await fetch(`${BASE_URL}/api/layouts`)).json()).some((l) => /^e2e/.test(l.slug ?? '')), 'test layouts hidden from the list')
+  assert.ok(
+    !(await (await fetch(`${BASE_URL}/api/layouts`)).json()).some((l) => /^e2e/.test(l.slug ?? '')),
+    'test layouts hidden from the list',
+  )
   await page.keyboard.press('Escape')
   assert.deepEqual(errors, [])
 })

@@ -43,7 +43,15 @@ const art = (id: string, x: number, groupId?: string): ArtworkItem => ({
   frame: { style: 'thin', color: '#000', mat: 0 },
   ...(groupId ? { groupId } : {}),
 })
-const plant = (id: string, x = 4): PlantItem => ({ kind: 'plant', id, species: 'monstera', pot: 'ceramic', at: [x, 0, 1], rotation: 0, scale: 1 })
+const plant = (id: string, x = 4): PlantItem => ({
+  kind: 'plant',
+  id,
+  species: 'monstera',
+  pot: 'ceramic',
+  at: [x, 0, 1],
+  rotation: 0,
+  scale: 1,
+})
 
 const saved = () => (puts.length ? (JSON.parse(puts[puts.length - 1]) as DecorFile) : undefined)
 
@@ -119,7 +127,12 @@ describe('selection', () => {
     s.startDragging('a')
     useDecor.getState().applyPatches({ a: { at: [3, 1, 0.1] }, b: { at: [3.5, 1, 0.1] } })
     useDecor.getState().cancelPlacing()
-    expect(useDecor.getState().items.slice(0, 2).map((i) => i.at)).toEqual([
+    expect(
+      useDecor
+        .getState()
+        .items.slice(0, 2)
+        .map((i) => i.at),
+    ).toEqual([
       [1, 1.5, 0.1],
       [1.5, 1.5, 0.1],
     ])
@@ -144,9 +157,18 @@ describe('groups', () => {
     s.group()
     const g = useDecor.getState().items[0].groupId
     expect(g).toMatch(/^g-/)
-    expect(useDecor.getState().items.slice(0, 3).every((i) => i.groupId === g)).toBe(true)
+    expect(
+      useDecor
+        .getState()
+        .items.slice(0, 3)
+        .every((i) => i.groupId === g),
+    ).toBe(true)
     await vi.advanceTimersByTimeAsync(1000)
-    expect(saved()!.items.filter((i) => i.groupId === g).map((i) => i.id)).toEqual(['a', 'b', 'c'])
+    expect(
+      saved()!
+        .items.filter((i) => i.groupId === g)
+        .map((i) => i.id),
+    ).toEqual(['a', 'b', 'c'])
     expect(saved()!.groups).toBeUndefined()
 
     useDecor.getState().ungroup()
@@ -187,7 +209,9 @@ describe('groups', () => {
     fileOnDisk = { version: 1, groups: { G: { name: 'Gallery' } }, items: [art('x', 1, 'G'), art('y', 2, 'G')] }
     await useDecor.getState().load()
     expect(useDecor.getState().groupNames).toEqual({ G: 'Gallery' })
-    expect(mod.serialize(useDecor.getState().items, undefined, '', useDecor.getState().groupNames)).toBe(JSON.stringify(fileOnDisk, null, 2) + '\n')
+    expect(mod.serialize(useDecor.getState().items, undefined, '', useDecor.getState().groupNames)).toBe(
+      JSON.stringify(fileOnDisk, null, 2) + '\n',
+    )
     // A layout without groups serializes without the key.
     expect(mod.serialize([art('x', 1)])).not.toContain('groups')
   })
@@ -243,10 +267,20 @@ describe('groups', () => {
     const gid = useDecor.getState().items.find((i) => i.id === 'a')!.groupId
     s.remove('a')
     // Two left: still a group.
-    expect(useDecor.getState().items.filter((i) => i.groupId === gid).map((i) => i.id)).toEqual(['b', 'c'])
+    expect(
+      useDecor
+        .getState()
+        .items.filter((i) => i.groupId === gid)
+        .map((i) => i.id),
+    ).toEqual(['b', 'c'])
     s.remove('b')
     expect(useDecor.getState().items.find((i) => i.id === 'c')!.groupId).toBeUndefined()
     s.undo()
-    expect(useDecor.getState().items.filter((i) => i.groupId === gid).map((i) => i.id)).toEqual(['b', 'c'])
+    expect(
+      useDecor
+        .getState()
+        .items.filter((i) => i.groupId === gid)
+        .map((i) => i.id),
+    ).toEqual(['b', 'c'])
   })
 })

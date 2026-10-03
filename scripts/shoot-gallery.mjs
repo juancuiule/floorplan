@@ -24,7 +24,16 @@ await page.waitForTimeout(800)
 // A sofa against the kitchen-side wall, six prints hung anyhow above it, a chair in the room.
 await page.evaluate(async () => {
   const { FURNITURE } = await import('/src/decor/furnitureCatalog.ts')
-  const furniture = (id, type, at, rotation, size) => ({ kind: 'furniture', id, type, at, rotation, size: size ?? [...FURNITURE[type].size], finish: { ...FURNITURE[type].finish }, options: { ...FURNITURE[type].options } })
+  const furniture = (id, type, at, rotation, size) => ({
+    kind: 'furniture',
+    id,
+    type,
+    at,
+    rotation,
+    size: size ?? [...FURNITURE[type].size],
+    finish: { ...FURNITURE[type].finish },
+    options: { ...FURNITURE[type].options },
+  })
   const art = (id, image, x, y, w, h, style = 'thin', color = '#1f1e1c', mat = 0) => ({
     kind: 'artwork',
     id,

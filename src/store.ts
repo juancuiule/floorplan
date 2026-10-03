@@ -99,18 +99,27 @@ function readSavedSun(): Partial<SunSettings> {
 /** URL (?sun=HH:MM&date=YYYY-MM-DD&facing=N, or ?light=evening) wins over what was saved. */
 function initialSun(): SunSettings {
   const saved = readSavedSun()
-  const urlMinutes = parseClock(params.get('sun')) ?? (params.get('light') === 'evening' ? LIGHTING_PRESETS.evening : null)
+  const urlMinutes =
+    parseClock(params.get('sun')) ?? (params.get('light') === 'evening' ? LIGHTING_PRESETS.evening : null)
   const urlDate = params.get('date')
   return {
     facing: parseFacing(params.get('facing')) ?? saved.facing ?? 0,
-    date: isIsoDate(urlDate) ? urlDate : urlMinutes !== null ? todayIn(plan.location) : (saved.date ?? todayIn(plan.location)),
+    date: isIsoDate(urlDate)
+      ? urlDate
+      : urlMinutes !== null
+        ? todayIn(plan.location)
+        : (saved.date ?? todayIn(plan.location)),
     minutes: urlMinutes ?? saved.minutes ?? LIGHTING_PRESETS.day,
   }
 }
 
 function derive(sun: SunSettings) {
   const solar = solarPosition(sun.date, sun.minutes, plan.location)
-  return { solar, lighting: (solar.elevation < NIGHT_BELOW ? 'evening' : 'day') as Lighting, dusk: duskLevel(solar.elevation) }
+  return {
+    solar,
+    lighting: (solar.elevation < NIGHT_BELOW ? 'evening' : 'day') as Lighting,
+    dusk: duskLevel(solar.elevation),
+  }
 }
 
 const sun0 = initialSun()
@@ -162,7 +171,11 @@ export const useView = create<ViewState>((set) => ({
   flipView: () =>
     set((s) => {
       if (!isFlippable(s.preset)) return {}
-      return { isoFlip: { ...s.isoFlip, [s.preset]: !s.isoFlip[s.preset] }, presetNonce: s.presetNonce + 1, walking: false }
+      return {
+        isoFlip: { ...s.isoFlip, [s.preset]: !s.isoFlip[s.preset] },
+        presetNonce: s.presetNonce + 1,
+        walking: false,
+      }
     }),
   toggleDims: () => set((s) => ({ showDims: !s.showDims })),
   walking: false,

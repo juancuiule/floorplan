@@ -24,7 +24,11 @@ const seed = {
     },
   ],
 }
-const put = await fetch(`${BASE_URL}/api/decor?file=${DECOR}`, { method: 'PUT', body: JSON.stringify(seed), headers: { 'Content-Type': 'application/json' } })
+const put = await fetch(`${BASE_URL}/api/decor?file=${DECOR}`, {
+  method: 'PUT',
+  body: JSON.stringify(seed),
+  headers: { 'Content-Type': 'application/json' },
+})
 assert.equal(put.status, 200, 'seed decor')
 
 const { browser, page, errors } = await launch()
@@ -90,10 +94,13 @@ await t.step('clicking the hall–main partition on the plan removes it and save
   const row = panel.locator('.wall-row[data-wall="entry-main"]')
   assert.equal(await row.getByRole('switch').getAttribute('aria-checked'), 'false')
   assert.match(await row.locator('.wall-state').textContent(), /removed/i)
-  const saved = await eventually(async () => {
-    const d = await api.readDecor(DECOR)
-    return d.finishes?.structure ? d : null
-  }, { message: 'structure saved' })
+  const saved = await eventually(
+    async () => {
+      const d = await api.readDecor(DECOR)
+      return d.finishes?.structure ? d : null
+    },
+    { message: 'structure saved' },
+  )
   assert.deepEqual(saved.finishes.structure, { removedWalls: ['entry-main'], raiseEntryCeiling: false })
   assert.equal(saved.items.length, 1, 'items untouched')
   await page.waitForTimeout(500)
@@ -103,7 +110,9 @@ await t.step('clicking the hall–main partition on the plan removes it and save
 await t.step('the print on the removed wall is marked in the room list', async () => {
   const toggle = panel.locator('#room-toggle')
   if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click()
-  await eventually(async () => (await panel.locator('.wall-lost-badge[data-lost-wall="entry-main"]').count()) === 1, { message: 'wall removed badge' })
+  await eventually(async () => (await panel.locator('.wall-lost-badge[data-lost-wall="entry-main"]').count()) === 1, {
+    message: 'wall removed badge',
+  })
 })
 
 await t.step('walking straight from the niche now crosses into the main room', async () => {
@@ -128,8 +137,12 @@ await t.step('undo takes the wall out again and redo puts it back, in the file t
   const sw = panel.locator('.wall-row[data-wall="entry-main"]').getByRole('switch')
   await page.mouse.move(700, 880)
   await page.keyboard.press(`${mod}+z`)
-  await eventually(async () => (await sw.getAttribute('aria-checked')) === 'false', { message: 'undo removes the wall again' })
-  await eventually(async () => (await api.readDecor(DECOR)).finishes?.structure?.removedWalls?.[0] === 'entry-main', { message: 'undo saved' })
+  await eventually(async () => (await sw.getAttribute('aria-checked')) === 'false', {
+    message: 'undo removes the wall again',
+  })
+  await eventually(async () => (await api.readDecor(DECOR)).finishes?.structure?.removedWalls?.[0] === 'entry-main', {
+    message: 'undo saved',
+  })
   await page.keyboard.press(`${mod}+Shift+z`)
   await eventually(async () => (await sw.getAttribute('aria-checked')) === 'true', { message: 'redo puts it back' })
   await eventually(async () => !(await api.readDecor(DECOR)).finishes, { message: 'redo saved' })
