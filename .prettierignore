@@ -15,3 +15,4 @@ docs/*.webp
 
 # Prose: Prettier pads table columns to the longest cell, so any edit rewrites the table
 *.md
+.claude

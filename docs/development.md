@@ -37,14 +37,20 @@ Coordinates are meters: `x` and `z` on the floor, `y` up. Each plan sets its own
 
 Changes to decor files on disk are pushed to open tabs (`decor:changed`, `layouts:changed`), so editing a layout by hand updates the app live. A production build (`pnpm build`) has no API: the app opens with an empty room and doesn't save.
 
-## Tests
+## Checks
 
 ```sh
+pnpm check          # everything CI runs: typecheck, lint, format check, unit tests
+pnpm typecheck      # tsc over the app, the dev server and the tests
+pnpm lint           # oxlint, warnings fail
+pnpm format         # Prettier (code and config; Markdown is left as written)
 pnpm test           # unit tests (vitest + jsdom): geometry, placement, store, catalogs, plants, dev API
-pnpm test:types     # type-checks the tests
-pnpm lint           # oxlint
 BASE_URL=http://localhost:5184 CHROME_PATH=/path/to/chrome pnpm test:e2e   # needs a running dev server
 ```
+
+CI (`.github/workflows/ci.yml`) runs `pnpm check` and `pnpm build` on every push to `main` and every pull request. Formatting-only commits are listed in `.git-blame-ignore-revs`; run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once so local blame skips them.
+
+## Tests
 
 Browser tests use `?decor=<name>` with a scratch name (`e2e-…`, `test-…`, `furn`, …), which reads and writes a git-ignored `data/decor.<name>.json` instead of your layout. Screenshots go to `test-results/` (git-ignored).
 
