@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { shell } from '../project'
+import { launch, showLayoutInUrl } from '../project/launch'
 import { migrateAccent, paintFaces } from '../project/paintFaces'
 import { isDefaultPlan, plan } from '../project/plan'
 import { isPlaced, type DecorItem, type DecorKind } from '../model/decor'
@@ -140,15 +141,7 @@ interface DecorState {
 export const MAIN_SLUG: string | null = isDefaultPlan ? null : planMainSlug(plan.id)
 
 // Another plan's main layout lives in data/decor.plan-<id>.json, so it never opens the default plan's layouts.
-let decorFile = new URLSearchParams(window.location.search).get('decor') ?? MAIN_SLUG
-
-/** Keeps ?decor= in the address bar in step with the open layout, without a reload. */
-function syncUrl() {
-  const url = new URL(window.location.href)
-  if (decorFile) url.searchParams.set('decor', decorFile)
-  else url.searchParams.delete('decor')
-  window.history.replaceState(window.history.state, '', url)
-}
+let decorFile = launch.layout ?? MAIN_SLUG
 
 /** What is saved: a new item still following the pointer is left out; a relocated one keeps its old spot. */
 export function committedItems(s: Pick<DecorState, 'items' | 'isDraft' | 'movingId' | 'backup'>): DecorItem[] {
@@ -579,7 +572,7 @@ export const useDecor = create<DecorState>((rawSet, get) => {
       set({ selectedId: null, selectedIds: [] })
       await flushSave()
       decorFile = slug
-      syncUrl()
+      showLayoutInUrl(decorFile)
       set({ layout: slug, compareWith: from })
       await get().load()
     },
@@ -591,7 +584,7 @@ export const useDecor = create<DecorState>((rawSet, get) => {
     renamed: (slug, name) => {
       if (slug !== decorFile) {
         decorFile = slug
-        syncUrl()
+        showLayoutInUrl(decorFile)
       }
       // The server already wrote the new name: do not write it again.
       const s = get()

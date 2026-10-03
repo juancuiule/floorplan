@@ -3,11 +3,9 @@ import { useThree } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { isFlippable } from '../project/cameraSides'
+import { launch } from '../project/launch'
 import { useView } from '../store'
 import { EYE_FOV, presetCamera } from './cameraPresets'
-
-/** ?cam=x,y,z,tx,ty,tz[,fov] opens at an exact camera, for screenshots. */
-const camParam = new URLSearchParams(window.location.search).get('cam')?.split(',').map(Number)
 
 export function CameraRig() {
   const ref = useRef<CameraControls>(null)
@@ -20,10 +18,12 @@ export function CameraRig() {
   useEffect(() => {
     const c = ref.current
     if (!c) return
-    if (first.current && camParam && camParam.length >= 6) {
-      camera.fov = camParam[6] || EYE_FOV
+    // ?cam= opens at an exact camera, for screenshots.
+    const exact = launch.camera
+    if (first.current && exact) {
+      camera.fov = exact.fov ?? EYE_FOV
       camera.updateProjectionMatrix()
-      c.setLookAt(camParam[0], camParam[1], camParam[2], camParam[3], camParam[4], camParam[5], false)
+      c.setLookAt(...exact.position, ...exact.target, false)
       first.current = false
       return
     }
