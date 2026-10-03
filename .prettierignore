@@ -1,0 +1,14 @@
+# Generated
+dist
+test-results
+pnpm-lock.yaml
+
+# Data written by the app or by hand, kept byte-stable so diffs stay small
+data
+src/plans/*.plan.json
+tests/e2e/fixtures
+
+# Binary assets
+public
+docs/*.jpg
+docs/*.webp
