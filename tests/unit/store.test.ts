@@ -256,8 +256,8 @@ describe('update, remove, duplicate', () => {
   })
 
   it('newId prefixes the kind and is unique', () => {
-    const ids = new Set(Array.from({ length: 200 }, () => newId('artwork')))
-    expect(ids.size).toBe(200)
+    const ids = new Set(Array.from({ length: 5000 }, () => newId('artwork')))
+    expect(ids.size).toBe(5000)
     for (const id of ids) expect(id).toMatch(/^artwork-[a-z0-9]+$/)
   })
 })
