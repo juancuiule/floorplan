@@ -22,3 +22,7 @@ export function mat(
   }
   return m
 }
+
+/** Clear plastic or glass: see-through and glossy. Not cached, so share the result. */
+export const transparent = (color: string, opacity: number) =>
+  new THREE.MeshStandardMaterial({ color, transparent: true, opacity, roughness: 0.1, depthWrite: false })

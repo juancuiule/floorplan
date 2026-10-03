@@ -18,7 +18,8 @@ import {
   StationClock,
   UpperCabinets,
 } from './Wall'
-import { AcIndoor, AcOutdoor, Fridge, Tv, EspressoMachine, Speakers, StandMixer, Turntable } from './Devices'
+import { AcIndoor, AcOutdoor, Fridge, EspressoMachine, Speakers, StandMixer, Turntable } from './Devices'
+import { Tv } from './Tv'
 
 const VIEWS: Record<FurnitureType, (p: { item: FurnitureItem }) => ReactNode> = {
   platformBed: PlatformBed,
