@@ -256,8 +256,8 @@ describe('update, remove, duplicate', () => {
   })
 
   it('newId prefixes the kind and is unique', () => {
-    const ids = new Set(Array.from({ length: 200 }, () => newId('artwork')))
-    expect(ids.size).toBe(200)
+    const ids = new Set(Array.from({ length: 5000 }, () => newId('artwork')))
+    expect(ids.size).toBe(5000)
     for (const id of ids) expect(id).toMatch(/^artwork-[a-z0-9]+$/)
   })
 })
@@ -428,6 +428,14 @@ describe('a broken layout file', () => {
     useDecor.getState().update<PlantItem>('p1', { scale: 1.4 })
     await vi.advanceTimersByTimeAsync(1000)
     expect(lastSavedItems()?.[0]).toMatchObject({ id: 'p1', scale: 1.4 })
+  })
+
+  it('treats a layout with an unknown catalog entry as broken, and says why', async () => {
+    const { useDecor } = await freshStore()
+    fileOnDisk = { version: 1, items: [{ ...plant('p1'), species: 'triffid' } as unknown as DecorItem] }
+    await useDecor.getState().load()
+    expect(useDecor.getState().saveStatus).toBe('broken-file')
+    expect(useDecor.getState().fileProblem).toMatch(/^items\[0\]\.species: .*"triffid"$/)
   })
 
   it('stays paused after an upload succeeds', async () => {

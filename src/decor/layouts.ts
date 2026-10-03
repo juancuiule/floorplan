@@ -8,8 +8,6 @@ import { committedItems, flushSave, MAIN_SLUG, useDecor } from './store'
 
 export type { LayoutInfo }
 
-export const MAIN_NAME = 'Current'
-
 interface LayoutsState {
   list: LayoutInfo[]
   error: string | null

@@ -1,12 +1,14 @@
 import { create } from 'zustand'
+import { launch } from './project/launch'
 import { plan } from './project/plan'
+import type { CameraId } from './model/plan'
 import { duskLevel, NIGHT_BELOW } from './sun/daylight'
-import { isIsoDate, parseClock, parseFacing, solarPosition, todayIn, type SunPosition } from './sun/solar'
+import { isIsoDate, solarPosition, todayIn, type SunPosition } from './sun/solar'
 import type { Vec2 } from './model/types'
 import { FLIPPABLE, isFlippable, type FlippableView } from './project/cameraSides'
 
 export type ViewMode = 'dollhouse' | 'xray'
-export type ViewPreset = 'iso-balcony' | 'iso-entry' | 'top' | 'from-balcony' | 'from-entry'
+export type ViewPreset = CameraId
 export type Lighting = 'day' | 'evening'
 export type SceneTool = 'measure' | null
 
@@ -80,7 +82,6 @@ interface ViewState {
   toggleClearances: () => void
 }
 
-const params = new URLSearchParams(window.location.search)
 const SUN_KEY = 'monoambiente.sun'
 
 function readSavedSun(): Partial<SunSettings> {
@@ -99,11 +100,10 @@ function readSavedSun(): Partial<SunSettings> {
 /** URL (?sun=HH:MM&date=YYYY-MM-DD&facing=N, or ?light=evening) wins over what was saved. */
 function initialSun(): SunSettings {
   const saved = readSavedSun()
-  const urlMinutes =
-    parseClock(params.get('sun')) ?? (params.get('light') === 'evening' ? LIGHTING_PRESETS.evening : null)
-  const urlDate = params.get('date')
+  const urlMinutes = launch.sun.minutes ?? (launch.sun.evening ? LIGHTING_PRESETS.evening : null)
+  const urlDate = launch.sun.date
   return {
-    facing: parseFacing(params.get('facing')) ?? saved.facing ?? 0,
+    facing: launch.sun.facing ?? saved.facing ?? 0,
     date: isIsoDate(urlDate)
       ? urlDate
       : urlMinutes !== null
@@ -135,22 +135,21 @@ function initialFlip(): Record<FlippableView, boolean> {
   } catch {
     /* storage blocked: start unflipped */
   }
-  const view = params.get('view')
-  if (params.has('flip') && view && isFlippable(view)) flip[view] = params.get('flip') === '1'
+  if (launch.flip !== null && launch.view && isFlippable(launch.view)) flip[launch.view] = launch.flip
   return flip
 }
 
 export const useView = create<ViewState>((set) => ({
-  mode: params.get('mode') === 'xray' ? 'xray' : 'dollhouse',
-  preset: (params.get('view') as ViewPreset) || 'iso-balcony',
+  mode: launch.xray ? 'xray' : 'dollhouse',
+  preset: launch.view ?? 'iso-balcony',
   presetNonce: 0,
-  showDims: params.get('dims') !== '0',
+  showDims: launch.dims,
   sun: sun0,
   ...derive(sun0),
   playing: false,
   playSpeed: 1,
   setPlaySpeed: (playSpeed) => set({ playSpeed }),
-  downlights: params.get('downlights') !== '0',
+  downlights: launch.downlights,
   setLighting: (lighting) =>
     set((s) => {
       const sun = { ...s.sun, date: todayIn(plan.location), minutes: LIGHTING_PRESETS[lighting] }
@@ -186,14 +185,14 @@ export const useView = create<ViewState>((set) => ({
   setEyeHeight: (h) => set({ eyeHeight: Math.min(EYE_MAX, Math.max(EYE_MIN, h)) }),
   tool: null,
   setTool: (tool) => set({ tool }),
-  clearances: params.get('clearances') === '1',
+  clearances: launch.clearances,
   toggleClearances: () => set((s) => ({ clearances: !s.clearances })),
 }))
 
 // The balcony's orientation belongs to the apartment; the time is where you left it.
 // URL-driven sessions (screenshots) don't overwrite what you saved.
 let saveTimer: ReturnType<typeof setTimeout> | undefined
-if (!params.has('sun') && !params.has('facing') && !params.has('light')) {
+if (!launch.sunFromUrl) {
   useView.subscribe((s, prev) => {
     if ((s.sun === prev.sun && s.playing === prev.playing) || s.playing) return
     clearTimeout(saveTimer)

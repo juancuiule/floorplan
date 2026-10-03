@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { MAIN_NAME, useLayouts, type LayoutInfo } from '../decor/layouts'
+import { useLayouts, type LayoutInfo } from '../decor/layouts'
+import { MAIN_NAME } from '../model/layoutNames'
 import { plan } from '../project/plan'
 import { MAIN_SLUG, useDecor } from '../decor/store'
 import { Icon } from './icons'

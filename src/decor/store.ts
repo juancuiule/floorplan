@@ -1,8 +1,9 @@
 import { create } from 'zustand'
 import { shell } from '../project'
+import { launch, showLayoutInUrl } from '../project/launch'
 import { migrateAccent, paintFaces } from '../project/paintFaces'
 import { isDefaultPlan, plan } from '../project/plan'
-import { isPlaced, type DecorItem, type DecorKind } from '../model/decor'
+import { isPlaced, type DecorFile, type DecorItem, type DecorKind } from '../model/decor'
 import { DEFAULT_FINISHES, normalizeFinishes, type Finishes } from '../model/finishes'
 import type { Vec3 } from '../model/types'
 import { listArtwork, readLayout, readLayoutText, uploadArtwork, writeLayout, type LibraryImage } from './api'
@@ -16,6 +17,8 @@ import { namesOf, serialize } from './layoutFile'
 import { createSaver } from './persistence'
 import { mountOf, placeAt, slidesOnFloor } from './placement'
 import { settleMoved } from './rest'
+import { validateLayout } from './validateLayout'
+import { planMainSlug } from '../model/layoutNames'
 
 // The open layout: its decor items, finishes and groups, the selection, and the
 // item following the pointer. Everything here is saved to the layout file and
@@ -36,13 +39,15 @@ export type SaveStatus = 'ok' | 'no-api' | 'broken-file'
 
 export const SAVE_STATUS_MESSAGE: Record<Exclude<SaveStatus, 'ok'>, string> = {
   'no-api': 'Saving is only available while running the dev server.',
-  'broken-file': 'Saving paused: the layout file on disk is not valid JSON. Fix it and this tab reloads it.',
+  'broken-file': 'Saving paused: the layout file on disk is not a valid layout. Fix it and this tab reloads it.',
 }
 
 interface DecorState {
   items: DecorItem[]
   loaded: boolean
   saveStatus: SaveStatus
+  /** With saveStatus 'broken-file': what is wrong with the file, for the person fixing it. */
+  fileProblem: string | null
   /** The primary selected item: the one last clicked, shown in the inspector. */
   selectedId: string | null
   /** Every selected item (includes selectedId); more than one is a multi-selection. */
@@ -135,21 +140,11 @@ interface DecorState {
   renamed: (slug: string | null, name: string) => void
 }
 
-/** The main layout file of a plan other than the default one. */
-export const planMainSlug = (id: string) => `plan-${id}`
 /** The open plan's main layout ("Current"): data/decor.json for the default plan. */
 export const MAIN_SLUG: string | null = isDefaultPlan ? null : planMainSlug(plan.id)
 
 // Another plan's main layout lives in data/decor.plan-<id>.json, so it never opens the default plan's layouts.
-let decorFile = new URLSearchParams(window.location.search).get('decor') ?? MAIN_SLUG
-
-/** Keeps ?decor= in the address bar in step with the open layout, without a reload. */
-function syncUrl() {
-  const url = new URL(window.location.href)
-  if (decorFile) url.searchParams.set('decor', decorFile)
-  else url.searchParams.delete('decor')
-  window.history.replaceState(window.history.state, '', url)
-}
+let decorFile = launch.layout ?? MAIN_SLUG
 
 /** What is saved: a new item still following the pointer is left out; a relocated one keeps its old spot. */
 export function committedItems(s: Pick<DecorState, 'items' | 'isDraft' | 'movingId' | 'backup'>): DecorItem[] {
@@ -275,6 +270,7 @@ export const useDecor = create<DecorState>((rawSet, get) => {
     items: [],
     loaded: false,
     saveStatus: 'ok',
+    fileProblem: null,
     selectedId: null,
     selectedIds: [],
     groupNames: {},
@@ -302,13 +298,23 @@ export const useDecor = create<DecorState>((rawSet, get) => {
         // Without an API, start empty and do not persist. With a broken file (a
         // hand edit half done), keep what is on screen and do not overwrite it;
         // fixing the file reloads it.
-        rawSet({ loaded: true, saveStatus: read.reason })
+        rawSet({
+          loaded: true,
+          saveStatus: read.reason,
+          fileProblem: read.reason === 'broken-file' ? 'not valid JSON' : null,
+        })
         return
       }
-      const data = read.file
+      const problems = validateLayout(read.json)
+      if (problems.length) {
+        const more = problems.length > 1 ? ` (and ${problems.length - 1} more)` : ''
+        rawSet({ loaded: true, saveStatus: 'broken-file', fileProblem: problems[0] + more })
+        return
+      }
+      const data = read.json as DecorFile
       const items = data.items ?? []
       // A layout from before per-face paint: its accent wall becomes a painted face.
-      const finishes = migrateAccent(normalizeFinishes(data.finishes), paintFaces(shell.walls), shell.walls)
+      const finishes = migrateAccent(normalizeFinishes(data.finishes, plan), paintFaces(shell.walls), shell.walls)
       const layoutName = typeof data.name === 'string' ? data.name : ''
       const groupNames = namesOf(data.groups)
       // Keep the item under the pointer when the file is reloaded mid-placement.
@@ -323,6 +329,7 @@ export const useDecor = create<DecorState>((rawSet, get) => {
         items: next,
         loaded: true,
         saveStatus: 'ok',
+        fileProblem: null,
         finishes,
         layoutName,
         groupNames,
@@ -580,7 +587,7 @@ export const useDecor = create<DecorState>((rawSet, get) => {
       set({ selectedId: null, selectedIds: [] })
       await flushSave()
       decorFile = slug
-      syncUrl()
+      showLayoutInUrl(decorFile)
       set({ layout: slug, compareWith: from })
       await get().load()
     },
@@ -592,7 +599,7 @@ export const useDecor = create<DecorState>((rawSet, get) => {
     renamed: (slug, name) => {
       if (slug !== decorFile) {
         decorFile = slug
-        syncUrl()
+        showLayoutInUrl(decorFile)
       }
       // The server already wrote the new name: do not write it again.
       const s = get()

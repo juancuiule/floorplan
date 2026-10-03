@@ -1,21 +1,21 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
+import {
+  isHiddenSlug,
+  isMainSlug,
+  isPlanMainSlug,
+  LAYOUT_SLUG,
+  type LayoutInfo,
+  layoutFileName,
+  MAIN_NAME,
+  slugify,
+  slugOfFileName,
+} from '../src/model/layoutNames.ts'
 import { DEFAULT_PLAN_ID } from '../src/plans/default.ts'
 
 // Layout variants on disk: data/decor.json is the main layout ("Current"),
 // data/decor.<slug>.json are named ones. A file may carry its display name
 // ({ version, name, finishes, items }); the slug is the file identity.
-
-export interface LayoutInfo {
-  /** null for data/decor.json. */
-  slug: string | null
-  name: string
-  items: number
-  /** ISO time of the last write. */
-  updated: string
-  /** The plan the layout furnishes; missing in the file means the default plan. */
-  plan: string
-}
 
 /** The plan a layout belongs to when its file doesn't say (the owner's flat). */
 export const DEFAULT_PLAN = DEFAULT_PLAN_ID
@@ -28,36 +28,11 @@ export class LayoutError extends Error {
   }
 }
 
-export const SLUG = /^[a-z0-9-]{1,40}$/
-export const MAIN_NAME = 'Current'
-
-/** data/decor.plan-<id>.json is the main layout of plan <id>: it keeps its file like data/decor.json. */
-export const isPlanMainSlug = (slug: string | null) => slug !== null && slug.startsWith('plan-')
-/** Is this layout some plan's main one ("Current")? */
-export const isMainSlug = (slug: string | null) => slug === null || isPlanMainSlug(slug)
-
-/** Scratch files written by test runs never show up in the menu. */
-export const isHiddenSlug = (slug: string) => /^(e2e|test)/.test(slug)
-
 export function assertSlug(slug: string) {
-  if (!SLUG.test(slug)) throw new LayoutError('Bad layout name')
+  if (!LAYOUT_SLUG.test(slug)) throw new LayoutError('Bad layout name')
 }
 
-/** "Sofa by the window!" → "sofa-by-the-window". */
-export function slugify(name: string): string {
-  const slug = name
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 40)
-    .replace(/-+$/g, '')
-  return slug || 'layout'
-}
-
-export const layoutFile = (dataDir: string, slug: string | null) =>
-  path.join(dataDir, slug ? `decor.${slug}.json` : 'decor.json')
+export const layoutFile = (dataDir: string, slug: string | null) => path.join(dataDir, layoutFileName(slug))
 
 const cleanName = (name: unknown) => {
   if (typeof name !== 'string' || !name.trim()) throw new LayoutError('A layout needs a name')
@@ -101,9 +76,8 @@ export async function listLayouts(dataDir: string, all = false): Promise<LayoutI
   const files = await fs.readdir(dataDir)
   const out: LayoutInfo[] = []
   for (const f of files) {
-    const m = f.match(/^decor(?:\.([a-z0-9-]{1,40}))?\.json$/)
-    if (!m) continue
-    const slug = m[1] ?? null
+    const slug = slugOfFileName(f)
+    if (slug === undefined) continue
     if (slug && !all && isHiddenSlug(slug)) continue
     const file = path.join(dataDir, f)
     const [data, stat] = await Promise.all([readJson(file), fs.stat(file)])

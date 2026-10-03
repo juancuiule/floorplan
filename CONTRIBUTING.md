@@ -25,7 +25,8 @@ CI runs the same and the build. For changes to editing, placement or the scene, 
 
 ## Data
 
-- Layout files and plans are a contract with people and agents who edit them by hand. Change their shape only additively, give every new field a default that keeps old files rendering the same, and update the type in `src/model/`.
+- Layout files and plans are a contract with people and agents who edit them by hand. Change their shape only additively, give every new field a default that keeps old files rendering the same, and update the type in `src/model/` and its check (`src/model/validate.ts` for plans, `src/decor/validateLayout.ts` for layouts).
+- New URL parameters go in `src/project/launch.ts`, checked, and in `docs/features.md`.
 - Commit layout changes (`data/`) separately from code changes.
 
 ## Decisions

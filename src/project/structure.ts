@@ -1,9 +1,13 @@
 import { create } from 'zustand'
-import { DEFAULT_STRUCTURE, isRemovableWall, type RemovableWall, type Structure } from '../model/structure'
+import { DEFAULT_STRUCTURE, removableWalls, type RemovableWall, type Structure } from '../model/structure'
 import type { Bulge, Ceiling, MaterialId, Rect, Shell, Vec3, Wall } from '../model/types'
 import type { RemovalDef } from '../model/plan'
 import { plan, shell } from '.'
 import { CEILING_TOP } from './derived'
+
+/** The open plan's partitions that a layout can take out, in plan order. */
+export const REMOVABLE_WALLS = removableWalls(plan)
+const isRemovableWall = (id: string): id is RemovableWall => REMOVABLE_WALLS.includes(id)
 
 // The shell as the open layout has it: shell.ts minus the partitions the owner
 // took out (src/model/structure.ts), with what they carried (tiles, doors,

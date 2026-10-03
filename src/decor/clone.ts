@@ -2,9 +2,18 @@ import type { DecorItem, DecorKind } from '../model/decor'
 
 // Ids for new decor items and groups, and copies of items for duplicate and paste.
 
-export const newId = (kind: DecorKind) => `${kind}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
+let sequence = 0
+/**
+ * Unique in this session and, in practice, across sessions: the time, a counter
+ * for ids made in the same millisecond (duplicating a large selection), and a
+ * random tail for other tabs.
+ */
+const unique = () =>
+  Date.now().toString(36) + (sequence++ % 1296).toString(36).padStart(2, '0') + Math.random().toString(36).slice(2, 6)
 
-export const newGroupId = () => `g-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
+export const newId = (kind: DecorKind) => `${kind}-${unique()}`
+
+export const newGroupId = () => `g-${unique()}`
 
 /** Ids of a group's members. */
 export const membersOf = (items: DecorItem[], groupId: string) =>

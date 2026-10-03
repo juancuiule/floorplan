@@ -36,7 +36,11 @@ function PanelBody() {
   const setTab = useDecor((s) => s.setTab)
   const selectedId = useDecor((s) => s.selectedId)
   const selectedKind = useDecor((s) => s.items.find((i) => i.id === s.selectedId)?.kind)
-  const error = useDecor((s) => (s.saveStatus === 'ok' ? null : SAVE_STATUS_MESSAGE[s.saveStatus]))
+  const error = useDecor((s) =>
+    s.saveStatus === 'ok'
+      ? null
+      : SAVE_STATUS_MESSAGE[s.saveStatus] + (s.fileProblem ? ` Problem: ${s.fileProblem}.` : ''),
+  )
   const [query, setQuery] = useState('')
   const [dropping, setDropping] = useState(false)
   const dragDepth = useRef(0)

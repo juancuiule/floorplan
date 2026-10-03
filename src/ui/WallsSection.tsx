@@ -1,17 +1,17 @@
 import { useId, useState, type KeyboardEvent } from 'react'
 import { useDecor } from '../decor/store'
 import { structureOf } from '../model/finishes'
-import { isDefaultStructure, REMOVABLE_WALLS, toggleWall, type RemovableWall, type Structure } from '../model/structure'
+import { isDefaultStructure, toggleWall, type RemovableWall, type Structure } from '../model/structure'
 import type { Rect, Wall } from '../model/types'
 import { plan, shell } from '../project'
 
 /** Walls that stay in every layout: exterior walls first, then partitions that carry load. */
-const LOCKED_WALLS = shell.walls.filter((w) => !(REMOVABLE_WALLS as readonly string[]).includes(w.id)).map((w) => w.id)
+const LOCKED_WALLS = shell.walls.filter((w) => !REMOVABLE_WALLS.includes(w.id)).map((w) => w.id)
 /** Columns, beams and the like: bulges that aren't tile cladding. */
 const HAS_STRUCTURE_BULGES = shell.bulges.some((b) => !b.id.startsWith('tile'))
 const DROPPED = plan.droppedCeiling
 const DROPPED_HEIGHT = shell.ceilings.find((c) => c.id === DROPPED?.id)?.height ?? 0
-import { activeShell, REMOVALS, useStructure, WALL_LABELS } from '../project/structure'
+import { activeShell, REMOVABLE_WALLS, REMOVALS, useStructure, WALL_LABELS } from '../project/structure'
 import { Section } from './controls'
 
 // The Room tab's "what if" for the structure: a small plan of the flat where the
@@ -48,7 +48,7 @@ export function WallsSection() {
 
   // Back to the flat as built: the key goes (undefined is not written to the file).
   const apply = (s: Structure) => setFinishes({ structure: isDefaultStructure(s) ? undefined : s })
-  const toggle = (id: RemovableWall) => apply(toggleWall(structureOf(useDecor.getState().finishes), id))
+  const toggle = (id: RemovableWall) => apply(toggleWall(structureOf(useDecor.getState().finishes), id, plan))
 
   return (
     <Section title="Walls">
