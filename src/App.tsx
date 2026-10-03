@@ -130,11 +130,19 @@ function useShortcuts() {
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && sel) {
         e.preventDefault()
         s.removeMany(many ? s.selectedIds : [sel.id])
-      } else if (key === 'r' && !e.altKey && sel && selectedItems(s).some((i) => 'rotation' in i && mountOf(i) !== 'wall')) {
+      } else if (
+        key === 'r' &&
+        !e.altKey &&
+        sel &&
+        selectedItems(s).some((i) => 'rotation' in i && mountOf(i) !== 'wall')
+      ) {
         // Furniture turns in quarter turns; plants and lamps in small steps. A selection turns as one.
         const furniture = selectedItems(s).some((i) => i.kind === 'furniture')
         s.rotateSelection((furniture ? 90 : 15) * (e.shiftKey ? -1 : 1))
-      } else if (sel && (e.key.startsWith('Arrow') || e.key === 'PageUp' || e.key === 'PageDown' || e.key === '[' || e.key === ']')) {
+      } else if (
+        sel &&
+        (e.key.startsWith('Arrow') || e.key === 'PageUp' || e.key === 'PageDown' || e.key === '[' || e.key === ']')
+      ) {
         const d = e.shiftKey ? 0.1 : 0.01
         const deltas: Record<string, Vec3> = {}
         for (const i of selectedItems(s)) {
@@ -160,7 +168,12 @@ function Marquee() {
     <div
       className="marquee"
       aria-hidden="true"
-      style={{ left: Math.min(m.x0, m.x1), top: Math.min(m.y0, m.y1), width: Math.abs(m.x1 - m.x0), height: Math.abs(m.y1 - m.y0) }}
+      style={{
+        left: Math.min(m.x0, m.x1),
+        top: Math.min(m.y0, m.y1),
+        width: Math.abs(m.x1 - m.x0),
+        height: Math.abs(m.y1 - m.y0),
+      }}
     />
   )
 }

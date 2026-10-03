@@ -47,7 +47,10 @@ reflect(useUi.getState().panelOpen)
 useUi.subscribe((s) => {
   reflect(s.panelOpen)
   try {
-    localStorage.setItem(KEY, JSON.stringify({ panelOpen: s.panelOpen, roomListOpen: s.roomListOpen, collapsed: s.collapsed }))
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({ panelOpen: s.panelOpen, roomListOpen: s.roomListOpen, collapsed: s.collapsed }),
+    )
   } catch {
     /* private mode: keep it for this visit only */
   }

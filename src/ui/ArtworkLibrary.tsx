@@ -60,7 +60,9 @@ export function ArtworkLibrary({ query, onClear }: { query: string; onClear: () 
       {library.length === 0 ? (
         <div className="empty">
           <p className="empty-title">No images yet</p>
-          <p className="note">Upload a photo or a print to hang it on a wall. Files also appear here when you add them to public/artwork.</p>
+          <p className="note">
+            Upload a photo or a print to hang it on a wall. Files also appear here when you add them to public/artwork.
+          </p>
         </div>
       ) : shown.length === 0 ? (
         <NoResults query={query} noun="artwork" onClear={onClear} />
@@ -80,12 +82,24 @@ export function ArtworkLibrary({ query, onClear }: { query: string; onClear: () 
   )
 }
 
-const Thumb = memo(function Thumb({ img, onPick }: { img: LibraryImage; onPick: (url: string, el: HTMLImageElement | null) => void }) {
+const Thumb = memo(function Thumb({
+  img,
+  onPick,
+}: {
+  img: LibraryImage
+  onPick: (url: string, el: HTMLImageElement | null) => void
+}) {
   const [loaded, setLoaded] = useState(false)
   const ref = useRef<HTMLImageElement>(null)
   return (
     <li>
-      <button type="button" className={`thumb${loaded ? ' loaded' : ''}`} title={img.name} aria-label={`Hang ${img.name}`} onClick={() => onPick(img.url, ref.current)}>
+      <button
+        type="button"
+        className={`thumb${loaded ? ' loaded' : ''}`}
+        title={img.name}
+        aria-label={`Hang ${img.name}`}
+        onClick={() => onPick(img.url, ref.current)}
+      >
         <img ref={ref} src={img.url} alt="" loading="lazy" decoding="async" onLoad={() => setLoaded(true)} />
       </button>
     </li>

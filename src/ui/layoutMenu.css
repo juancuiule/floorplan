@@ -28,7 +28,7 @@
   transition: transform 0.15s ease;
 }
 
-.layout-trigger[aria-expanded="true"] .layout-chevron {
+.layout-trigger[aria-expanded='true'] .layout-chevron {
   transform: rotate(180deg);
 }
 
@@ -91,7 +91,9 @@
   overflow: hidden;
   border-radius: 12px;
   background: var(--surface);
-  box-shadow: 0 0 0 1px var(--line), 0 12px 32px rgb(0 0 0 / 0.12);
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 12px 32px rgb(0 0 0 / 0.12);
   animation: layout-pop-in 0.12s ease-out;
 }
 

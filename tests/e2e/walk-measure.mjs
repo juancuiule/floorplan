@@ -8,16 +8,39 @@ const DECOR = 'e2e-walk'
 const url = (params = '') => `${BASE_URL}/?decor=${DECOR}&dims=0${params ? `&${params}` : ''}`
 
 // A desk and a wardrobe in the main room (or your own layout with SEED=data/decor.furn.json, for screenshots).
-const seed = process.env.SEED && existsSync(process.env.SEED)
-  ? JSON.parse(readFileSync(process.env.SEED, 'utf8'))
-  : {
-      version: 1,
-      items: [
-        { kind: 'furniture', id: 'f-desk', type: 'standingDesk', at: [4.8, 0, 2.65], rotation: 180, size: [1.4, 0.72, 0.7], finish: { body: '#6a4731', metal: '#1d1d1d', fabric: '#e6e0d4' }, options: {} },
-        { kind: 'furniture', id: 'f-wardrobe', type: 'wardrobe', at: [5.14, 0, 0.3], rotation: 0, size: [1.6, 2.4, 0.6], finish: { body: '#c9a57a', metal: '#1d1d1d', fabric: '#e6e0d4' }, options: {} },
-      ],
-    }
-const put = await fetch(`${BASE_URL}/api/decor?file=${DECOR}`, { method: 'PUT', body: JSON.stringify(seed), headers: { 'Content-Type': 'application/json' } })
+const seed =
+  process.env.SEED && existsSync(process.env.SEED)
+    ? JSON.parse(readFileSync(process.env.SEED, 'utf8'))
+    : {
+        version: 1,
+        items: [
+          {
+            kind: 'furniture',
+            id: 'f-desk',
+            type: 'standingDesk',
+            at: [4.8, 0, 2.65],
+            rotation: 180,
+            size: [1.4, 0.72, 0.7],
+            finish: { body: '#6a4731', metal: '#1d1d1d', fabric: '#e6e0d4' },
+            options: {},
+          },
+          {
+            kind: 'furniture',
+            id: 'f-wardrobe',
+            type: 'wardrobe',
+            at: [5.14, 0, 0.3],
+            rotation: 0,
+            size: [1.6, 2.4, 0.6],
+            finish: { body: '#c9a57a', metal: '#1d1d1d', fabric: '#e6e0d4' },
+            options: {},
+          },
+        ],
+      }
+const put = await fetch(`${BASE_URL}/api/decor?file=${DECOR}`, {
+  method: 'PUT',
+  body: JSON.stringify(seed),
+  headers: { 'Content-Type': 'application/json' },
+})
 assert.equal(put.status, 200, 'seed decor')
 
 const { browser, page, errors } = await launch()
@@ -182,7 +205,10 @@ await t.step('clearances around the selected desk', async () => {
   const labels = page.locator('.clearance-label span')
   await eventually(async () => (await labels.count()) > 0, { message: 'clearance labels' })
   const values = (await labels.allTextContents()).map((s) => Number(s.match(/\d+/)[0]))
-  assert.ok(values.every((v) => v > 0 && v < 500), `plausible clearances: ${values.join(', ')}`)
+  assert.ok(
+    values.every((v) => v > 0 && v < 500),
+    `plausible clearances: ${values.join(', ')}`,
+  )
   await page.waitForTimeout(300)
   await shot(page, 'clearances-01-desk')
 })

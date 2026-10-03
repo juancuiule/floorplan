@@ -56,15 +56,26 @@ function S({ g, m, p, r, s, edges = true, shadow = true }: SProps) {
   )
 }
 
-const cyl = (rt: number, rb: number, h: number, seg = 24, open = false) => geo(`cyl${rt},${rb},${h},${seg},${open}`, () => new THREE.CylinderGeometry(rt, rb, h, seg, 1, open))
+const cyl = (rt: number, rb: number, h: number, seg = 24, open = false) =>
+  geo(`cyl${rt},${rb},${h},${seg},${open}`, () => new THREE.CylinderGeometry(rt, rb, h, seg, 1, open))
 const disc = (r: number, seg = 32) => geo(`disc${r},${seg}`, () => new THREE.CircleGeometry(r, seg))
 const ring = (r0: number, r1: number) => geo(`ring${r0},${r1}`, () => new THREE.RingGeometry(r0, r1, 64))
 /** An arc of tube in the xy plane, starting on +x and running counterclockwise. */
-const torus = (r: number, tube: number, arc = 2 * PI, tubular = 32) => geo(`torus${r},${tube},${arc},${tubular}`, () => new THREE.TorusGeometry(r, tube, 8, tubular, arc))
+const torus = (r: number, tube: number, arc = 2 * PI, tubular = 32) =>
+  geo(`torus${r},${tube},${arc},${tubular}`, () => new THREE.TorusGeometry(r, tube, 8, tubular, arc))
 /** A surface of revolution around y from [radius, y] points, listed bottom to top (outside faces out). */
-const lathe = (key: string, pts: [number, number][], seg = 40) => geo(key, () => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg))
+const lathe = (key: string, pts: [number, number][], seg = 40) =>
+  geo(
+    key,
+    () =>
+      new THREE.LatheGeometry(
+        pts.map(([r, y]) => new THREE.Vector2(r, y)),
+        seg,
+      ),
+  )
 /** A dome (half sphere) bulging toward +z. */
-const dome = (r: number) => geo(`dome${r}`, () => new THREE.SphereGeometry(r, 20, 8, 0, 2 * PI, 0, PI / 2).rotateX(PI / 2))
+const dome = (r: number) =>
+  geo(`dome${r}`, () => new THREE.SphereGeometry(r, 20, 8, 0, 2 * PI, 0, PI / 2).rotateX(PI / 2))
 
 /** A side profile drawn in (z, y) and extruded across the width, centered on x. */
 function profileGeometry(shape: THREE.Shape, w: number, curveSegments = 10): THREE.BufferGeometry {
@@ -91,7 +102,8 @@ function roundedRect(w: number, l: number, r: number): THREE.Shape {
   return s
 }
 
-const transparent = (color: string, opacity: number) => new THREE.MeshStandardMaterial({ color, transparent: true, opacity, roughness: 0.1, depthWrite: false })
+const transparent = (color: string, opacity: number) =>
+  new THREE.MeshStandardMaterial({ color, transparent: true, opacity, roughness: 0.1, depthWrite: false })
 const smokedAcrylic = transparent('#3c4044', 0.38)
 const tankPlastic = transparent('#9fc0cf', 0.45)
 
@@ -107,13 +119,35 @@ export function Speakers({ item }: { item: FurnitureItem }) {
   return (
     <group>
       {[-1, 1].map((sx) => (
-        <Speaker key={sx} x={sx * off} h={h} d={d} wood={mat(item.finish.body, 'wood')} grille={item.options.grille !== false} active={sx === 1} />
+        <Speaker
+          key={sx}
+          x={sx * off}
+          h={h}
+          d={d}
+          wood={mat(item.finish.body, 'wood')}
+          grille={item.options.grille !== false}
+          active={sx === 1}
+        />
       ))}
     </group>
   )
 }
 
-function Speaker({ x, h, d, wood, grille, active }: { x: number; h: number; d: number; wood: THREE.Material; grille: boolean; active: boolean }) {
+function Speaker({
+  x,
+  h,
+  d,
+  wood,
+  grille,
+  active,
+}: {
+  x: number
+  h: number
+  d: number
+  wood: THREE.Material
+  grille: boolean
+  active: boolean
+}) {
   const w = SPEAKER_W
   const cabinet = geo(`speaker${h},${d}`, () => {
     const s = new THREE.Shape()
@@ -158,7 +192,15 @@ function Speaker({ x, h, d, wood, grille, active }: { x: number; h: number; d: n
       </group>
       {/* volume and bass / treble knobs on the outer side of the active speaker */}
       {active &&
-        [0.07, 0.12].map((y) => <S key={y} g={cyl(0.013, 0.013, 0.012, 24)} m={baffle} p={[w / 2 + 0.006, y, -d / 2 + 0.07]} r={[0, 0, PI / 2]} />)}
+        [0.07, 0.12].map((y) => (
+          <S
+            key={y}
+            g={cyl(0.013, 0.013, 0.012, 24)}
+            m={baffle}
+            p={[w / 2 + 0.006, y, -d / 2 + 0.07]}
+            r={[0, 0, PI / 2]}
+          />
+        ))}
     </group>
   )
 }
@@ -214,12 +256,24 @@ export function StandMixer({ item }: { item: FurnitureItem }) {
   const headY = 0.285
   const headZ = -0.165
   const base = geo('mixerBase', () => {
-    const g = new THREE.ExtrudeGeometry(roundedRect(0.2, 0.31, 0.075), { depth: 0.03, bevelEnabled: true, bevelThickness: 0.008, bevelSize: 0.008, bevelSegments: 2, curveSegments: 10 })
+    const g = new THREE.ExtrudeGeometry(roundedRect(0.2, 0.31, 0.075), {
+      depth: 0.03,
+      bevelEnabled: true,
+      bevelThickness: 0.008,
+      bevelSize: 0.008,
+      bevelSegments: 2,
+      curveSegments: 10,
+    })
     g.rotateX(-PI / 2)
     g.translate(0, 0.008, 0)
     return g
   })
-  const head = geo('mixerHead', () => new THREE.LatheGeometry(MIXER_HEAD.map(([r, t]) => new THREE.Vector2(r, t)), 40).rotateX(PI / 2))
+  const head = geo('mixerHead', () =>
+    new THREE.LatheGeometry(
+      MIXER_HEAD.map(([r, t]) => new THREE.Vector2(r, t)),
+      40,
+    ).rotateX(PI / 2),
+  )
   const beater = geo('mixerBeater', () => {
     const s = new THREE.Shape()
     s.moveTo(-0.01, 0)
@@ -262,7 +316,13 @@ export function StandMixer({ item }: { item: FurnitureItem }) {
       />
       <S g={head} m={enamel} p={[0, headY, headZ]} edges={false} />
       {/* chrome trim band and the front attachment hub */}
-      <S g={cyl(0.0655, 0.0655, 0.012, 40, true)} m={steel} p={[0, headY, headZ + 0.195]} r={[PI / 2, 0, 0]} edges={false} />
+      <S
+        g={cyl(0.0655, 0.0655, 0.012, 40, true)}
+        m={steel}
+        p={[0, headY, headZ + 0.195]}
+        r={[PI / 2, 0, 0]}
+        edges={false}
+      />
       <S g={cyl(0.024, 0.027, 0.014, 32)} m={steel} p={[0, headY, headZ + 0.298]} r={[PI / 2, 0, 0]} />
       <S g={cyl(0.016, 0.016, 0.006, 24)} m={enamel} p={[0, headY, headZ + 0.307]} r={[PI / 2, 0, 0]} />
       {/* tilt hinge, speed lever (left), head lock (right) */}
@@ -317,7 +377,13 @@ export function EspressoMachine({ item }: { item: FurnitureItem }) {
       {[-0.009, 0.009].map((dx) => (
         <S key={dx} g={cyl(0.004, 0.004, 0.014, 10)} m={steel} p={[gx + dx, 0.162, gz]} edges={false} />
       ))}
-      <Rod a={[gx - 0.012, 0.19, gz + 0.03]} b={[gx - 0.055, 0.176, gz + 0.115]} radius={0.011} m={black} segments={14} />
+      <Rod
+        a={[gx - 0.012, 0.19, gz + 0.03]}
+        b={[gx - 0.055, 0.176, gz + 0.115]}
+        radius={0.011}
+        m={black}
+        segments={14}
+      />
       {/* steam wand */}
       <Rod a={[0.085, 0.222, 0.1]} b={[0.098, 0.2, 0.108]} radius={0.004} m={steel} />
       <Rod a={[0.098, 0.2, 0.108]} b={[0.104, 0.085, 0.122]} radius={0.004} m={steel} />
@@ -392,7 +458,11 @@ export function Turntable({ item }: { item: FurnitureItem }) {
   })
   return (
     <group>
-      {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => <S key={`${sx}${sz}`} g={cyl(0.03, 0.03, 0.018, 24)} m={black} p={[sx * 0.18, 0.009, sz * 0.13]} />))}
+      {[-1, 1].flatMap((sx) =>
+        [-1, 1].map((sz) => (
+          <S key={`${sx}${sz}`} g={cyl(0.03, 0.03, 0.018, 24)} m={black} p={[sx * 0.18, 0.009, sz * 0.13]} />
+        )),
+      )}
       <B s={[w, y0 - 0.018, d]} p={[0, (y0 + 0.018) / 2, 0]} m={plinth} />
       {/* platter, rubber mat, record and label */}
       <group position={[px, y0, pz]}>
@@ -400,7 +470,15 @@ export function Turntable({ item }: { item: FurnitureItem }) {
         <S g={cyl(0.152, 0.152, 0.003, 72)} m={black} p={[0, 0.0155, 0]} edges={false} />
         <S g={cyl(0.1515, 0.1515, 0.002, 72)} m={vinyl} p={[0, 0.018, 0]} />
         {[0.075, 0.095, 0.115, 0.135, 0.146].map((r) => (
-          <S key={r} g={ring(r - 0.0008, r + 0.0008)} m={groove} p={[0, 0.0191, 0]} r={[-PI / 2, 0, 0]} edges={false} shadow={false} />
+          <S
+            key={r}
+            g={ring(r - 0.0008, r + 0.0008)}
+            m={groove}
+            p={[0, 0.0191, 0]}
+            r={[-PI / 2, 0, 0]}
+            edges={false}
+            shadow={false}
+          />
         ))}
         <S g={disc(0.05, 40)} m={label} p={[0, 0.0192, 0]} r={[-PI / 2, 0, 0]} edges={false} shadow={false} />
         <S g={cyl(0.0035, 0.0035, 0.024, 10)} m={alu} p={[0, 0.02, 0]} edges={false} />
@@ -445,7 +523,13 @@ export function Turntable({ item }: { item: FurnitureItem }) {
           <B s={[w, hc, 0.003]} p={[0, hc / 2, d - 0.0015]} m={smokedAcrylic} shadow={false} />
           <B s={[w, hc, 0.003]} p={[0, hc / 2, 0.0015]} m={smokedAcrylic} shadow={false} />
           {[-1, 1].map((sx) => (
-            <B key={sx} s={[0.003, hc, d]} p={[sx * (w / 2 - 0.0015), hc / 2, d / 2]} m={smokedAcrylic} shadow={false} />
+            <B
+              key={sx}
+              s={[0.003, hc, d]}
+              p={[sx * (w / 2 - 0.0015), hc / 2, d / 2]}
+              m={smokedAcrylic}
+              shadow={false}
+            />
           ))}
         </group>
       )}
@@ -472,7 +556,13 @@ function acDisplayMaterial(): THREE.MeshStandardMaterial {
   g.fillText('24°', 64, 26)
   const map = new THREE.CanvasTexture(c)
   map.colorSpace = THREE.SRGBColorSpace
-  displayMaterial = new THREE.MeshStandardMaterial({ map, emissive: '#ffffff', emissiveMap: map, emissiveIntensity: 0.6, roughness: 0.4 })
+  displayMaterial = new THREE.MeshStandardMaterial({
+    map,
+    emissive: '#ffffff',
+    emissiveMap: map,
+    emissiveIntensity: 0.6,
+    roughness: 0.4,
+  })
   return displayMaterial
 }
 
@@ -550,13 +640,25 @@ export function AcOutdoor({ item }: { item: FurnitureItem }) {
         {/* side fins on the left and back, behind vertical guard bars */}
         <B s={[0.003, bodyH - 0.08, d - 0.05]} p={[-w / 2 - 0.0015, fy, 0]} m={fins} edges={false} />
         {Array.from({ length: 9 }, (_, i) => (
-          <B key={i} s={[0.004, bodyH - 0.07, 0.004]} p={[-w / 2 - 0.004, fy, -d / 2 + 0.035 + (i * (d - 0.07)) / 8]} m={casing} edges={false} />
+          <B
+            key={i}
+            s={[0.004, bodyH - 0.07, 0.004]}
+            p={[-w / 2 - 0.004, fy, -d / 2 + 0.035 + (i * (d - 0.07)) / 8]}
+            m={casing}
+            edges={false}
+          />
         ))}
         <B s={[w - 0.12, bodyH - 0.08, 0.003]} p={[-0.03, fy, -d / 2 - 0.0015]} m={fins} edges={false} />
         {/* service panel and refrigerant valves on the right */}
         <B s={[0.004, 0.2, 0.12]} p={[w / 2 + 0.002, 0.2, d / 2 - 0.08]} m={casing} />
         {[0.1, 0.14].map((y) => (
-          <S key={y} g={cyl(0.009, 0.009, 0.03, 16)} m={steel} p={[w / 2 + 0.017, y, d / 2 - 0.08]} r={[0, 0, PI / 2]} />
+          <S
+            key={y}
+            g={cyl(0.009, 0.009, 0.03, 16)}
+            m={steel}
+            p={[w / 2 + 0.017, y, d / 2 - 0.08]}
+            r={[0, 0, PI / 2]}
+          />
         ))}
       </group>
       {bracket &&
@@ -568,7 +670,12 @@ export function AcOutdoor({ item }: { item: FurnitureItem }) {
             <group key={sx}>
               <B s={[0.04, up, 0.035]} p={[x, lift + 0.02 - up / 2, -d / 2 - 0.0175]} m={steel} />
               <B s={[0.04, 0.035, d + 0.05]} p={[x, lift - 0.0175, -0.01]} m={steel} />
-              <Rod a={[x, lift + 0.04 - up, -d / 2 - 0.02]} b={[x, lift - 0.035, d / 2 - 0.04]} radius={0.01} m={steel} />
+              <Rod
+                a={[x, lift + 0.04 - up, -d / 2 - 0.02]}
+                b={[x, lift - 0.035, d / 2 - 0.04]}
+                radius={0.01}
+                m={steel}
+              />
             </group>
           )
         })}
@@ -605,7 +712,13 @@ function tvScreenMaterial(on: boolean): THREE.MeshStandardMaterial {
   }
   const map = new THREE.CanvasTexture(c)
   map.colorSpace = THREE.SRGBColorSpace
-  tvOn = new THREE.MeshStandardMaterial({ color: '#000000', roughness: 0.2, emissive: '#ffffff', emissiveMap: map, emissiveIntensity: 0.9 })
+  tvOn = new THREE.MeshStandardMaterial({
+    color: '#000000',
+    roughness: 0.2,
+    emissive: '#ffffff',
+    emissiveMap: map,
+    emissiveIntensity: 0.9,
+  })
   return tvOn
 }
 
@@ -618,7 +731,16 @@ function useScreenImage(link: string, aspect: number): THREE.MeshStandardMateria
   const invalidate = useThree((s) => s.invalidate)
   const src = screenImageSrc(link)
   const material = useMemo(
-    () => (src ? new THREE.MeshStandardMaterial({ color: '#000000', roughness: 0.2, emissive: '#ffffff', emissiveIntensity: 0.9, emissiveMap: tvScreenMaterial(true).emissiveMap }) : null),
+    () =>
+      src
+        ? new THREE.MeshStandardMaterial({
+            color: '#000000',
+            roughness: 0.2,
+            emissive: '#ffffff',
+            emissiveIntensity: 0.9,
+            emissiveMap: tvScreenMaterial(true).emissiveMap,
+          })
+        : null,
     [src],
   )
   useEffect(() => {
@@ -667,7 +789,10 @@ export function Tv({ item }: { item: FurnitureItem }) {
   const wall = item.type === 'tvWall'
   const pedestal = item.options.stand === 'pedestal'
   const video = item.options.screen === 'youtube' ? parseYouTube(String(item.options.youtube ?? '')) : null
-  const picture = useScreenImage(item.options.screen === 'on' ? String(item.options.image ?? '') : '', (pw - 2 * TV_BEZEL) / (ph - 2 * TV_BEZEL))
+  const picture = useScreenImage(
+    item.options.screen === 'on' ? String(item.options.image ?? '') : '',
+    (pw - 2 * TV_BEZEL) / (ph - 2 * TV_BEZEL),
+  )
   // Frame and stand take the metal finish (black by default); the back stays dark.
   const frame = mat(item.finish.metal, 'matte')
   const back = mat('#26282b', 'matte')
@@ -682,10 +807,21 @@ export function Tv({ item }: { item: FurnitureItem }) {
       <B s={[pw, ph, t]} p={[0, cy, zc]} m={frame} />
       {/* the thicker electronics box at the back */}
       <B s={[pw * 0.62, ph * 0.5, 0.02]} p={[0, lift + ph * 0.42, zc - t / 2 - 0.01]} m={back} />
-      <mesh position={[0, cy, zc + t / 2 + 0.0006]} material={picture ?? tvScreenMaterial(item.options.screen === 'on')}>
+      <mesh
+        position={[0, cy, zc + t / 2 + 0.0006]}
+        material={picture ?? tvScreenMaterial(item.options.screen === 'on')}
+      >
         <planeGeometry args={[pw - 2 * TV_BEZEL, ph - 2 * TV_BEZEL]} />
       </mesh>
-      {video && <TvVideo url={embedUrl(video)} width={pw - 2 * TV_BEZEL} height={ph - 2 * TV_BEZEL} position={[0, cy, zc + t / 2 + 0.003]} itemId={item.id} />}
+      {video && (
+        <TvVideo
+          url={embedUrl(video)}
+          width={pw - 2 * TV_BEZEL}
+          height={ph - 2 * TV_BEZEL}
+          position={[0, cy, zc + t / 2 + 0.003]}
+          itemId={item.id}
+        />
+      )}
       {wall ? (
         <B s={[Math.min(0.4, pw * 0.4), Math.min(0.3, ph * 0.45), 0.025]} p={[0, cy, 0.0125]} m={back} />
       ) : pedestal ? (
@@ -725,7 +861,9 @@ export function Fridge({ item }: { item: FurnitureItem }) {
   const split = freezer === 'top' ? plinth + bodyH * 0.68 : freezer === 'bottom' ? plinth + bodyH * 0.36 : null
   const hx = retro ? -w / 2 + 0.07 : w / 2 - 0.06
   const doorZ = d / 2
-  const shell = geo(`fridge${w},${bodyH},${d},${retro}`, () => (retro ? new RoundedBoxGeometry(w, bodyH, d, 4, Math.min(0.07, w * 0.12)) : new THREE.BoxGeometry(w, bodyH, d)))
+  const shell = geo(`fridge${w},${bodyH},${d},${retro}`, () =>
+    retro ? new RoundedBoxGeometry(w, bodyH, d, 4, Math.min(0.07, w * 0.12)) : new THREE.BoxGeometry(w, bodyH, d),
+  )
   const handles: [number, number][] =
     split === null
       ? [[plinth + bodyH * 0.45, plinth + bodyH * 0.75]]
@@ -742,14 +880,33 @@ export function Fridge({ item }: { item: FurnitureItem }) {
     <group>
       {retro ? (
         // Chrome-tipped legs under a rounded body.
-        [-1, 1].flatMap((sx) => [-1, 1].map((sz) => <Rod key={`${sx}${sz}`} a={[sx * (w / 2 - 0.08), 0, sz * (d / 2 - 0.1)]} b={[sx * (w / 2 - 0.08), plinth, sz * (d / 2 - 0.1)]} radius={0.015} m={handle} />))
+        [-1, 1].flatMap((sx) =>
+          [-1, 1].map((sz) => (
+            <Rod
+              key={`${sx}${sz}`}
+              a={[sx * (w / 2 - 0.08), 0, sz * (d / 2 - 0.1)]}
+              b={[sx * (w / 2 - 0.08), plinth, sz * (d / 2 - 0.1)]}
+              radius={0.015}
+              m={handle}
+            />
+          )),
+        )
       ) : (
         <B s={[w - 0.04, plinth, d - 0.06]} p={[0, plinth / 2, -0.02]} m={dark} edges={false} />
       )}
       <S g={shell} m={body} p={[0, plinth + bodyH / 2, 0]} edges={!retro} />
       {/* door gaps */}
-      {split !== null && <B s={[w - (retro ? 0.1 : 0.004), 0.004, 0.004]} p={[0, split, doorZ + 0.001]} m={dark} edges={false} />}
-      {!retro && <B s={[0.004, bodyH - 0.01, 0.004]} p={[-w / 2 + 0.002, plinth + bodyH / 2, doorZ + 0.001]} m={dark} edges={false} />}
+      {split !== null && (
+        <B s={[w - (retro ? 0.1 : 0.004), 0.004, 0.004]} p={[0, split, doorZ + 0.001]} m={dark} edges={false} />
+      )}
+      {!retro && (
+        <B
+          s={[0.004, bodyH - 0.01, 0.004]}
+          p={[-w / 2 + 0.002, plinth + bodyH / 2, doorZ + 0.001]}
+          m={dark}
+          edges={false}
+        />
+      )}
       {handles.map(([y0, y1], i) =>
         retro ? (
           <group key={i}>
@@ -761,7 +918,14 @@ export function Fridge({ item }: { item: FurnitureItem }) {
           <B key={i} s={[0.02, y1 - y0, 0.03]} p={[hx, (y0 + y1) / 2, doorZ + 0.015]} m={handle} edges={false} />
         ),
       )}
-      {retro && <B s={[0.16, 0.025, 0.004]} p={[w / 2 - 0.14, plinth + bodyH * 0.9, doorZ + 0.002]} m={mat('#dfe2e4', 'gloss')} edges={false} />}
+      {retro && (
+        <B
+          s={[0.16, 0.025, 0.004]}
+          p={[w / 2 - 0.14, plinth + bodyH * 0.9, doorZ + 0.002]}
+          m={mat('#dfe2e4', 'gloss')}
+          edges={false}
+        />
+      )}
     </group>
   )
 }
@@ -796,7 +960,24 @@ function cssMatrix(m: THREE.Matrix4, mul: number[], prepend = '') {
   return `${prepend}matrix3d(${m.elements.map((e, i) => eps(mul[i] * e)).join(',')})`
 }
 const CAMERA_MUL = [1, -1, 1, 1, 1, -1, 1, 1, 1, -1, 1, 1, 1, -1, 1, 1]
-const objectMul = (f: number) => [1 / f, 1 / f, 1 / f, 1, -1 / f, -1 / f, -1 / f, -1, 1 / f, 1 / f, 1 / f, 1, 1, 1, 1, 1]
+const objectMul = (f: number) => [
+  1 / f,
+  1 / f,
+  1 / f,
+  1,
+  -1 / f,
+  -1 / f,
+  -1 / f,
+  -1,
+  1 / f,
+  1 / f,
+  1 / f,
+  1,
+  1,
+  1,
+  1,
+  1,
+]
 
 /** The layer over the canvas that holds the players (one per canvas). */
 function overlayOf(canvas: HTMLCanvasElement): HTMLDivElement {
@@ -816,7 +997,19 @@ function overlayOf(canvas: HTMLCanvasElement): HTMLDivElement {
  * picture: it hides when the TV is hidden (a cut-away wall) or when anything
  * solid stands between the camera and the screen.
  */
-function TvVideo({ url, width, height, position, itemId }: { url: string; width: number; height: number; position: Vec3; itemId: string }) {
+function TvVideo({
+  url,
+  width,
+  height,
+  position,
+  itemId,
+}: {
+  url: string
+  width: number
+  height: number
+  position: Vec3
+  itemId: string
+}) {
   const group = useRef<THREE.Group>(null)
   const nodes = useRef<{ outer: HTMLDivElement; inner: HTMLDivElement; frame: HTMLIFrameElement } | null>(null)
   const scene = useThree((s) => s.scene)

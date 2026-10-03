@@ -28,7 +28,17 @@ export type FloorZone = 'main' | 'hall' | 'bath' | 'balcony'
 /** Which floors make sense where (the first one is the default). */
 export const ZONE_FLOORS: Record<FloorZone, readonly FloorId[]> = {
   main: ['oakLight', 'oakNatural', 'walnut', 'herringbone', 'concrete', 'hexGrey', 'hexCharcoal', 'terracotta'],
-  hall: ['oakLight', 'oakNatural', 'walnut', 'herringbone', 'concrete', 'hexGrey', 'hexCharcoal', 'terracotta', 'cementQuarter'],
+  hall: [
+    'oakLight',
+    'oakNatural',
+    'walnut',
+    'herringbone',
+    'concrete',
+    'hexGrey',
+    'hexCharcoal',
+    'terracotta',
+    'cementQuarter',
+  ],
   bath: ['porcelainGrey', 'cementQuarter', 'hexGrey', 'hexCharcoal', 'concrete', 'terracotta'],
   balcony: ['balconyGrey', 'terracotta', 'concrete', 'hexGrey', 'hexCharcoal', 'cementQuarter'],
 }
@@ -84,8 +94,10 @@ const HEX_COLOR = /^#[0-9a-f]{6}$/i
 /** `<wall>:<+|->:<room>` */
 const FACE_ID = /^[\w-]+:[+-]:[\w-]+$/
 
-const color = (v: unknown, fallback: string) => (typeof v === 'string' && HEX_COLOR.test(v) ? v.toLowerCase() : fallback)
-const oneOf = <T extends string>(v: unknown, options: readonly T[], fallback: T): T => (options.includes(v as T) ? (v as T) : fallback)
+const color = (v: unknown, fallback: string) =>
+  typeof v === 'string' && HEX_COLOR.test(v) ? v.toLowerCase() : fallback
+const oneOf = <T extends string>(v: unknown, options: readonly T[], fallback: T): T =>
+  options.includes(v as T) ? (v as T) : fallback
 
 /**
  * Reads `finishes` from a layout file: missing or unknown values fall back to
@@ -108,15 +120,22 @@ export function normalizeFinishes(raw: unknown): Finishes {
     hexBlend: r.hexBlend === true,
     wallPaint: color(r.wallPaint, d.wallPaint),
     paint: Object.fromEntries(
-      Object.entries(r.paint && typeof r.paint === 'object' ? (r.paint as Record<string, unknown>) : {}).flatMap(([k, v]) =>
-        FACE_ID.test(k) && typeof v === 'string' && HEX_COLOR.test(v) ? [[k, v.toLowerCase()]] : [],
+      Object.entries(r.paint && typeof r.paint === 'object' ? (r.paint as Record<string, unknown>) : {}).flatMap(
+        ([k, v]) => (FACE_ID.test(k) && typeof v === 'string' && HEX_COLOR.test(v) ? [[k, v.toLowerCase()]] : []),
       ),
     ),
     ceilingPaint: color(r.ceilingPaint, d.ceilingPaint),
     accentWall: oneOf(r.accentWall, ACCENT_WALLS, d.accentWall),
     accentColor: color(r.accentColor, d.accentColor),
-    bathTile: { layout: oneOf(tile.layout, TILE_LAYOUTS, d.bathTile.layout), color: color(tile.color, d.bathTile.color) },
-    shower: { screen: oneOf(shower.screen, SHOWER_SCREENS, d.shower.screen), curtainColor: color(shower.curtainColor, d.shower.curtainColor), fittings: oneOf(shower.fittings, SHOWER_FITTINGS, d.shower.fittings) },
+    bathTile: {
+      layout: oneOf(tile.layout, TILE_LAYOUTS, d.bathTile.layout),
+      color: color(tile.color, d.bathTile.color),
+    },
+    shower: {
+      screen: oneOf(shower.screen, SHOWER_SCREENS, d.shower.screen),
+      curtainColor: color(shower.curtainColor, d.shower.curtainColor),
+      fittings: oneOf(shower.fittings, SHOWER_FITTINGS, d.shower.fittings),
+    },
     ...(isDefaultStructure(structure) ? {} : { structure }),
   }
 }
@@ -136,4 +155,5 @@ export const sameFinishes = (a: Finishes, b: Finishes) => JSON.stringify(a) === 
 export const isDefaultFinishes = (f: Finishes) => sameFinishes(f, DEFAULT_FINISHES)
 
 /** True when the hall's hexagons should spill into the main room: only hex into a non-hex floor. */
-export const showsHexBlend = (f: Finishes) => f.hexBlend && f.floors.hall.startsWith('hex') && !f.floors.main.startsWith('hex')
+export const showsHexBlend = (f: Finishes) =>
+  f.hexBlend && f.floors.hall.startsWith('hex') && !f.floors.main.startsWith('hex')

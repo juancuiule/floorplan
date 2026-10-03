@@ -8,12 +8,20 @@ const WIDE_FOV = 38
 /** Vertical field of view, in degrees, for eye-level views. */
 export const EYE_FOV = 64
 
-const FOV: Record<ViewPreset, number> = { 'iso-balcony': WIDE_FOV, 'iso-entry': WIDE_FOV, top: WIDE_FOV, 'from-balcony': EYE_FOV, 'from-entry': EYE_FOV }
+const FOV: Record<ViewPreset, number> = {
+  'iso-balcony': WIDE_FOV,
+  'iso-entry': WIDE_FOV,
+  top: WIDE_FOV,
+  'from-balcony': EYE_FOV,
+  'from-entry': EYE_FOV,
+}
 
 /** The open plan's camera presets (src/project/derived.ts), with a lens each. */
-export const PRESETS: Record<ViewPreset, { label: string; position: Vec3; target: Vec3; fov: number }> = Object.fromEntries(
-  (Object.keys(FOV) as ViewPreset[]).map((id) => [id, { ...CAMERAS[id], fov: FOV[id] }]),
-) as Record<ViewPreset, { label: string; position: Vec3; target: Vec3; fov: number }>
+export const PRESETS: Record<ViewPreset, { label: string; position: Vec3; target: Vec3; fov: number }> =
+  Object.fromEntries((Object.keys(FOV) as ViewPreset[]).map((id) => [id, { ...CAMERAS[id], fov: FOV[id] }])) as Record<
+    ViewPreset,
+    { label: string; position: Vec3; target: Vec3; fov: number }
+  >
 
 type Preset = (typeof PRESETS)[ViewPreset]
 

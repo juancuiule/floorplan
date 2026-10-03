@@ -15,7 +15,8 @@ export type OptionSpec = (
 export interface FurnitureSpec {
   label: string
   note: string
-  group: 'Sleep' | 'Sit' | 'Work & dine' | 'Storage' | 'Kitchen & wall' | 'Balcony' | 'Decor' | 'Appliances & electronics'
+  group:
+    'Sleep' | 'Sit' | 'Work & dine' | 'Storage' | 'Kitchen & wall' | 'Balcony' | 'Decor' | 'Appliances & electronics'
   mount: Mount
   /**
    * Small pieces that stand on counters, desks and shelves (a mixer, mugs,
@@ -445,7 +446,8 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     mount: 'surface',
     size: [0.42, 0.84, 0.44],
     // The footprint and height follow the type (the model itself is fixed-size).
-    sizeFor: (o) => (o.variant === 'stool' ? [0.44, 0.46, 0.44] : o.variant === 'bar' ? [0.47, 0.66, 0.47] : [0.42, 0.84, 0.44]),
+    sizeFor: (o) =>
+      o.variant === 'stool' ? [0.44, 0.46, 0.44] : o.variant === 'bar' ? [0.47, 0.66, 0.47] : [0.42, 0.84, 0.44],
     uses: ['body'],
     finish: finish(BODY_FINISHES[1].color),
     options: { variant: 'chair', color: '#e0662f' },
@@ -963,7 +965,12 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
     uses: ['metal'],
     finish: finish(PLY, '#161718'),
     options: { inches: 55, screen: 'off', youtube: '', image: '' },
-    optionSpecs: [{ key: 'inches', label: 'Size', kind: 'chips', choices: tvSizeChoices }, tvScreen, tvImage, tvYouTube],
+    optionSpecs: [
+      { key: 'inches', label: 'Size', kind: 'chips', choices: tvSizeChoices },
+      tvScreen,
+      tvImage,
+      tvYouTube,
+    ],
     editable: [],
   },
   fridge: {
@@ -1017,7 +1024,16 @@ export const FURNITURE: Record<FurnitureType, FurnitureSpec> = {
   },
 }
 
-export const FURNITURE_GROUPS: FurnitureSpec['group'][] = ['Sleep', 'Sit', 'Work & dine', 'Storage', 'Kitchen & wall', 'Balcony', 'Decor', 'Appliances & electronics']
+export const FURNITURE_GROUPS: FurnitureSpec['group'][] = [
+  'Sleep',
+  'Sit',
+  'Work & dine',
+  'Storage',
+  'Kitchen & wall',
+  'Balcony',
+  'Decor',
+  'Appliances & electronics',
+]
 
 /** Presentation only: extra words the panel search matches. */
 export const FURNITURE_KEYWORDS: Partial<Record<FurnitureType, string>> = {

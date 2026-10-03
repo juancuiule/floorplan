@@ -78,7 +78,19 @@ export interface PlantItem extends Groupable {
   host?: string
 }
 
-export type LampType = 'arc' | 'tripod' | 'table' | 'mushroom' | 'flowerpot' | 'pendant' | 'globe' | 'lantern' | 'sconce' | 'exit' | 'exitCeiling' | 'string'
+export type LampType =
+  | 'arc'
+  | 'tripod'
+  | 'table'
+  | 'mushroom'
+  | 'flowerpot'
+  | 'pendant'
+  | 'globe'
+  | 'lantern'
+  | 'sconce'
+  | 'exit'
+  | 'exitCeiling'
+  | 'string'
 export type Warmth = 2700 | 3000 | 4000
 
 export interface LampItem extends Groupable {

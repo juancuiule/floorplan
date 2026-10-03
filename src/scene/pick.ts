@@ -36,7 +36,12 @@ const raycaster = new THREE.Raycaster()
 const ndc = new THREE.Vector2()
 
 /** The first surface the eye sees under a DOM pointer event (faded walls and helpers are looked past). */
-export function pick(e: { clientX: number; clientY: number }, dom: HTMLElement, camera: THREE.Camera, scene: THREE.Scene): THREE.Intersection | null {
+export function pick(
+  e: { clientX: number; clientY: number },
+  dom: HTMLElement,
+  camera: THREE.Camera,
+  scene: THREE.Scene,
+): THREE.Intersection | null {
   const r = dom.getBoundingClientRect()
   ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1)
   raycaster.setFromCamera(ndc, camera)

@@ -71,16 +71,42 @@ export function Toolbar() {
       </div>
 
       <div className="tb-main">
-        <div className="group" role="radiogroup" aria-label="View mode" onKeyDown={(e) => onRadioKeys(e, MODES.map((m) => m.id), modeIndex, setMode)}>
+        <div
+          className="group"
+          role="radiogroup"
+          aria-label="View mode"
+          onKeyDown={(e) =>
+            onRadioKeys(
+              e,
+              MODES.map((m) => m.id),
+              modeIndex,
+              setMode,
+            )
+          }
+        >
           {MODES.map((m, i) => (
-            <button key={m.id} type="button" role="radio" aria-checked={mode === m.id} tabIndex={i === modeIndex ? 0 : -1} data-tip={m.tip} aria-keyshortcuts="X" onClick={() => setMode(m.id)}>
+            <button
+              key={m.id}
+              type="button"
+              role="radio"
+              aria-checked={mode === m.id}
+              tabIndex={i === modeIndex ? 0 : -1}
+              data-tip={m.tip}
+              aria-keyshortcuts="X"
+              onClick={() => setMode(m.id)}
+            >
               <Icon name={m.icon} />
               <span className="tb-label mid">{m.label}</span>
             </button>
           ))}
         </div>
 
-        <div className="group cameras" role="radiogroup" aria-label="Camera" onKeyDown={(e) => onRadioKeys(e, PRESET_IDS, presetIndex, goTo)}>
+        <div
+          className="group cameras"
+          role="radiogroup"
+          aria-label="Camera"
+          onKeyDown={(e) => onRadioKeys(e, PRESET_IDS, presetIndex, goTo)}
+        >
           {PRESET_IDS.map((p, i) => (
             <button
               key={p}
@@ -115,7 +141,9 @@ export function Toolbar() {
             className="flip-side"
             aria-disabled={!flippable}
             aria-label={flippable ? `View from the ${viewSide(preset, !flipped)} side` : 'Flip side (iso views only)'}
-            data-tip={flippable ? `View from the ${viewSide(preset, !flipped)} side (F)` : 'Flip side: iso views only (F)'}
+            data-tip={
+              flippable ? `View from the ${viewSide(preset, !flipped)} side (F)` : 'Flip side: iso views only (F)'
+            }
             aria-keyshortcuts="F"
             onClick={() => flippable && flipView()}
           >
@@ -124,7 +152,13 @@ export function Toolbar() {
         </div>
 
         <div className="group" role="group" aria-label="Space tools">
-          <button type="button" aria-pressed={showDims} data-tip="Show room dimensions (M)" aria-keyshortcuts="M" onClick={toggleDims}>
+          <button
+            type="button"
+            aria-pressed={showDims}
+            data-tip="Show room dimensions (M)"
+            aria-keyshortcuts="M"
+            onClick={toggleDims}
+          >
             <Icon name="ruler" />
             <span className="tb-label opt">Dimensions</span>
           </button>

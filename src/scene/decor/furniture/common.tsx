@@ -23,11 +23,32 @@ interface BProps {
 
 /** An outlined box: size, position, material. */
 export function B({ s, p, m, r, edges = true, shadow = true }: BProps) {
-  return <Box size={s} position={p} rotation={r} material={m} edgeMaterial={edges ? sharedEdgeMaterial() : undefined} castShadow={shadow} />
+  return (
+    <Box
+      size={s}
+      position={p}
+      rotation={r}
+      material={m}
+      edgeMaterial={edges ? sharedEdgeMaterial() : undefined}
+      castShadow={shadow}
+    />
+  )
 }
 
 /** A cylinder between two points (legs, rods, rails). */
-export function Rod({ a, b, radius, m, segments = 10 }: { a: Vec3; b: Vec3; radius: number; m: THREE.Material; segments?: number }) {
+export function Rod({
+  a,
+  b,
+  radius,
+  m,
+  segments = 10,
+}: {
+  a: Vec3
+  b: Vec3
+  radius: number
+  m: THREE.Material
+  segments?: number
+}) {
   const { position, quaternion, length } = useMemo(() => {
     const va = new THREE.Vector3(...a)
     const vb = new THREE.Vector3(...b)
@@ -45,7 +66,20 @@ export function Rod({ a, b, radius, m, segments = 10 }: { a: Vec3; b: Vec3; radi
   )
 }
 
-const BOOK_COLORS = ['#b34a3c', '#e2d4b7', '#2f4d6b', '#d7a13a', '#3f6b4f', '#f1ede4', '#6b3d57', '#1f2326', '#c97b4a', '#8aa3b8', '#e8e2d3', '#5a4632']
+const BOOK_COLORS = [
+  '#b34a3c',
+  '#e2d4b7',
+  '#2f4d6b',
+  '#d7a13a',
+  '#3f6b4f',
+  '#f1ede4',
+  '#6b3d57',
+  '#1f2326',
+  '#c97b4a',
+  '#8aa3b8',
+  '#e8e2d3',
+  '#5a4632',
+]
 
 /**
  * A row of books filling a cell of the given size, standing on y = 0 and
@@ -102,13 +136,20 @@ export function Books({ w, h, d, seed, p }: { w: number; h: number; d: number; s
 
 /** A soft pillow (see pillowGeometry): position, rotation, material. */
 export function Pillow({ s, p, r, m }: { s: Vec3; p: Vec3; r?: Vec3; m: THREE.Material }) {
-  return <mesh geometry={pillowGeometry(s[0], s[1], s[2])} position={p} rotation={r} material={m} castShadow receiveShadow />
+  return (
+    <mesh geometry={pillowGeometry(s[0], s[1], s[2])} position={p} rotation={r} material={m} castShadow receiveShadow />
+  )
 }
 
 /** Dark oval finger-pull cut into a door. */
 export function FingerHole({ p, vertical = true }: { p: Vec3; vertical?: boolean }) {
   return (
-    <mesh position={p} rotation={[Math.PI / 2, 0, 0]} scale={vertical ? [1, 1, 2.2] : [2.2, 1, 1]} material={mat('#1b1714', 'matte')}>
+    <mesh
+      position={p}
+      rotation={[Math.PI / 2, 0, 0]}
+      scale={vertical ? [1, 1, 2.2] : [2.2, 1, 1]}
+      material={mat('#1b1714', 'matte')}
+    >
       <cylinderGeometry args={[0.012, 0.012, 0.004, 16]} />
     </mesh>
   )

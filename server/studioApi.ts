@@ -47,7 +47,11 @@ const artUrl = (name: string) => `/artwork/${encodeURIComponent(name)}`
 
 async function uniqueName(dir: string, wanted: string) {
   const ext = path.extname(wanted).toLowerCase()
-  const stem = path.basename(wanted, path.extname(wanted)).replace(/[^\w.\- ]+/g, '-').slice(0, 80) || 'artwork'
+  const stem =
+    path
+      .basename(wanted, path.extname(wanted))
+      .replace(/[^\w.\- ]+/g, '-')
+      .slice(0, 80) || 'artwork'
   let name = `${stem}${ext}`
   for (let i = 2; ; i++) {
     try {
@@ -77,7 +81,12 @@ export function checkImageUrl(raw: string): URL {
   }
   if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new ImageError('Only http and https links')
   const h = u.hostname.toLowerCase()
-  if (h === 'localhost' || h.endsWith('.local') || /^(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.|\[?::1\]?$|\[?f[cd])/.test(h)) throw new ImageError('Not a public address')
+  if (
+    h === 'localhost' ||
+    h.endsWith('.local') ||
+    /^(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.|\[?::1\]?$|\[?f[cd])/.test(h)
+  )
+    throw new ImageError('Not a public address')
   return u
 }
 
@@ -90,7 +99,8 @@ async function fetchImage(raw: string): Promise<{ type: string; body: Buffer }> 
     signal: AbortSignal.timeout(15000),
     redirect: 'follow',
     headers: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36',
+      'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36',
       Accept: 'image/webp,image/jpeg,image/png,image/avif,image/*;q=0.8',
       'Accept-Language': 'en,es;q=0.9',
     },
@@ -122,7 +132,8 @@ export function studioApi(): Plugin {
       }
 
       server.watcher.add(path.join(dataDir, 'decor*.json'))
-      const layoutOf = (file: string) => (path.dirname(file) === dataDir ? path.basename(file).match(/^decor(?:\.([a-z0-9-]+))?\.json$/) : null)
+      const layoutOf = (file: string) =>
+        path.dirname(file) === dataDir ? path.basename(file).match(/^decor(?:\.([a-z0-9-]+))?\.json$/) : null
       server.watcher.on('change', (file) => {
         const m = layoutOf(file)
         if (!m) return
@@ -140,8 +151,14 @@ export function studioApi(): Plugin {
         try {
           if (url.pathname === '/api/artwork' && req.method === 'GET') {
             await fs.mkdir(artDir, { recursive: true })
-            const files = (await fs.readdir(artDir)).filter((f) => IMAGE_EXT.test(f)).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
-            return send(res, 200, files.map((name) => ({ name, url: artUrl(name) })))
+            const files = (await fs.readdir(artDir))
+              .filter((f) => IMAGE_EXT.test(f))
+              .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+            return send(
+              res,
+              200,
+              files.map((name) => ({ name, url: artUrl(name) })),
+            )
           }
           if (url.pathname === '/api/artwork' && req.method === 'POST') {
             const wanted = url.searchParams.get('name') ?? 'artwork.png'
@@ -161,7 +178,8 @@ export function studioApi(): Plugin {
           }
           if (url.pathname === '/api/layouts') {
             const file = url.searchParams.get('file')
-            if (req.method === 'GET') return send(res, 200, await listLayouts(dataDir, url.searchParams.get('all') === '1'))
+            if (req.method === 'GET')
+              return send(res, 200, await listLayouts(dataDir, url.searchParams.get('all') === '1'))
             if (req.method === 'POST') {
               const body = JSON.parse((await readBody(req, 5 * 1024 * 1024)).toString('utf8') || '{}')
               return send(res, 201, await createLayout(dataDir, body))
@@ -192,7 +210,12 @@ export function studioApi(): Plugin {
           send(res, 404, { error: 'Not found' })
         } catch (e) {
           if (e instanceof LayoutError || e instanceof ImageError) return send(res, e.status, { error: e.message })
-          if (e instanceof Error && (e.name === 'TimeoutError' || e.name === 'TypeError') && url.pathname === '/api/image') return send(res, 502, { error: 'Could not reach that image' })
+          if (
+            e instanceof Error &&
+            (e.name === 'TimeoutError' || e.name === 'TypeError') &&
+            url.pathname === '/api/image'
+          )
+            return send(res, 502, { error: 'Could not reach that image' })
           if (e instanceof SyntaxError) return send(res, 400, { error: 'Malformed JSON' })
           send(res, 500, { error: e instanceof Error ? e.message : String(e) })
         }

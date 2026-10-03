@@ -18,7 +18,8 @@ const BLUE = '#3b82f6'
 const RED = '#e5484d'
 const noRaycast = () => {}
 
-const isFloorFurniture = (i: DecorItem | undefined): i is FurnitureItem => !!i && i.kind === 'furniture' && mountOf(i) === 'surface' && i.at[1] > -1
+const isFloorFurniture = (i: DecorItem | undefined): i is FurnitureItem =>
+  !!i && i.kind === 'furniture' && mountOf(i) === 'surface' && i.at[1] > -1
 
 export function EditOverlays() {
   const camera = useThree((s) => s.camera)
@@ -58,23 +59,44 @@ export function EditOverlays() {
   return (
     <group>
       {isFloorFurniture(active) && active.at[1] < 0.3 && (
-        <FootprintRect fp={footprintOf(active)} y={active.at[1]} color={bad ? RED : BLUE} fill={movingId ? 0.22 : 0.12} />
+        <FootprintRect
+          fp={footprintOf(active)}
+          y={active.at[1]}
+          color={bad ? RED : BLUE}
+          fill={movingId ? 0.22 : 0.12}
+        />
       )}
-      {active && !isFloorFurniture(active) && movingId && mountOf(active) === 'surface' && active.at[1] > -1 && <Disc at={active.at} />}
+      {active && !isFloorFurniture(active) && movingId && mountOf(active) === 'surface' && active.at[1] > -1 && (
+        <Disc at={active.at} />
+      )}
       {col?.overlaps.map((id) => {
         const o = items.find((i) => i.id === id)
-        return o && isFloorFurniture(o) ? <FootprintRect key={id} fp={footprintOf(o)} y={o.at[1]} color={RED} fill={0.1} /> : null
+        return o && isFloorFurniture(o) ? (
+          <FootprintRect key={id} fp={footprintOf(o)} y={o.at[1]} color={RED} fill={0.1} />
+        ) : null
       })}
       {selectedIds.length > 1 &&
         items.map((o) =>
-          o !== active && selectedIds.includes(o.id) && isFloorFurniture(o) && o.at[1] < 0.3 ? <FootprintRect key={`sel-${o.id}`} fp={footprintOf(o)} y={o.at[1]} color={BLUE} fill={movingId ? 0.16 : 0.08} /> : null,
+          o !== active && selectedIds.includes(o.id) && isFloorFurniture(o) && o.at[1] < 0.3 ? (
+            <FootprintRect
+              key={`sel-${o.id}`}
+              fp={footprintOf(o)}
+              y={o.at[1]}
+              color={BLUE}
+              fill={movingId ? 0.16 : 0.08}
+            />
+          ) : null,
         )}
       {movingId && snap.map((f, i) => <SnapStrip key={i} face={f} />)}
       {movingId && invalid && <NoDrop point={invalid.point} normal={invalid.normal} />}
       {guides && <GuideLines guides={guides} />}
-      {active && !movingId && selectedId === active.id && selectedIds.length <= 1 && mountOf(active) === 'surface' && 'rotation' in active && active.at[1] > -1 && (
-        <RotateRing item={active} rotating={rotating} />
-      )}
+      {active &&
+        !movingId &&
+        selectedId === active.id &&
+        selectedIds.length <= 1 &&
+        mountOf(active) === 'surface' &&
+        'rotation' in active &&
+        active.at[1] > -1 && <RotateRing item={active} rotating={rotating} />}
     </group>
   )
 }
@@ -94,12 +116,33 @@ function FootprintRect({ fp, y, color, fill }: { fp: Footprint; y: number; color
     [hw, hd],
   )
   return (
-    <group position={[fp.cx, y + 0.006, fp.cz]} rotation={[0, THREE.MathUtils.degToRad(fp.rotation), 0]} userData={{ editHelper: true }}>
+    <group
+      position={[fp.cx, y + 0.006, fp.cz]}
+      rotation={[0, THREE.MathUtils.degToRad(fp.rotation), 0]}
+      userData={{ editHelper: true }}
+    >
       <mesh rotation={[-Math.PI / 2, 0, 0]} raycast={noRaycast} renderOrder={4}>
         <planeGeometry args={[hw * 2, hd * 2]} />
-        <meshBasicMaterial color={color} transparent opacity={fill} depthWrite={false} polygonOffset polygonOffsetFactor={-4} toneMapped={false} />
+        <meshBasicMaterial
+          color={color}
+          transparent
+          opacity={fill}
+          depthWrite={false}
+          polygonOffset
+          polygonOffsetFactor={-4}
+          toneMapped={false}
+        />
       </mesh>
-      <Line points={pts} color={color} lineWidth={2} transparent opacity={0.9} depthTest={false} renderOrder={11} raycast={noRaycast} />
+      <Line
+        points={pts}
+        color={color}
+        lineWidth={2}
+        transparent
+        opacity={0.9}
+        depthTest={false}
+        renderOrder={11}
+        raycast={noRaycast}
+      />
     </group>
   )
 }
@@ -120,11 +163,42 @@ const labelStyle = (color: string): React.CSSProperties => ({
 function GuideLines({ guides }: { guides: Guides }) {
   return (
     <group userData={{ editHelper: true }}>
-      {guides.align.length > 0 && <Line segments points={guides.align} color={GUIDE} lineWidth={1.75} depthTest={false} renderOrder={13} raycast={noRaycast} />}
-      {guides.gallery.length > 0 && (
-        <Line segments points={guides.gallery} color={GALLERY} lineWidth={1.25} dashed dashSize={0.04} gapSize={0.03} depthTest={false} renderOrder={13} raycast={noRaycast} />
+      {guides.align.length > 0 && (
+        <Line
+          segments
+          points={guides.align}
+          color={GUIDE}
+          lineWidth={1.75}
+          depthTest={false}
+          renderOrder={13}
+          raycast={noRaycast}
+        />
       )}
-      {guides.spacing.length > 0 && <Line segments points={guides.spacing} color={GUIDE} lineWidth={1.5} depthTest={false} renderOrder={13} raycast={noRaycast} />}
+      {guides.gallery.length > 0 && (
+        <Line
+          segments
+          points={guides.gallery}
+          color={GALLERY}
+          lineWidth={1.25}
+          dashed
+          dashSize={0.04}
+          gapSize={0.03}
+          depthTest={false}
+          renderOrder={13}
+          raycast={noRaycast}
+        />
+      )}
+      {guides.spacing.length > 0 && (
+        <Line
+          segments
+          points={guides.spacing}
+          color={GUIDE}
+          lineWidth={1.5}
+          depthTest={false}
+          renderOrder={13}
+          raycast={noRaycast}
+        />
+      )}
       {guides.labels.slice(0, 8).map((l, i) => (
         <Html key={i} position={l.at} center zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
           <div style={labelStyle(l.kind === 'gallery' ? GALLERY : GUIDE)}>{l.text}</div>
@@ -139,7 +213,14 @@ function Disc({ at }: { at: [number, number, number] }) {
   return (
     <mesh position={[at[0], at[1] + 0.006, at[2]]} rotation={[-Math.PI / 2, 0, 0]} raycast={noRaycast} renderOrder={4}>
       <ringGeometry args={[0.12, 0.15, 48]} />
-      <meshBasicMaterial color={BLUE} transparent opacity={0.8} depthWrite={false} depthTest={false} toneMapped={false} />
+      <meshBasicMaterial
+        color={BLUE}
+        transparent
+        opacity={0.8}
+        depthWrite={false}
+        depthTest={false}
+        toneMapped={false}
+      />
     </mesh>
   )
 }
@@ -176,9 +257,26 @@ function SnapStrip({ face }: { face: SnapFace }) {
     <group position={pos} rotation={[0, rotY, 0]} userData={{ editHelper: true }}>
       <mesh position={[0, h / 2, 0]} raycast={noRaycast} renderOrder={4}>
         <planeGeometry args={[len, h]} />
-        <meshBasicMaterial color={BLUE} transparent opacity={0.2} side={THREE.DoubleSide} depthWrite={false} toneMapped={false} />
+        <meshBasicMaterial
+          color={BLUE}
+          transparent
+          opacity={0.2}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+          toneMapped={false}
+        />
       </mesh>
-      <Line points={edges} color={BLUE} lineWidth={1.5} transparent opacity={0.85} dashed dashSize={0.05} gapSize={0.035} raycast={noRaycast} />
+      <Line
+        points={edges}
+        color={BLUE}
+        lineWidth={1.5}
+        transparent
+        opacity={0.85}
+        dashed
+        dashSize={0.05}
+        gapSize={0.035}
+        raycast={noRaycast}
+      />
       <Line points={base} color={BLUE} lineWidth={4} raycast={noRaycast} renderOrder={11} depthTest={false} />
     </group>
   )
@@ -186,7 +284,10 @@ function SnapStrip({ face }: { face: SnapFace }) {
 
 /** A red "no entry" sign on the surface under the pointer. */
 function NoDrop({ point, normal }: { point: THREE.Vector3; normal: THREE.Vector3 }) {
-  const q = useMemo(() => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal.clone().normalize()), [normal])
+  const q = useMemo(
+    () => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal.clone().normalize()),
+    [normal],
+  )
   const pos = useMemo(() => point.clone().addScaledVector(normal, 0.01), [point, normal])
   const r = 0.09
   const slash = useMemo(
@@ -242,7 +343,10 @@ function RotateRing({ item, rotating }: { item: DecorItem & { rotation: number }
 
   const angleAt = (clientX: number, clientY: number): number | null => {
     const rect = gl.domElement.getBoundingClientRect()
-    const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1)
+    const ndc = new THREE.Vector2(
+      ((clientX - rect.left) / rect.width) * 2 - 1,
+      -((clientY - rect.top) / rect.height) * 2 + 1,
+    )
     const ray = new THREE.Raycaster()
     ray.setFromCamera(ndc, camera)
     const p = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -y), new THREE.Vector3())
@@ -268,7 +372,7 @@ function RotateRing({ item, rotating }: { item: DecorItem & { rotation: number }
       const a = angleAt(ev.clientX, ev.clientY)
       if (a === null) return
       const step = snapStep(item, ev.shiftKey)
-      const rotation = ((Math.round((g.rot0 + a - g.a0) / step) * step) % 360 + 360) % 360
+      const rotation = (((Math.round((g.rot0 + a - g.a0) / step) * step) % 360) + 360) % 360
       const cur = useDecor.getState().items.find((i) => i.id === item.id)
       if (cur && 'rotation' in cur && cur.rotation !== rotation) useDecor.getState().update(item.id, { rotation })
     }
@@ -289,7 +393,12 @@ function RotateRing({ item, rotating }: { item: DecorItem & { rotation: number }
       // Put back the very same object so history sees no change at all.
       const original = gesture.current.original
       // Riders turned with it go back too.
-      useDecor.setState((s) => ({ items: carry(s.items, s.items.map((i) => (i.id === original.id ? original : i))) }))
+      useDecor.setState((s) => ({
+        items: carry(
+          s.items,
+          s.items.map((i) => (i.id === original.id ? original : i)),
+        ),
+      }))
       end()
     }
     window.addEventListener('pointermove', move)
@@ -309,7 +418,13 @@ function RotateRing({ item, rotating }: { item: DecorItem & { rotation: number }
     <group position={[cx, y + 0.02, cz]} userData={{ editHelper: true }}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} raycast={noRaycast} renderOrder={6}>
         <ringGeometry args={[radius - 0.012, radius + 0.012, 96]} />
-        <meshBasicMaterial color={BLUE} transparent opacity={active ? 0.95 : 0.55} depthWrite={false} toneMapped={false} />
+        <meshBasicMaterial
+          color={BLUE}
+          transparent
+          opacity={active ? 0.95 : 0.55}
+          depthWrite={false}
+          toneMapped={false}
+        />
       </mesh>
       {/* Knob on the item's front: which way it faces, and where to grab. */}
       <group rotation={[0, rot, 0]}>
@@ -338,7 +453,17 @@ function RotateRing({ item, rotating }: { item: DecorItem & { rotation: number }
       </mesh>
       {rotating && (
         <Html position={[0, 0.05, 0]} center zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
-          <div style={{ padding: '3px 8px', borderRadius: 999, background: 'rgb(30 29 27 / 0.88)', color: '#fff', font: '12px ui-sans-serif, system-ui, sans-serif', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+          <div
+            style={{
+              padding: '3px 8px',
+              borderRadius: 999,
+              background: 'rgb(30 29 27 / 0.88)',
+              color: '#fff',
+              font: '12px ui-sans-serif, system-ui, sans-serif',
+              fontVariantNumeric: 'tabular-nums',
+              whiteSpace: 'nowrap',
+            }}
+          >
             {Math.round(item.rotation)}°
           </div>
         </Html>

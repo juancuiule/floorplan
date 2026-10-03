@@ -8,7 +8,17 @@ import { followLead } from '../../decor/arrange'
 import { editRefs, useEdit } from '../../decor/edit'
 import { translated } from '../../decor/extent'
 import { buildGuideCtx, guideMove, worldGuides, type GuideCtx } from '../../decor/guides'
-import { facingOf, facingRotation, facingVector, mountOf, placeAt, readIntersection, slidesOnFloor, type SnapFace, type SurfaceHit } from '../../decor/placement'
+import {
+  facingOf,
+  facingRotation,
+  facingVector,
+  mountOf,
+  placeAt,
+  readIntersection,
+  slidesOnFloor,
+  type SnapFace,
+  type SurfaceHit,
+} from '../../decor/placement'
 import { settleMoved } from '../../decor/rest'
 import { useDecor } from '../../decor/store'
 import { UNPLACED_Y, type DecorItem } from '../../model/decor'
@@ -82,7 +92,10 @@ function moveSelection(item: DecorItem, patch: Partial<DecorItem>, faces: SnapFa
   const s = useDecor.getState()
   const leadTo = { ...item, ...patch } as DecorItem
   const leadFrom = s.backup ?? item
-  const moved: DecorItem[] = [leadTo, ...s.followers.map((f) => ({ ...f, ...followLead(leadFrom, leadTo, f) }) as DecorItem)]
+  const moved: DecorItem[] = [
+    leadTo,
+    ...s.followers.map((f) => ({ ...f, ...followLead(leadFrom, leadTo, f) }) as DecorItem),
+  ]
   let guides = null
   if (!free) {
     if (!guideCtx || guideCtxFor !== item.id) {
@@ -91,7 +104,9 @@ function moveSelection(item: DecorItem, patch: Partial<DecorItem>, faces: SnapFa
     }
     const g = guideMove(guideCtx, leadTo, moved, locksOf(faces))
     if (g) {
-      if (g.result.du || g.result.dv) for (let i = 0; i < moved.length; i++) moved[i] = { ...moved[i], at: translated(moved[i].at, g.delta) } as DecorItem
+      if (g.result.du || g.result.dv)
+        for (let i = 0; i < moved.length; i++)
+          moved[i] = { ...moved[i], at: translated(moved[i].at, g.delta) } as DecorItem
       guides = worldGuides(g)
     }
   }
@@ -281,7 +296,11 @@ export function SurfaceEvents({ children }: { children: ReactNode }) {
       moveSelection(item, patch, report.snap, ev.altKey || ev.metaKey || ev.ctrlKey)
       edit.set({ invalid: null, snap: report.snap })
     } else {
-      edit.set({ invalid: { point: under.intersection.point.clone(), normal: hit?.normal ?? new THREE.Vector3(0, 1, 0) }, snap: [], guides: null })
+      edit.set({
+        invalid: { point: under.intersection.point.clone(), normal: hit?.normal ?? new THREE.Vector3(0, 1, 0) },
+        snap: [],
+        guides: null,
+      })
     }
   }
 
@@ -321,7 +340,13 @@ export function SurfaceEvents({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <group ref={root} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onClick={onClick} onPointerLeave={onPointerLeave}>
+    <group
+      ref={root}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onClick={onClick}
+      onPointerLeave={onPointerLeave}
+    >
       {children}
     </group>
   )
@@ -359,7 +384,16 @@ export function DecorLayer() {
   const invalid = useEdit((s) => s.invalid !== null)
   const moving = useDecor((s) => (s.movingId ? (s.isDraft ? 'draft' : 'drag') : null))
   useEffect(() => {
-    const c = rotating || moving === 'drag' ? 'grabbing' : moving && invalid ? 'not-allowed' : moving === 'draft' ? 'copy' : hoverId || handleHover ? 'grab' : ''
+    const c =
+      rotating || moving === 'drag'
+        ? 'grabbing'
+        : moving && invalid
+          ? 'not-allowed'
+          : moving === 'draft'
+            ? 'copy'
+            : hoverId || handleHover
+              ? 'grab'
+              : ''
     gl.domElement.style.cursor = c
   }, [gl, hoverId, handleHover, rotating, invalid, moving])
   useEffect(() => {
@@ -383,7 +417,10 @@ function DecorNode({ item, selected }: { item: DecorItem; selected: boolean }) {
   const ref = useRef<THREE.Group>(null)
   const host = 'host' in item ? item.host : undefined
   const wallMounted = mountOf(item) === 'wall'
-  const rotationY = wallMounted && 'facing' in item && item.facing ? facingRotation[item.facing] : THREE.MathUtils.degToRad('rotation' in item ? item.rotation : 0)
+  const rotationY =
+    wallMounted && 'facing' in item && item.facing
+      ? facingRotation[item.facing]
+      : THREE.MathUtils.degToRad('rotation' in item ? item.rotation : 0)
   const hovered = useEdit((s) => s.hoverId === item.id)
 
   useFrame(() => {
@@ -399,13 +436,25 @@ function DecorNode({ item, selected }: { item: DecorItem; selected: boolean }) {
         {item.kind === 'lamp' && <Lamp item={item} />}
         {item.kind === 'furniture' && <Furniture item={item} />}
       </Suspense>
-      {selected ? <OutlineBox target={ref} color="#3b82f6" opacity={1} /> : hovered && <OutlineBox target={ref} color="#3b82f6" opacity={0.45} />}
+      {selected ? (
+        <OutlineBox target={ref} color="#3b82f6" opacity={1} />
+      ) : (
+        hovered && <OutlineBox target={ref} color="#3b82f6" opacity={0.45} />
+      )}
     </group>
   )
 }
 
 /** A thin box around an item, drawn in world space over everything. */
-function OutlineBox({ target, color, opacity }: { target: React.RefObject<THREE.Group | null>; color: string; opacity: number }) {
+function OutlineBox({
+  target,
+  color,
+  opacity,
+}: {
+  target: React.RefObject<THREE.Group | null>
+  color: string
+  opacity: number
+}) {
   const scene = useThree((s) => s.scene)
   const invalidate = useThree((s) => s.invalidate)
   const helper = useMemo(() => {

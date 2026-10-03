@@ -41,7 +41,17 @@ const SEP = '\u0001'
 const rowsSignature = (s: ReturnType<typeof useDecor.getState>) =>
   s.items
     .filter(isPlaced)
-    .map((i) => [i.id, i.kind, itemLabel(i), itemIcon(i), i.kind === 'artwork' ? i.image : '', lostWallOf(i as HungItem, structureOf(s.finishes)) ?? '', i.groupId ?? ''].join(SEP))
+    .map((i) =>
+      [
+        i.id,
+        i.kind,
+        itemLabel(i),
+        itemIcon(i),
+        i.kind === 'artwork' ? i.image : '',
+        lostWallOf(i as HungItem, structureOf(s.finishes)) ?? '',
+        i.groupId ?? '',
+      ].join(SEP),
+    )
     .join('\n')
 
 export function RoomList() {
@@ -60,7 +70,15 @@ export function RoomList() {
       sig
         ? sig.split('\n').map((line) => {
             const [id, kind, label, icon, image, lostWall, groupId] = line.split(SEP)
-            return { id, kind: kind as DecorKind, label, icon: icon as IconName, image: image || undefined, lostWall: lostWall || undefined, groupId: groupId || undefined }
+            return {
+              id,
+              kind: kind as DecorKind,
+              label,
+              icon: icon as IconName,
+              image: image || undefined,
+              lostWall: lostWall || undefined,
+              groupId: groupId || undefined,
+            }
           })
         : [],
     [sig],
@@ -70,7 +88,9 @@ export function RoomList() {
     for (const r of rows) if (r.groupId) byId.set(r.groupId, [...(byId.get(r.groupId) ?? []), r])
     return [...byId].map(([id, members]) => ({ id, rows: members, name: groupNames[id] || defaultGroupName(members) }))
   }, [rows, groupNames])
-  const groups = TABS.map((t) => ({ ...t, rows: rows.filter((r) => r.kind === t.kind && !r.groupId) })).filter((g) => g.rows.length > 0)
+  const groups = TABS.map((t) => ({ ...t, rows: rows.filter((r) => r.kind === t.kind && !r.groupId) })).filter(
+    (g) => g.rows.length > 0,
+  )
   const selected = useMemo(() => new Set(selectedIds), [selectedIds])
 
   const onSelect = (id: string, e: MouseEvent) => {
@@ -117,7 +137,9 @@ export function RoomList() {
         </button>
       </h2>
       <div id="room-list" className="room-list" ref={listRef} hidden={!open}>
-        {rows.length === 0 && <p className="note">Nothing placed yet. Choose something above, then click in the room to set it down.</p>}
+        {rows.length === 0 && (
+          <p className="note">Nothing placed yet. Choose something above, then click in the room to set it down.</p>
+        )}
         {groupRows.length > 0 && (
           <div className="room-group" role="group" aria-labelledby="room-groups">
             <h3 className="group-label" id="room-groups">
@@ -131,18 +153,43 @@ export function RoomList() {
                 return (
                   <li key={g.id} data-group={g.id}>
                     <div className={`placed-row group-row${all ? ' on' : ''}`}>
-                      <button type="button" className="icon-btn expand" aria-expanded={open} aria-controls={`group-${g.id}`} aria-label={`${open ? 'Hide' : 'Show'} the pieces of ${g.name}`} onClick={() => toggleGroup(g.id)}>
+                      <button
+                        type="button"
+                        className="icon-btn expand"
+                        aria-expanded={open}
+                        aria-controls={`group-${g.id}`}
+                        aria-label={`${open ? 'Hide' : 'Show'} the pieces of ${g.name}`}
+                        onClick={() => toggleGroup(g.id)}
+                      >
                         <Icon name="chevron" size={14} className="disclosure" />
                       </button>
-                      <button type="button" className="placed-main" aria-pressed={all} onClick={(e) => onSelectGroup(g, e)}>
-                        <span className="tile small">{cover?.image ? <img src={cover.image} alt="" loading="lazy" decoding="async" /> : <Icon name="layers" size={16} />}</span>
+                      <button
+                        type="button"
+                        className="placed-main"
+                        aria-pressed={all}
+                        onClick={(e) => onSelectGroup(g, e)}
+                      >
+                        <span className="tile small">
+                          {cover?.image ? (
+                            <img src={cover.image} alt="" loading="lazy" decoding="async" />
+                          ) : (
+                            <Icon name="layers" size={16} />
+                          )}
+                        </span>
                         <span className="placed-name">{g.name}</span>
                       </button>
                     </div>
                     {open && (
                       <ul className="placed group-members" id={`group-${g.id}`}>
                         {g.rows.map((r) => (
-                          <PlacedRow key={r.id} row={r} selected={selected.has(r.id)} primary={r.id === selectedId} onSelect={onSelect} onDelete={onDelete} />
+                          <PlacedRow
+                            key={r.id}
+                            row={r}
+                            selected={selected.has(r.id)}
+                            primary={r.id === selectedId}
+                            onSelect={onSelect}
+                            onDelete={onDelete}
+                          />
                         ))}
                       </ul>
                     )}
@@ -159,7 +206,14 @@ export function RoomList() {
             </h3>
             <ul className="placed">
               {g.rows.map((r) => (
-                <PlacedRow key={r.id} row={r} selected={selected.has(r.id)} primary={r.id === selectedId} onSelect={onSelect} onDelete={onDelete} />
+                <PlacedRow
+                  key={r.id}
+                  row={r}
+                  selected={selected.has(r.id)}
+                  primary={r.id === selectedId}
+                  onSelect={onSelect}
+                  onDelete={onDelete}
+                />
               ))}
             </ul>
           </div>
@@ -190,15 +244,31 @@ const PlacedRow = memo(function PlacedRow({
   return (
     <li ref={ref} className={`placed-row${selected ? ' on' : ''}`} data-row={row.id}>
       <button type="button" className="placed-main" aria-pressed={selected} onClick={(e) => onSelect(row.id, e)}>
-        <span className="tile small">{row.image ? <img src={row.image} alt="" loading="lazy" decoding="async" /> : <Icon name={row.icon} size={16} />}</span>
+        <span className="tile small">
+          {row.image ? (
+            <img src={row.image} alt="" loading="lazy" decoding="async" />
+          ) : (
+            <Icon name={row.icon} size={16} />
+          )}
+        </span>
         <span className="placed-name">{row.label}</span>
         {row.lostWall && (
-          <span className="wall-lost-badge" data-lost-wall={row.lostWall} title={`Hung on the ${WALL_LABELS[row.lostWall] ?? row.lostWall} wall, which this layout removes. Move it to another wall.`}>
+          <span
+            className="wall-lost-badge"
+            data-lost-wall={row.lostWall}
+            title={`Hung on the ${WALL_LABELS[row.lostWall] ?? row.lostWall} wall, which this layout removes. Move it to another wall.`}
+          >
             Wall removed
           </span>
         )}
       </button>
-      <button type="button" className="icon-btn danger" aria-label={`Delete ${row.label}`} title="Delete" onClick={() => onDelete(row.id)}>
+      <button
+        type="button"
+        className="icon-btn danger"
+        aria-label={`Delete ${row.label}`}
+        title="Delete"
+        onClick={() => onDelete(row.id)}
+      >
         <Icon name="trash" size={14} />
       </button>
     </li>

@@ -56,7 +56,8 @@ export function slugify(name: string): string {
   return slug || 'layout'
 }
 
-export const layoutFile = (dataDir: string, slug: string | null) => path.join(dataDir, slug ? `decor.${slug}.json` : 'decor.json')
+export const layoutFile = (dataDir: string, slug: string | null) =>
+  path.join(dataDir, slug ? `decor.${slug}.json` : 'decor.json')
 
 const cleanName = (name: unknown) => {
   if (typeof name !== 'string' || !name.trim()) throw new LayoutError('A layout needs a name')
@@ -114,8 +115,11 @@ export async function listLayouts(dataDir: string, all = false): Promise<LayoutI
       plan: typeof data.plan === 'string' && data.plan ? data.plan : DEFAULT_PLAN,
     })
   }
-  if (!out.some((l) => l.slug === null)) out.push({ slug: null, name: MAIN_NAME, items: 0, updated: new Date(0).toISOString(), plan: DEFAULT_PLAN })
-  return out.sort((a, b) => (a.slug === null ? -1 : b.slug === null ? 1 : a.name.localeCompare(b.name, undefined, { numeric: true })))
+  if (!out.some((l) => l.slug === null))
+    out.push({ slug: null, name: MAIN_NAME, items: 0, updated: new Date(0).toISOString(), plan: DEFAULT_PLAN })
+  return out.sort((a, b) =>
+    a.slug === null ? -1 : b.slug === null ? 1 : a.name.localeCompare(b.name, undefined, { numeric: true }),
+  )
 }
 
 /**

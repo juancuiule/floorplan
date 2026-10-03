@@ -72,7 +72,15 @@ export function Chips<T extends string | number>({
       aria-labelledby={label ? undefined : labelId}
       aria-label={label}
       aria-disabled={disabled || undefined}
-      onKeyDown={(e) => !disabled && onRadioKeys(e, options.map((o) => o.id), index, onChange)}
+      onKeyDown={(e) =>
+        !disabled &&
+        onRadioKeys(
+          e,
+          options.map((o) => o.id),
+          index,
+          onChange,
+        )
+      }
     >
       {options.map((o, i) => (
         <button
@@ -91,12 +99,32 @@ export function Chips<T extends string | number>({
   )
 }
 
-export function Swatches({ value, colors, onChange }: { value: string; colors: { label: string; color: string }[]; onChange: (c: string) => void }) {
+export function Swatches({
+  value,
+  colors,
+  onChange,
+}: {
+  value: string
+  colors: { label: string; color: string }[]
+  onChange: (c: string) => void
+}) {
   const { labelId } = useFieldIds()
   const index = colors.findIndex((c) => c.color.toLowerCase() === value.toLowerCase())
   return (
     <div className="swatches">
-      <div role="radiogroup" aria-labelledby={labelId} className="swatch-set" onKeyDown={(e) => onRadioKeys(e, colors.map((c) => c.color), index, onChange)}>
+      <div
+        role="radiogroup"
+        aria-labelledby={labelId}
+        className="swatch-set"
+        onKeyDown={(e) =>
+          onRadioKeys(
+            e,
+            colors.map((c) => c.color),
+            index,
+            onChange,
+          )
+        }
+      >
         {colors.map((c, i) => (
           <button
             type="button"
@@ -111,7 +139,11 @@ export function Swatches({ value, colors, onChange }: { value: string; colors: {
           />
         ))}
       </div>
-      <label className={`custom-color${index < 0 ? ' on' : ''}`} title="Custom color" style={index < 0 ? { background: value } : undefined}>
+      <label
+        className={`custom-color${index < 0 ? ' on' : ''}`}
+        title="Custom color"
+        style={index < 0 ? { background: value } : undefined}
+      >
         <input type="color" value={value} onChange={(e) => onChange(e.target.value)} aria-label="Custom color" />
       </label>
     </div>
@@ -160,7 +192,13 @@ export function NumberInput({
 
   return (
     <div className="number">
-      <button type="button" className="step" aria-label={`Decrease ${name}`} disabled={min !== undefined && value <= min} onClick={() => stepBy(-1)}>
+      <button
+        type="button"
+        className="step"
+        aria-label={`Decrease ${name}`}
+        disabled={min !== undefined && value <= min}
+        onClick={() => stepBy(-1)}
+      >
         <Icon name="minus" size={14} />
       </button>
       <input
@@ -198,14 +236,34 @@ export function NumberInput({
           {unit}
         </span>
       )}
-      <button type="button" className="step" aria-label={`Increase ${name}`} disabled={max !== undefined && value >= max} onClick={() => stepBy(1)}>
+      <button
+        type="button"
+        className="step"
+        aria-label={`Increase ${name}`}
+        disabled={max !== undefined && value >= max}
+        onClick={() => stepBy(1)}
+      >
         <Icon name="plus" size={14} />
       </button>
     </div>
   )
 }
 
-export function Slider({ value, min, max, step, onChange, format }: { value: number; min: number; max: number; step: number; onChange: (v: number) => void; format: (v: number) => string }) {
+export function Slider({
+  value,
+  min,
+  max,
+  step,
+  onChange,
+  format,
+}: {
+  value: number
+  min: number
+  max: number
+  step: number
+  onChange: (v: number) => void
+  format: (v: number) => string
+}) {
   const { controlId } = useFieldIds()
   return (
     <input
@@ -224,12 +282,27 @@ export function Slider({ value, min, max, step, onChange, format }: { value: num
 }
 
 /** An on/off setting. The label names what happens when it is on. */
-export function Switch({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+export function Switch({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string
+  checked: boolean
+  onChange: (v: boolean) => void
+}) {
   const id = useId()
   return (
     <div className="switch-row">
       <label htmlFor={id}>{label}</label>
-      <button id={id} type="button" role="switch" aria-checked={checked} className="switch" onClick={() => onChange(!checked)}>
+      <button
+        id={id}
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        className="switch"
+        onClick={() => onChange(!checked)}
+      >
         <span className="knob" />
       </button>
     </div>

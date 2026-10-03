@@ -8,7 +8,17 @@ import type { Entry } from './libraryEntries'
 // Catalog lists for furniture, plants and lights. Choosing a row starts placing
 // a new item, which then follows the pointer until the next click.
 
-export function CatalogLibrary({ entries, query, noun, onClear }: { entries: Entry[]; query: string; noun: string; onClear: () => void }) {
+export function CatalogLibrary({
+  entries,
+  query,
+  noun,
+  onClear,
+}: {
+  entries: Entry[]
+  query: string
+  noun: string
+  onClear: () => void
+}) {
   const startPlacing = useDecor((s) => s.startPlacing)
   const groups = useMemo(() => {
     const hits = entries.filter((e) => matches(query, e.name, e.note, e.group, e.keywords))
@@ -62,7 +72,9 @@ const LibraryRow = memo(function LibraryRow({ entry, onPick }: { entry: Entry; o
 export function NoResults({ query, noun, onClear }: { query: string; noun: string; onClear: () => void }) {
   return (
     <div className="empty">
-      <p className="empty-title">Nothing in {noun} matches “{query.trim()}”</p>
+      <p className="empty-title">
+        Nothing in {noun} matches “{query.trim()}”
+      </p>
       <p className="note">Try a shorter word, like a room or a material.</p>
       <button type="button" className="btn" onClick={onClear}>
         Clear search

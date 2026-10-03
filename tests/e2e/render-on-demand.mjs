@@ -10,7 +10,10 @@ mkdirSync(outDir, { recursive: true })
 const file = 'data/decor.furn.json'
 const original = readFileSync(file, 'utf8')
 
-const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--enable-gpu'] })
+const browser = await chromium.launch({
+  executablePath: process.env.CHROME_PATH || undefined,
+  args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--enable-gpu'],
+})
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 })
 page.on('pageerror', (e) => console.log('[pageerror]', e.message))
 const frames = () => page.evaluate(() => window.__frames)

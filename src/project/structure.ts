@@ -90,7 +90,10 @@ function wallRect(w: Wall, s0: number, s1: number): Rect {
 const wallLength = (w: Wall) => Math.hypot(w.b[0] - w.a[0], w.b[1] - w.a[1])
 
 const staticParts = new Map(
-  shell.walls.map((w) => [w.id, { bulges: shell.bulges.filter((b) => b.host === w.id), accents: shell.accentPanels.filter((a) => a.wall === w.id) }]),
+  shell.walls.map((w) => [
+    w.id,
+    { bulges: shell.bulges.filter((b) => b.host === w.id), accents: shell.accentPanels.filter((a) => a.wall === w.id) },
+  ]),
 )
 
 const cache = new Map<string, ActiveShell>()
@@ -128,7 +131,9 @@ export function activeShell(s: Structure = currentStructure()): ActiveShell {
     const aLow = w.a[i] <= w.b[i]
     a[i] = aLow ? lo : hi
     b[i] = aLow ? hi : lo
-    const openings = (w.openings ?? []).filter((o) => o.offset >= keep[0] && o.offset + o.width <= keep[1]).map((o) => ({ ...o, offset: o.offset - keep[0] }))
+    const openings = (w.openings ?? [])
+      .filter((o) => o.offset >= keep[0] && o.offset + o.width <= keep[1])
+      .map((o) => ({ ...o, offset: o.offset - keep[0] }))
     walls.push({ ...w, a, b, openings })
     parts.set(w.id, {
       bulges: own.bulges.map((x) => clipBox(x, w, keep)).filter((x): x is Bulge => !!x),
@@ -142,7 +147,9 @@ export function activeShell(s: Structure = currentStructure()): ActiveShell {
   // The dropped ceiling stays (it hides services) unless raised; where the
   // hall–main wall held its edge, a bulkhead closes the step up to the slab.
   const dropped = shell.ceilings.find((c) => c.id === DROPPED)
-  const ceilings = shell.ceilings.map((c) => (c.id === DROPPED && s.raiseEntryCeiling ? { ...c, height: SLAB_CEILING } : c))
+  const ceilings = shell.ceilings.map((c) =>
+    c.id === DROPPED && s.raiseEntryCeiling ? { ...c, height: SLAB_CEILING } : c,
+  )
   if (dropped && BULKHEAD_WALL && removed.has(BULKHEAD_WALL) && !s.raiseEntryCeiling) {
     const w = shell.walls.find((x) => x.id === BULKHEAD_WALL)!
     const keep = REMOVALS[BULKHEAD_WALL].keep ?? [0, 0]
@@ -165,7 +172,8 @@ export function activeShell(s: Structure = currentStructure()): ActiveShell {
   const floorFills: FloorFill[] = []
   for (const id of s.removedWalls) {
     REMOVALS[id].floors.forEach((f, i) => {
-      if (f.with?.every((o) => removed.has(o)) ?? true) floorFills.push({ id: `${id}:${i}`, rect: f.rect, material: f.material })
+      if (f.with?.every((o) => removed.has(o)) ?? true)
+        floorFills.push({ id: `${id}:${i}`, rect: f.rect, material: f.material })
     })
   }
 
@@ -200,7 +208,13 @@ export function ceilingFitting(p: Vec3, s?: Structure): Vec3 {
  * False when decor hung at plan point (x, z) on wall `host` has lost its wall:
  * the wall was taken out, or that stretch of it was.
  */
-export function hostStands(host: string | undefined, x: number, z: number, s: Structure = currentStructure(), halfWidth = 0): boolean {
+export function hostStands(
+  host: string | undefined,
+  x: number,
+  z: number,
+  s: Structure = currentStructure(),
+  halfWidth = 0,
+): boolean {
   if (!host || !isRemovableWall(host) || !s.removedWalls.includes(host)) return true
   const w = activeShell(s).walls.find((v) => v.id === host)
   if (!w) return false

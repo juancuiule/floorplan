@@ -29,10 +29,11 @@ function check(name, ok, detail = '') {
 const saved = () => JSON.parse(readFileSync(FILE, 'utf8')).items
 const settle = () => page.waitForTimeout(800) // save debounce is 400 ms
 const screen = (p) => page.evaluate((p) => window.__edit.toScreen(p), p)
-const state = () => page.evaluate(() => {
-  const s = window.__edit.decor.getState()
-  return { selectedId: s.selectedId, movingId: s.movingId, canUndo: s.canUndo, canRedo: s.canRedo }
-})
+const state = () =>
+  page.evaluate(() => {
+    const s = window.__edit.decor.getState()
+    return { selectedId: s.selectedId, movingId: s.movingId, canUndo: s.canUndo, canRedo: s.canRedo }
+  })
 const itemIn = (id) => saved().find((i) => i.id === id)
 const near = (a, b, tol = 0.02) => a.every((v, i) => Math.abs(v - b[i]) <= tol)
 const fmt = (a) => `[${a.map((v) => v.toFixed(2)).join(', ')}]`
@@ -53,9 +54,22 @@ const before = saved().length
 // room, backs onto that wall and tucks against the partition, not through it into the shower.
 const desk = await page.evaluate(async () => {
   const m = await import('/src/decor/placement.ts')
-  return m.snapToWalls(2.3, 0.1, { kind: 'furniture', id: 't', type: 'standingDesk', at: [2.3, 0, 0.1], rotation: 0, size: [1.4, 0.75, 0.7], finish: {}, options: {} })
+  return m.snapToWalls(2.3, 0.1, {
+    kind: 'furniture',
+    id: 't',
+    type: 'standingDesk',
+    at: [2.3, 0, 0.1],
+    rotation: 0,
+    size: [1.4, 0.75, 0.7],
+    finish: {},
+    options: {},
+  })
 })
-check('snap: desk by the partition stays in the main room', !!desk && Math.abs(desk.x - 2.9) < 0.02 && Math.abs(desk.z - 0.35) < 0.02, desk ? `x ${desk.x} z ${desk.z}` : 'no snap')
+check(
+  'snap: desk by the partition stays in the main room',
+  !!desk && Math.abs(desk.x - 2.9) < 0.02 && Math.abs(desk.z - 0.35) < 0.02,
+  desk ? `x ${desk.x} z ${desk.z}` : 'no snap',
+)
 
 // 1. Place a sideboard in the middle of the main room.
 await page.getByRole('tab', { name: /Furniture/ }).click()
@@ -196,7 +210,10 @@ await page.waitForTimeout(200)
 await page.screenshot({ path: join(outDir, 'edit-5-overlap.png') })
 await page.mouse.up()
 await settle()
-const overlapText = await page.locator('.editbar-warn').textContent().catch(() => null)
+const overlapText = await page
+  .locator('.editbar-warn')
+  .textContent()
+  .catch(() => null)
 check('overlap: edit bar warns', !!overlapText && /Overlaps|wall/.test(overlapText), overlapText ?? '')
 await page.screenshot({ path: join(outDir, 'edit-6-editbar.png') })
 
@@ -206,7 +223,10 @@ await page.locator('.thumb').first().click()
 const floor = await screen([6.0, 0, 1.6])
 await glide([floor[0] - 30, floor[1]], floor, 6)
 await page.waitForTimeout(200)
-check('invalid: marker over the floor for an artwork', (await page.evaluate(() => window.__edit.edit.getState().invalid !== null)))
+check(
+  'invalid: marker over the floor for an artwork',
+  await page.evaluate(() => window.__edit.edit.getState().invalid !== null),
+)
 await page.screenshot({ path: join(outDir, 'edit-7-invalid.png') })
 await page.keyboard.press('Escape')
 

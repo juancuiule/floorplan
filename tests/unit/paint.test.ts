@@ -27,7 +27,10 @@ describe('paintable faces', () => {
 
 describe('paint finishes', () => {
   it('reads face colors and the ceiling, dropping junk', () => {
-    const f = normalizeFinishes({ paint: { 'side-bath:+:main-room': '#5B5C5F', bad: '#fff', 'x:+:y': 'red' }, ceilingPaint: '#ece4d6' })
+    const f = normalizeFinishes({
+      paint: { 'side-bath:+:main-room': '#5B5C5F', bad: '#fff', 'x:+:y': 'red' },
+      ceilingPaint: '#ece4d6',
+    })
     expect(f.paint).toEqual({ 'side-bath:+:main-room': '#5b5c5f' })
     expect(f.ceilingPaint).toBe('#ece4d6')
     expect(normalizeFinishes({}).paint).toEqual({})

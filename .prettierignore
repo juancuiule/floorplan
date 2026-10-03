@@ -12,3 +12,6 @@ tests/e2e/fixtures
 public
 docs/*.jpg
 docs/*.webp
+
+# Prose: Prettier pads table columns to the longest cell, so any edit rewrites the table
+*.md

@@ -20,7 +20,10 @@ import { useUi } from './uiStore'
 // item around the room does not re-render the libraries.
 
 /** The decor tabs plus Room (finishes), which has no library or items of its own. */
-const PANEL_TABS: { id: PanelTab; label: string; icon: IconName }[] = [...TABS, { id: 'room', label: 'Room', icon: 'roller' }]
+const PANEL_TABS: { id: PanelTab; label: string; icon: IconName }[] = [
+  ...TABS,
+  { id: 'room', label: 'Room', icon: 'roller' },
+]
 
 export function DecorPanel() {
   const open = useUi((s) => s.panelOpen)
@@ -104,7 +107,12 @@ function PanelBody() {
             {current.id === 'artwork' ? (
               <ArtworkLibrary query={query} onClear={() => setQuery('')} />
             ) : (
-              <CatalogLibrary entries={LIBRARY_ENTRIES[current.id as keyof typeof LIBRARY_ENTRIES]} query={query} noun={current.noun} onClear={() => setQuery('')} />
+              <CatalogLibrary
+                entries={LIBRARY_ENTRIES[current.id as keyof typeof LIBRARY_ENTRIES]}
+                query={query}
+                noun={current.noun}
+                onClear={() => setQuery('')}
+              />
             )}
           </>
         )}
@@ -159,7 +167,15 @@ function Tabs({ tab, onChange }: { tab: PanelTab; onChange: (t: PanelTab) => voi
   )
 }
 
-function SearchBox({ query, onChange, placeholder }: { query: string; onChange: (q: string) => void; placeholder: string }) {
+function SearchBox({
+  query,
+  onChange,
+  placeholder,
+}: {
+  query: string
+  onChange: (q: string) => void
+  placeholder: string
+}) {
   return (
     <div className="search">
       <label htmlFor="decor-search" className="sr-only">

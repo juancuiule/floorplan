@@ -1,6 +1,13 @@
 import * as THREE from 'three'
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_FINISHES, isDefaultFinishes, normalizeFinishes, showsHexBlend, ZONE_FLOORS, type Finishes } from '../../src/model/finishes'
+import {
+  DEFAULT_FINISHES,
+  isDefaultFinishes,
+  normalizeFinishes,
+  showsHexBlend,
+  ZONE_FLOORS,
+  type Finishes,
+} from '../../src/model/finishes'
 import { materials } from '../../src/project'
 import { FLOORS, finishDef } from '../../src/project/finishes'
 import { makeMaterial, setFinishes } from '../../src/scene/materials'
@@ -14,7 +21,8 @@ const withFloors = (floors: Partial<Finishes['floors']>, rest: Partial<Finishes>
 
 describe('normalizeFinishes', () => {
   it('defaults to the original look for missing or broken input', () => {
-    for (const raw of [undefined, null, 42, 'x', {}, { floors: 'oak' }]) expect(normalizeFinishes(raw)).toEqual(DEFAULT_FINISHES)
+    for (const raw of [undefined, null, 42, 'x', {}, { floors: 'oak' }])
+      expect(normalizeFinishes(raw)).toEqual(DEFAULT_FINISHES)
     expect(isDefaultFinishes(normalizeFinishes(undefined))).toBe(true)
   })
 
@@ -41,7 +49,8 @@ describe('normalizeFinishes', () => {
   })
 
   it('every zone default is the first allowed floor', () => {
-    for (const [zone, ids] of Object.entries(ZONE_FLOORS)) expect(DEFAULT_FINISHES.floors[zone as keyof Finishes['floors']]).toBe(ids[0])
+    for (const [zone, ids] of Object.entries(ZONE_FLOORS))
+      expect(DEFAULT_FINISHES.floors[zone as keyof Finishes['floors']]).toBe(ids[0])
   })
 
   it('shows the hex blend only for hexagons into a non-hex main room', () => {
@@ -98,7 +107,11 @@ describe('setFinishes', () => {
     const firstMap = floor.map
     expect(accent.visible).toBe(false)
 
-    expect(setFinishes(withFloors({ main: 'walnut' }, { wallPaint: '#dfe3d6', accentWall: 'side-kitchen', accentColor: '#c98a6b' }))).toBe(true)
+    expect(
+      setFinishes(
+        withFloors({ main: 'walnut' }, { wallPaint: '#dfe3d6', accentWall: 'side-kitchen', accentColor: '#c98a6b' }),
+      ),
+    ).toBe(true)
     expect(floor.map).not.toBe(firstMap)
     expect(floor.map!.repeat.x).toBeCloseTo(4.95 / patternSize(FLOORS.walnut.def.pattern!)[0])
     expect(floor.map!.offset.x).toBeCloseTo(2.15 / patternSize(FLOORS.walnut.def.pattern!)[0])
@@ -109,7 +122,11 @@ describe('setFinishes', () => {
 
     // Same finishes again: nothing to do.
     const map = floor.map
-    expect(setFinishes(withFloors({ main: 'walnut' }, { wallPaint: '#dfe3d6', accentWall: 'side-kitchen', accentColor: '#c98a6b' }))).toBe(false)
+    expect(
+      setFinishes(
+        withFloors({ main: 'walnut' }, { wallPaint: '#dfe3d6', accentWall: 'side-kitchen', accentColor: '#c98a6b' }),
+      ),
+    ).toBe(false)
     expect(floor.map).toBe(map)
     setFinishes(DEFAULT_FINISHES)
     expect(accent.visible).toBe(false)
@@ -123,11 +140,15 @@ describe('shower finishes', () => {
   })
 
   it('keeps valid choices and falls back on unknown ones', () => {
-    expect(normalizeFinishes({ shower: { screen: 'curtain', curtainColor: '#C07A5C', fittings: 'brass' } }).shower).toEqual({
+    expect(
+      normalizeFinishes({ shower: { screen: 'curtain', curtainColor: '#C07A5C', fittings: 'brass' } }).shower,
+    ).toEqual({
       screen: 'curtain',
       curtainColor: '#c07a5c',
       fittings: 'brass',
     })
-    expect(normalizeFinishes({ shower: { screen: 'bathtub', curtainColor: 'red', fittings: 'gold' } }).shower).toEqual(DEFAULT_FINISHES.shower)
+    expect(normalizeFinishes({ shower: { screen: 'bathtub', curtainColor: 'red', fittings: 'gold' } }).shower).toEqual(
+      DEFAULT_FINISHES.shower,
+    )
   })
 })

@@ -3,7 +3,10 @@ import * as THREE from 'three'
 const cache = new Map<string, THREE.MeshStandardMaterial>()
 
 /** One cached material per color + finish, shared by every piece. */
-export function mat(color: string, kind: 'wood' | 'metal' | 'fabric' | 'gloss' | 'matte' = 'wood'): THREE.MeshStandardMaterial {
+export function mat(
+  color: string,
+  kind: 'wood' | 'metal' | 'fabric' | 'gloss' | 'matte' = 'wood',
+): THREE.MeshStandardMaterial {
   const key = `${color}|${kind}`
   let m = cache.get(key)
   if (!m) {

@@ -32,7 +32,12 @@ export function pillowGeometry(w: number, h: number, t: number): THREE.BufferGeo
     const u = pos.getX(i) * 2
     const v = pos.getY(i) * 2
     const puff = Math.pow(Math.max(0, (1 - u * u) * (1 - v * v)), 0.45)
-    pos.setXYZ(i, (pos.getX(i) * (1 - 0.07 * v * v)) * w, (pos.getY(i) * (1 - 0.07 * u * u)) * h, pos.getZ(i) * t * Math.max(0.12, puff))
+    pos.setXYZ(
+      i,
+      pos.getX(i) * (1 - 0.07 * v * v) * w,
+      pos.getY(i) * (1 - 0.07 * u * u) * h,
+      pos.getZ(i) * t * Math.max(0.12, puff),
+    )
   }
   g = smoothed(box)
   softCache.set(key, g)
@@ -61,7 +66,14 @@ export function cushionGeometry(w: number, h: number, d: number, radius = 0.05):
   s.absarc(-hw + r, hd - r, r, Math.PI / 2, Math.PI, false)
   s.lineTo(-hw, -hd + r)
   s.absarc(-hw + r, -hd + r, r, Math.PI, Math.PI * 1.5, false)
-  const e = new THREE.ExtrudeGeometry(s, { depth: h - 2 * bevel, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 3, curveSegments: 8 })
+  const e = new THREE.ExtrudeGeometry(s, {
+    depth: h - 2 * bevel,
+    bevelEnabled: true,
+    bevelThickness: bevel,
+    bevelSize: bevel,
+    bevelSegments: 3,
+    curveSegments: 8,
+  })
   // Shape in XY, extruded along z: lay it flat with the extrusion going up.
   e.rotateX(-Math.PI / 2)
   e.translate(0, bevel, 0)

@@ -85,12 +85,20 @@ export function Walk() {
 
   const apply = useCallback(
     (transition: boolean) => {
-    if (!controls) return
-    const p = pose.current
-    const c = Math.cos(p.pitch)
-    void controls.setLookAt(p.x, p.eye, p.z, p.x + Math.cos(p.yaw) * c, p.eye + Math.sin(p.pitch), p.z + Math.sin(p.yaw) * c, transition)
-    // Write the camera now rather than on the next frame's controls update.
-    if (!transition) controls.update(0)
+      if (!controls) return
+      const p = pose.current
+      const c = Math.cos(p.pitch)
+      void controls.setLookAt(
+        p.x,
+        p.eye,
+        p.z,
+        p.x + Math.cos(p.yaw) * c,
+        p.eye + Math.sin(p.pitch),
+        p.z + Math.sin(p.yaw) * c,
+        transition,
+      )
+      // Write the camera now rather than on the next frame's controls update.
+      if (!transition) controls.update(0)
     },
     [controls],
   )
@@ -99,7 +107,12 @@ export function Walk() {
   useEffect(() => {
     if (!walking || !controls) return
     const v = useView.getState()
-    const saved = { pos: controls.getPosition(new THREE.Vector3()), target: controls.getTarget(new THREE.Vector3()), fov: camera.fov, nonce: v.presetNonce }
+    const saved = {
+      pos: controls.getPosition(new THREE.Vector3()),
+      target: controls.getTarget(new THREE.Vector3()),
+      fov: camera.fov,
+      nonce: v.presetNonce,
+    }
     const p = pose.current
     const from = v.walkFrom ?? ENTRY_SPOT
     const [x, z] = resolve(from, obstacles.current)
@@ -130,7 +143,15 @@ export function Walk() {
       // A camera preset picked while walking takes over; otherwise go back to the orbit view.
       if (useView.getState().presetNonce === saved.nonce) {
         fovTarget.current = saved.fov
-        void controls.setLookAt(saved.pos.x, saved.pos.y, saved.pos.z, saved.target.x, saved.target.y, saved.target.z, true)
+        void controls.setLookAt(
+          saved.pos.x,
+          saved.pos.y,
+          saved.pos.z,
+          saved.target.x,
+          saved.target.y,
+          saved.target.z,
+          true,
+        )
       } else fovTarget.current = null
       invalidate()
     }

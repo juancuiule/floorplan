@@ -14,7 +14,17 @@ describe('TV picture links', () => {
 
   it('the image proxy only fetches public http(s) addresses', () => {
     expect(checkImageUrl('https://images.example.com/photo.jpg').hostname).toBe('images.example.com')
-    for (const bad of ['not a url', 'file:///etc/passwd', 'http://localhost:5173/x.png', 'http://127.0.0.1/x', 'http://10.0.0.2/x', 'http://192.168.1.1/x', 'http://169.254.169.254/latest', 'http://[::1]/x', 'http://printer.local/x'])
+    for (const bad of [
+      'not a url',
+      'file:///etc/passwd',
+      'http://localhost:5173/x.png',
+      'http://127.0.0.1/x',
+      'http://10.0.0.2/x',
+      'http://192.168.1.1/x',
+      'http://169.254.169.254/latest',
+      'http://[::1]/x',
+      'http://printer.local/x',
+    ])
       expect(() => checkImageUrl(bad), bad).toThrow()
   })
 })

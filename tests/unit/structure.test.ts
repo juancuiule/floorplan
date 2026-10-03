@@ -9,7 +9,14 @@ import type { Vec2 } from '../../src/model/types'
 import { passable, shellObstacles } from '../../src/plan/obstacles'
 import { walk, walkObstacles } from '../../src/plan/walk'
 import { shell } from '../../src/project'
-import { activeShell, activeWalls, ceilingFitting, currentStructure, lostWallOf, setStructure } from '../../src/project/structure'
+import {
+  activeShell,
+  activeWalls,
+  ceilingFitting,
+  currentStructure,
+  lostWallOf,
+  setStructure,
+} from '../../src/project/structure'
 
 const piece = (type: FurnitureType, at: [number, number, number], rotation = 0): FurnitureItem => ({
   kind: 'furniture',
@@ -28,11 +35,15 @@ afterEach(() => void setStructure(DEFAULT_STRUCTURE))
 
 describe('structure in the layout file', () => {
   it('reads missing or broken input as the flat as built', () => {
-    for (const raw of [undefined, null, 3, 'x', {}, { removedWalls: 'entry-main' }]) expect(normalizeStructure(raw)).toEqual(DEFAULT_STRUCTURE)
+    for (const raw of [undefined, null, 3, 'x', {}, { removedWalls: 'entry-main' }])
+      expect(normalizeStructure(raw)).toEqual(DEFAULT_STRUCTURE)
   })
 
   it('keeps only removable partitions, in plan order, without duplicates', () => {
-    const s = normalizeStructure({ removedWalls: ['entry-main', 'facade', 'side-bath', 'bath-hall', 'entry-main', 'column-kitchen'], raiseEntryCeiling: true })
+    const s = normalizeStructure({
+      removedWalls: ['entry-main', 'facade', 'side-bath', 'bath-hall', 'entry-main', 'column-kitchen'],
+      raiseEntryCeiling: true,
+    })
     expect(s).toEqual({ removedWalls: ['bath-hall', 'entry-main'], raiseEntryCeiling: true })
   })
 
@@ -115,7 +126,11 @@ describe('activeShell', () => {
 
   it('fills the corner only when both neighbors are gone', () => {
     expect(activeShell(removed('shower-niche')).floorFills.map((f) => f.id)).toEqual(['shower-niche:0'])
-    expect(activeShell(removed('bath-niche', 'shower-niche')).floorFills.map((f) => f.id)).toEqual(['bath-niche:0', 'shower-niche:0', 'shower-niche:1'])
+    expect(activeShell(removed('bath-niche', 'shower-niche')).floorFills.map((f) => f.id)).toEqual([
+      'bath-niche:0',
+      'shower-niche:0',
+      'shower-niche:1',
+    ])
   })
 })
 
@@ -136,10 +151,14 @@ describe('the open layout’s structure', () => {
     expect(lostWallOf({ at: [4, 1.4, 0.01], host: 'side-bath' }, s)).toBeNull()
     expect(lostWallOf({ at: [4, 1.4, 0.01] }, s)).toBeNull()
     // A 50 cm print centered near the end of what stays hangs half off it.
-    expect(lostWallOf({ at: [2.2, 1.7, 0.76], host: 'entry-main', facing: 'x+', size: { w: 0.5 } }, s)).toBe('entry-main')
+    expect(lostWallOf({ at: [2.2, 1.7, 0.76], host: 'entry-main', facing: 'x+', size: { w: 0.5 } }, s)).toBe(
+      'entry-main',
+    )
     expect(lostWallOf({ at: [2.2, 1.7, 0.4], host: 'entry-main', facing: 'x+', size: { w: 0.5 } }, s)).toBeNull()
     // On the passage jamb (facing along the wall): its width runs across the wall.
-    expect(lostWallOf({ at: [2.14, 2.18, 0.8], host: 'entry-main', facing: 'z+', size: [0.09, 0.17, 0.38] }, s)).toBeNull()
+    expect(
+      lostWallOf({ at: [2.14, 2.18, 0.8], host: 'entry-main', facing: 'z+', size: [0.09, 0.17, 0.38] }, s),
+    ).toBeNull()
   })
 })
 

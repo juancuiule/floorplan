@@ -29,18 +29,14 @@ export function itemLabel(item: DecorItem) {
 
 /** Second line of the inspector header: what kind of thing this is and where it goes. */
 export function itemKindLine(item: DecorItem) {
-  if (item.kind === 'artwork') return `Artwork · ${item.size.preset === 'custom' ? 'custom size' : `${item.size.preset.replace('x', '×')} print`}`
+  if (item.kind === 'artwork')
+    return `Artwork · ${item.size.preset === 'custom' ? 'custom size' : `${item.size.preset.replace('x', '×')} print`}`
   if (item.kind === 'plant') return `Plant · ${PLANT_META[item.species].group.toLowerCase()}`
   if (item.kind === 'furniture') return `Furniture · ${FURNITURE[item.type].group.replace('&', 'and').toLowerCase()}`
   return `Light · ${MOUNT_GROUP[LAMPS[item.type].mount].toLowerCase()}`
 }
 
-const fold = (s: string) =>
-  s
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[’']/g, '')
-    .toLowerCase()
+const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’']/g, '').toLowerCase()
 
 /** Every word of the query must appear somewhere in the haystack. */
 export function matches(query: string, ...haystack: (string | undefined)[]) {

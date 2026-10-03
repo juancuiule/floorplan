@@ -21,7 +21,12 @@
   --gutter: 16px;
   --panel-w: 320px;
   --shadow: 0 0 0 1px var(--line), 0 8px 30px rgb(0 0 0 / 0.06);
-  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
 }
@@ -86,7 +91,9 @@ kbd {
   padding: 1px 5px;
   border-radius: 4px;
   background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--line-strong), 0 1px 0 var(--line-strong);
+  box-shadow:
+    inset 0 0 0 1px var(--line-strong),
+    0 1px 0 var(--line-strong);
   font: inherit;
   font-size: 11px;
   line-height: 16px;
@@ -416,7 +423,9 @@ kbd {
   padding: 12px 14px 14px;
   border-radius: 12px;
   background: var(--panel);
-  box-shadow: var(--shadow), 0 16px 40px rgb(0 0 0 / 0.12);
+  box-shadow:
+    var(--shadow),
+    0 16px 40px rgb(0 0 0 / 0.12);
   font-size: 12px;
 }
 
@@ -556,7 +565,9 @@ kbd {
 .tabs button[aria-selected='true'] {
   background: var(--surface);
   color: var(--ink);
-  box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgb(0 0 0 / 0.06);
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 1px 2px rgb(0 0 0 / 0.06);
   font-weight: 600;
 }
 
@@ -1337,7 +1348,9 @@ kbd {
   margin-top: -6px;
   border-radius: 50%;
   background: var(--surface);
-  box-shadow: 0 0 0 1px var(--line-strong), 0 1px 3px rgb(0 0 0 / 0.2);
+  box-shadow:
+    0 0 0 1px var(--line-strong),
+    0 1px 3px rgb(0 0 0 / 0.2);
 }
 
 .slider::-moz-range-thumb {
@@ -1346,7 +1359,9 @@ kbd {
   border: 0;
   border-radius: 50%;
   background: var(--surface);
-  box-shadow: 0 0 0 1px var(--line-strong), 0 1px 3px rgb(0 0 0 / 0.2);
+  box-shadow:
+    0 0 0 1px var(--line-strong),
+    0 1px 3px rgb(0 0 0 / 0.2);
 }
 
 .slider:focus-visible {

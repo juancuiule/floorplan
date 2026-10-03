@@ -62,14 +62,21 @@ const spots = [
 await page.getByRole('tab', { name: /Artwork/ }).click()
 for (const [i, [x, y]] of spots.entries()) {
   await page.keyboard.press('Escape')
-  await panel.locator('.thumb, button:has(img)').nth(i + 3).click()
+  await panel
+    .locator('.thumb, button:has(img)')
+    .nth(i + 3)
+    .click()
   const p = await screen([x, y, 2.98])
   await glide([p[0] - 30, p[1] + 20], p, 6)
   await page.mouse.click(p[0], p[1])
   await settle()
 }
 let items = arts()
-check('hang: three artworks on the kitchen-side wall', items.length === 3 && items.every((a) => a.facing === 'z-' && a.host === 'side-kitchen'), items.map((a) => `[${a.at.join(', ')}]`).join(' '))
+check(
+  'hang: three artworks on the kitchen-side wall',
+  items.length === 3 && items.every((a) => a.facing === 'z-' && a.host === 'side-kitchen'),
+  items.map((a) => `[${a.at.join(', ')}]`).join(' '),
+)
 
 // 2. Click the first, Shift+click the others.
 await page.keyboard.press('Escape')
@@ -113,7 +120,10 @@ const gid = items[0].groupId
 check('group: one groupId saved on all three', !!gid && items.every((a) => a.groupId === gid), gid)
 const roomToggle = page.locator('#room-toggle')
 if ((await roomToggle.getAttribute('aria-expanded')) === 'false') await roomToggle.click()
-check('room list shows the group', await panel.getByRole('button', { name: 'Gallery wall · 3', exact: true }).isVisible())
+check(
+  'room list shows the group',
+  await panel.getByRole('button', { name: 'Gallery wall · 3', exact: true }).isVisible(),
+)
 await page.screenshot({ path: join(outDir, 'align-2-grouped.png') })
 
 // 6. Deselect, click one piece: the whole group comes along. Drag it.
@@ -131,14 +141,24 @@ await settle()
 const after = arts()
 const d = after.map((a, i) => a.at.map((v, k) => v - before[i].at[k]))
 const same = d.every((x) => x.every((v, k) => Math.abs(v - d[0][k]) < 0.002))
-check('drag: all three moved by the same offset', same && Math.abs(d[0][0]) > 0.05, d.map((x) => x.map(cm).join(',')).join(' | '))
-check('drag: still on the wall', after.every((a) => Math.abs(a.at[2] - before[0].at[2]) < 0.002))
+check(
+  'drag: all three moved by the same offset',
+  same && Math.abs(d[0][0]) > 0.05,
+  d.map((x) => x.map(cm).join(',')).join(' | '),
+)
+check(
+  'drag: still on the wall',
+  after.every((a) => Math.abs(a.at[2] - before[0].at[2]) < 0.002),
+)
 
 // 7. Undo puts them all back in one step.
 await page.keyboard.press('ControlOrMeta+z')
 await settle()
 const undone = arts()
-check('undo: whole group back', undone.every((a, i) => a.at.every((v, k) => Math.abs(v - before[i].at[k]) < 0.001)))
+check(
+  'undo: whole group back',
+  undone.every((a, i) => a.at.every((v, k) => Math.abs(v - before[i].at[k]) < 0.001)),
+)
 
 // 8. Smart guides: Alt+press one piece (just it), drag it level with its neighbor.
 await page.keyboard.press('Escape')
@@ -155,12 +175,22 @@ const target = await screen([mid.at[0] - 0.02, mid.at[1] - 0.25, mid.at[2]])
 await glide(pm, target, 14)
 await page.waitForTimeout(200)
 const guides = await page.evaluate(() => window.__edit.edit.getState().guides)
-check('guides: showing while dragging', !!guides && guides.align.length + guides.spacing.length + guides.gallery.length > 0, guides ? `align ${guides.align.length / 2}, spacing ${guides.spacing.length / 2}, gallery ${guides.gallery.length / 2}` : 'none')
+check(
+  'guides: showing while dragging',
+  !!guides && guides.align.length + guides.spacing.length + guides.gallery.length > 0,
+  guides
+    ? `align ${guides.align.length / 2}, spacing ${guides.spacing.length / 2}, gallery ${guides.gallery.length / 2}`
+    : 'none',
+)
 await page.screenshot({ path: join(outDir, 'align-4-guides.png') })
 await page.keyboard.press('Escape')
 await page.mouse.up()
 await settle()
-check('esc: drag cancelled, guides gone', (await page.evaluate(() => window.__edit.edit.getState().guides)) === null && arts().every((a, i) => a.at.every((v, k) => Math.abs(v - undone[i].at[k]) < 0.001)))
+check(
+  'esc: drag cancelled, guides gone',
+  (await page.evaluate(() => window.__edit.edit.getState().guides)) === null &&
+    arts().every((a, i) => a.at.every((v, k) => Math.abs(v - undone[i].at[k]) < 0.001)),
+)
 
 // 9. Rubber band: Shift+drag over the room selects what it covers.
 await page.keyboard.press('Escape')
@@ -175,15 +205,28 @@ await page.waitForTimeout(200)
 check('marquee: selects the three', (await sel()).length === 3)
 
 // 10. Hang as a gallery: one row, 8 cm apart, centered at 150 cm.
-await panel.getByRole('radio', { name: 'One row' }).click().catch(() => {})
-await panel.getByRole('radio', { name: '8 cm' }).click().catch(() => {})
+await panel
+  .getByRole('radio', { name: 'One row' })
+  .click()
+  .catch(() => {})
+await panel
+  .getByRole('radio', { name: '8 cm' })
+  .click()
+  .catch(() => {})
 await panel.getByRole('button', { name: /^Hang 3 pieces/ }).click()
 await settle()
 items = arts()
 b = (await boxes(items)).sort((p, q) => p.u0 - q.u0)
 const rowGaps = [b[1].u0 - b[0].u1, b[2].u0 - b[1].u1]
-check('gallery: 8 cm gaps', rowGaps.every((g) => Math.abs(g - 0.08) < 0.002), rowGaps.map(cm).join(' / '))
-check('gallery: centered on 150 cm', b.every((x) => Math.abs((x.v0 + x.v1) / 2 - 1.5) < 0.002))
+check(
+  'gallery: 8 cm gaps',
+  rowGaps.every((g) => Math.abs(g - 0.08) < 0.002),
+  rowGaps.map(cm).join(' / '),
+)
+check(
+  'gallery: centered on 150 cm',
+  b.every((x) => Math.abs((x.v0 + x.v1) / 2 - 1.5) < 0.002),
+)
 await page.keyboard.press('Escape')
 await page.waitForTimeout(400)
 await page.screenshot({ path: join(outDir, 'align-5-gallery.png') })
@@ -203,7 +246,11 @@ await glide(away, back, 10)
 await page.waitForTimeout(200)
 const g2 = await page.evaluate(() => window.__edit.edit.getState().guides)
 const moved = await page.evaluate((id) => window.__edit.decor.getState().items.find((i) => i.id === id).at, last.id)
-check('guides: snaps back to the equal gap and the center line', !!g2 && g2.spacing.length > 0 && Math.abs(moved[0] - last.at[0]) < 0.002 && Math.abs(moved[1] - last.at[1]) < 0.002, g2 ? `spacing marks ${g2.spacing.length / 6}, labels ${g2.labels.map((l) => l.text).join(', ')}` : 'none')
+check(
+  'guides: snaps back to the equal gap and the center line',
+  !!g2 && g2.spacing.length > 0 && Math.abs(moved[0] - last.at[0]) < 0.002 && Math.abs(moved[1] - last.at[1]) < 0.002,
+  g2 ? `spacing marks ${g2.spacing.length / 6}, labels ${g2.labels.map((l) => l.text).join(', ')}` : 'none',
+)
 await page.screenshot({ path: join(outDir, 'align-6-spacing-guides.png') })
 await page.keyboard.press('Escape')
 await page.mouse.up()
@@ -212,7 +259,10 @@ await settle()
 // 11. One undo reverts the whole arrangement.
 await page.keyboard.press('ControlOrMeta+z')
 await settle()
-check('undo: gallery arrangement reverted in one step', arts().every((a, i) => a.at.every((v, k) => Math.abs(v - undone[i].at[k]) < 0.001)))
+check(
+  'undo: gallery arrangement reverted in one step',
+  arts().every((a, i) => a.at.every((v, k) => Math.abs(v - undone[i].at[k]) < 0.001)),
+)
 
 check('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '))
 await browser.close()

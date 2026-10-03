@@ -1,4 +1,13 @@
-import { DEFAULT_POT_SIZE, LAMP_KEYWORDS, LAMPS, MOUNT_GROUP, MOUNT_ORDER, PLANT_GROUPS, PLANT_META, PLANTS } from '../decor/catalog'
+import {
+  DEFAULT_POT_SIZE,
+  LAMP_KEYWORDS,
+  LAMPS,
+  MOUNT_GROUP,
+  MOUNT_ORDER,
+  PLANT_GROUPS,
+  PLANT_META,
+  PLANTS,
+} from '../decor/catalog'
 import { FURNITURE, FURNITURE_GROUPS, FURNITURE_KEYWORDS } from '../decor/furnitureCatalog'
 import { newId } from '../decor/store'
 import { unplacedAt, type DecorItem, type FurnitureType, type LampType, type PlantSpecies } from '../model/decor'

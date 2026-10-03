@@ -32,7 +32,11 @@ const note = (step, kind, text) => {
 
 // Fresh copy of the owner's layout (read-only on data/decor.json).
 const main = await (await fetch(`${BASE}/api/decor`)).text()
-await fetch(`${BASE}/api/decor?file=${DECOR}`, { method: 'PUT', body: main, headers: { 'Content-Type': 'application/json' } })
+await fetch(`${BASE}/api/decor?file=${DECOR}`, {
+  method: 'PUT',
+  body: main,
+  headers: { 'Content-Type': 'application/json' },
+})
 const readDecor = async (name = DECOR) => (await fetch(`${BASE}/api/decor?file=${name}`)).json()
 
 const browser = await chromium.launch({
@@ -90,7 +94,14 @@ async function step(name, fn) {
     console.log(`  ✓ ${name} (${Date.now() - t0} ms)`)
   } catch (e) {
     log.push({ name, ok: false })
-    note(name, 'failed', String(e?.stack ?? e).split('\n').slice(0, 4).join(' | '))
+    note(
+      name,
+      'failed',
+      String(e?.stack ?? e)
+        .split('\n')
+        .slice(0, 4)
+        .join(' | '),
+    )
   }
 }
 
@@ -106,10 +117,21 @@ const inApp = (page, fn, arg) =>
     [fn.toString(), arg],
   )
 
-const state = (page) => inApp(page, ({ useDecor }) => {
-  const s = useDecor.getState()
-  return { items: s.items, selectedId: s.selectedId, selectedIds: s.selectedIds, finishes: s.finishes, canUndo: s.canUndo, canRedo: s.canRedo, layout: s.layout, movingId: s.movingId, groupNames: s.groupNames }
-})
+const state = (page) =>
+  inApp(page, ({ useDecor }) => {
+    const s = useDecor.getState()
+    return {
+      items: s.items,
+      selectedId: s.selectedId,
+      selectedIds: s.selectedIds,
+      finishes: s.finishes,
+      canUndo: s.canUndo,
+      canRedo: s.canRedo,
+      layout: s.layout,
+      movingId: s.movingId,
+      groupNames: s.groupNames,
+    }
+  })
 
 /** Frames rendered while nothing changes: must be 0 with frameloop="demand". */
 async function idleFrames(page, label, ms = 1500) {
@@ -163,7 +185,14 @@ await step('inspector for each kind and type', async () => {
   const s = await state(page)
   const seen = new Set()
   for (const i of s.items) {
-    const key = i.kind === 'furniture' ? `f-${i.type}` : i.kind === 'lamp' ? `l-${i.type}` : i.kind === 'plant' ? `p-${i.species}` : 'artwork'
+    const key =
+      i.kind === 'furniture'
+        ? `f-${i.type}`
+        : i.kind === 'lamp'
+          ? `l-${i.type}`
+          : i.kind === 'plant'
+            ? `p-${i.species}`
+            : 'artwork'
     if (seen.has(key) || i.at[1] < -50) continue
     seen.add(key)
     await inApp(page, ({ useDecor }, id) => useDecor.getState().select(id), i.id)
@@ -172,10 +201,13 @@ await step('inspector for each kind and type', async () => {
     if (!(await insp.count())) note(current, 'ui', `no inspector for ${key} (${i.id})`)
     else if (seen.size <= 6) await shot(page, `inspector-${key}`)
     // Range sliders showing NaN.
-    const nanSliders = await panel.locator('input[type=range]').evaluateAll((els) => els.filter((e) => e.value === '' || /NaN/.test(e.style.cssText)).length)
+    const nanSliders = await panel
+      .locator('input[type=range]')
+      .evaluateAll((els) => els.filter((e) => e.value === '' || /NaN/.test(e.style.cssText)).length)
     if (nanSliders) note(current, 'ui', `${key}: ${nanSliders} slider(s) without a value`)
     const txt = await insp.innerText().catch(() => '')
-    if (/NaN|undefined|Infinity/.test(txt)) note(current, 'ui', `${key}: inspector text shows ${txt.match(/NaN|undefined|Infinity/)[0]}`)
+    if (/NaN|undefined|Infinity/.test(txt))
+      note(current, 'ui', `${key}: inspector text shows ${txt.match(/NaN|undefined|Infinity/)[0]}`)
   }
   await inApp(page, ({ useDecor }) => useDecor.getState().select(null))
   console.log(`    inspected ${seen.size} kinds/types`)
@@ -198,7 +230,8 @@ await step('number inputs reject nonsense', async () => {
         const bad = badNumbers([now])
         if (bad.length) note(current, 'NaN', `${it.kind} field ${n} with "${junk}": ${bad.join(', ')}`)
         // Text that is not a number must leave the item as it was ("-5" may clamp to the minimum).
-        if (!['-5', '1,5'].includes(junk) && JSON.stringify(now) !== JSON.stringify(prev)) note(current, 'input', `${it.kind} field ${n} took "${junk}" as a number`)
+        if (!['-5', '1,5'].includes(junk) && JSON.stringify(now) !== JSON.stringify(prev))
+          note(current, 'input', `${it.kind} field ${n} took "${junk}" as a number`)
       }
     }
     // Put it back.
@@ -214,18 +247,49 @@ await step('undo/redo round trip for item edits', async () => {
   await page.mouse.move(700, 880)
   const snap = async () => JSON.stringify((await state(page)).items)
   const edits = [
-    ['nudge', async () => { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(1100) }],
-    ['rotate', async () => { await page.keyboard.press('r'); await page.waitForTimeout(300) }],
-    ['inspector finish', async () => { await panel.locator('.swatch-set [role=radio]').nth(1).click(); await page.waitForTimeout(1100) }],
-    ['delete', async () => { await page.keyboard.press('Delete'); await page.waitForTimeout(300) }],
+    [
+      'nudge',
+      async () => {
+        await page.keyboard.press('ArrowRight')
+        await page.waitForTimeout(1100)
+      },
+    ],
+    [
+      'rotate',
+      async () => {
+        await page.keyboard.press('r')
+        await page.waitForTimeout(300)
+      },
+    ],
+    [
+      'inspector finish',
+      async () => {
+        await panel.locator('.swatch-set [role=radio]').nth(1).click()
+        await page.waitForTimeout(1100)
+      },
+    ],
+    [
+      'delete',
+      async () => {
+        await page.keyboard.press('Delete')
+        await page.waitForTimeout(300)
+      },
+    ],
   ]
   for (const [name, act] of edits) {
     const before = await snap()
-    await inApp(page, ({ useDecor }, id) => useDecor.getState().items.some((i) => i.id === id) && useDecor.getState().select(id), f.id)
+    await inApp(
+      page,
+      ({ useDecor }, id) => useDecor.getState().items.some((i) => i.id === id) && useDecor.getState().select(id),
+      f.id,
+    )
     await page.mouse.move(700, 880)
     await act()
     const after = await snap()
-    if (after === before) { note(current, 'undo', `${name} changed nothing`); continue }
+    if (after === before) {
+      note(current, 'undo', `${name} changed nothing`)
+      continue
+    }
     await page.keyboard.press(`${mod}+z`)
     await page.waitForTimeout(200)
     if ((await snap()) !== before) note(current, 'undo', `undo after ${name} did not restore the items`)
@@ -236,20 +300,25 @@ await step('undo/redo round trip for item edits', async () => {
     await page.waitForTimeout(200)
   }
   await shot(page, 'after-undo-redo')
-  if ((await snap()) !== JSON.stringify(s0.items)) note(current, 'undo', 'items differ from the start after undoing every edit')
+  if ((await snap()) !== JSON.stringify(s0.items))
+    note(current, 'undo', 'items differ from the start after undoing every edit')
 })
 
 await step('undo after a finish change and a wall removal', async () => {
   const s0 = await state(page)
   await panel.getByRole('tab', { name: /^room/i }).click()
-  await panel.getByRole('radiogroup', { name: /main room floor/i }).getByRole('radio', { name: /walnut/i }).click()
+  await panel
+    .getByRole('radiogroup', { name: /main room floor/i })
+    .getByRole('radio', { name: /walnut/i })
+    .click()
   await page.waitForTimeout(300)
   await page.mouse.move(700, 880)
   await page.keyboard.press(`${mod}+z`)
   await page.waitForTimeout(300)
   let s1 = await state(page)
   if (s1.finishes.floors.main === 'walnut') note(current, 'undo', 'Cmd+Z does not undo a floor change')
-  if (JSON.stringify(s1.items) !== JSON.stringify(s0.items)) note(current, 'undo', 'Cmd+Z after a floor change reverted an earlier item edit instead')
+  if (JSON.stringify(s1.items) !== JSON.stringify(s0.items))
+    note(current, 'undo', 'Cmd+Z after a floor change reverted an earlier item edit instead')
   // Wall removal.
   const sw = panel.locator('.wall-row[data-wall] [role=switch]').first()
   if (await sw.count()) {
@@ -270,11 +339,19 @@ await step('undo after a finish change and a wall removal', async () => {
 
 await step('place one of each kind from the libraries', async () => {
   await open(page, 'view=top')
-  for (const [tab, name] of [[/furniture/i, /sideboard/i], [/plant/i, /snake/i], [/light/i, /tripod/i]]) {
+  for (const [tab, name] of [
+    [/furniture/i, /sideboard/i],
+    [/plant/i, /snake/i],
+    [/light/i, /tripod/i],
+  ]) {
     await panel.getByRole('tab', { name: tab }).click()
     const n0 = (await state(page)).items.length
     await panel.getByRole('button', { name }).first().click()
-    for (const [x, y] of [[760, 450], [700, 480], [820, 430]]) {
+    for (const [x, y] of [
+      [760, 450],
+      [700, 480],
+      [820, 430],
+    ]) {
       await page.mouse.move(x, y)
       await page.mouse.move(x + 2, y)
       await page.waitForTimeout(150)
@@ -283,8 +360,10 @@ await step('place one of each kind from the libraries', async () => {
       if (!(await state(page)).movingId) break
     }
     const s = await state(page)
-    if (s.movingId) { note(current, 'place', `${name} still following the pointer`); await page.keyboard.press('Escape') }
-    else if (s.items.length !== n0 + 1) note(current, 'place', `${name}: ${s.items.length - n0} items added`)
+    if (s.movingId) {
+      note(current, 'place', `${name} still following the pointer`)
+      await page.keyboard.press('Escape')
+    } else if (s.items.length !== n0 + 1) note(current, 'place', `${name}: ${s.items.length - n0} items added`)
     await page.keyboard.press('Escape')
   }
   await shot(page, 'placed')
@@ -297,7 +376,11 @@ await step('artwork: hang, change size, undo', async () => {
   const thumbs = panel.locator('.thumb')
   await thumbs.first().waitFor({ timeout: 10000 })
   await thumbs.first().click()
-  for (const [x, y] of [[520, 330], [560, 300], [480, 380]]) {
+  for (const [x, y] of [
+    [520, 330],
+    [560, 300],
+    [480, 380],
+  ]) {
     await page.mouse.move(x, y)
     await page.mouse.move(x + 2, y)
     await page.waitForTimeout(150)
@@ -306,9 +389,19 @@ await step('artwork: hang, change size, undo', async () => {
     if (!(await state(page)).movingId) break
   }
   const s = await state(page)
-  if (s.movingId) { note(current, 'place', 'artwork not hung'); await page.keyboard.press('Escape'); return }
-  await panel.getByRole('radio', { name: 'A3' }).click().catch(() => note(current, 'ui', 'no A3 chip'))
-  await panel.getByRole('radio', { name: /custom/i }).first().click()
+  if (s.movingId) {
+    note(current, 'place', 'artwork not hung')
+    await page.keyboard.press('Escape')
+    return
+  }
+  await panel
+    .getByRole('radio', { name: 'A3' })
+    .click()
+    .catch(() => note(current, 'ui', 'no A3 chip'))
+  await panel
+    .getByRole('radio', { name: /custom/i })
+    .first()
+    .click()
   await shot(page, 'artwork-custom')
 })
 
@@ -319,7 +412,11 @@ await step('groups and gallery hanging', async () => {
   for (const a of arts) (byWall[`${a.facing}:${a.host ?? ''}`] ??= []).push(a)
   const set = Object.values(byWall).sort((p, q) => q.length - p.length)[0]
   if (!set || set.length < 2) return note(current, 'skip', 'no wall with two artworks')
-  await inApp(page, ({ useDecor }, ids) => useDecor.getState().selectMany(ids), set.map((a) => a.id))
+  await inApp(
+    page,
+    ({ useDecor }, ids) => useDecor.getState().selectMany(ids),
+    set.map((a) => a.id),
+  )
   await page.waitForTimeout(200)
   await shot(page, 'multi-select')
   await page.mouse.move(700, 880)
@@ -346,7 +443,8 @@ await step('groups and gallery hanging', async () => {
   } else note(current, 'ui', 'no Hang button for artworks on one wall')
   await page.waitForTimeout(600)
   const saved = await readDecor()
-  if (gid && saved.groups?.[gid]?.name !== 'Hunt gallery') note(current, 'save', `group name not saved: ${JSON.stringify(saved.groups)}`)
+  if (gid && saved.groups?.[gid]?.name !== 'Hunt gallery')
+    note(current, 'save', `group name not saved: ${JSON.stringify(saved.groups)}`)
   // Ungroup via undo of the group step.
   await page.keyboard.press(`${mod}+z`)
   await page.waitForTimeout(200)
@@ -359,29 +457,47 @@ await step('layouts: save as, rename, A/B, delete', async () => {
   const menu = page.getByRole('dialog', { name: /layouts/i })
   await menu.getByLabel(/save a copy as/i).fill('test hunt b')
   await menu.getByRole('button', { name: /save as new/i }).click()
-  await page.waitForFunction(() => new URL(location.href).searchParams.get('decor') === 'test-hunt-b', null, { timeout: 5000 })
+  await page.waitForFunction(() => new URL(location.href).searchParams.get('decor') === 'test-hunt-b', null, {
+    timeout: 5000,
+  })
   const b = await readDecor('test-hunt-b')
   const a = await readDecor()
-  if (a.groups && JSON.stringify(a.groups) !== JSON.stringify(b.groups)) note(current, 'layouts', `Save as dropped group names: A ${JSON.stringify(a.groups)} vs B ${JSON.stringify(b.groups)}`)
-  if (b.items.length !== a.items.length) note(current, 'layouts', `copy has ${b.items.length} items, A has ${a.items.length}`)
+  if (a.groups && JSON.stringify(a.groups) !== JSON.stringify(b.groups))
+    note(
+      current,
+      'layouts',
+      `Save as dropped group names: A ${JSON.stringify(a.groups)} vs B ${JSON.stringify(b.groups)}`,
+    )
+  if (b.items.length !== a.items.length)
+    note(current, 'layouts', `copy has ${b.items.length} items, A has ${a.items.length}`)
   await shot(page, 'layout-b')
   await page.mouse.move(700, 880)
   await page.keyboard.press('b')
-  await page.waitForFunction(() => new URL(location.href).searchParams.get('decor') === 'test-hunt', null, { timeout: 5000 })
+  await page.waitForFunction(() => new URL(location.href).searchParams.get('decor') === 'test-hunt', null, {
+    timeout: 5000,
+  })
   const s = await state(page)
-  if (s.selectedIds.length || s.selectedId) note(current, 'layouts', `selection survives a layout switch: ${s.selectedIds.join(',')}`)
+  if (s.selectedIds.length || s.selectedId)
+    note(current, 'layouts', `selection survives a layout switch: ${s.selectedIds.join(',')}`)
   await page.keyboard.press('b')
-  await page.waitForFunction(() => new URL(location.href).searchParams.get('decor') === 'test-hunt-b', null, { timeout: 5000 })
+  await page.waitForFunction(() => new URL(location.href).searchParams.get('decor') === 'test-hunt-b', null, {
+    timeout: 5000,
+  })
   await bar.click()
   await menu.getByRole('button', { name: /^rename test hunt b/i }).click()
   const input = menu.getByRole('textbox', { name: /new name/i })
   await input.fill('test hunt c')
   await input.press('Enter')
-  await page.waitForFunction(() => new URL(location.href).searchParams.get('decor') === 'test-hunt-c', null, { timeout: 5000 })
+  await page.waitForFunction(() => new URL(location.href).searchParams.get('decor') === 'test-hunt-c', null, {
+    timeout: 5000,
+  })
   await bar.click().catch(() => {})
   if (!(await menu.isVisible())) await bar.click()
   await menu.getByRole('button', { name: /^delete test hunt c/i }).click()
-  await menu.getByRole('alertdialog').getByRole('button', { name: /^delete$/i }).click()
+  await menu
+    .getByRole('alertdialog')
+    .getByRole('button', { name: /^delete$/i })
+    .click()
   await page.waitForTimeout(800)
   const after = await state(page)
   const url = new URL(page.url()).searchParams.get('decor')
@@ -486,8 +602,11 @@ await step('?plan=loft', async () => {
 
 await browser.close()
 // Clean up layouts this run saved.
-for (const slug of ['test-hunt-b', 'test-hunt-c']) await fetch(`${BASE}/api/layouts?file=${slug}`, { method: 'DELETE' }).catch(() => {})
+for (const slug of ['test-hunt-b', 'test-hunt-c'])
+  await fetch(`${BASE}/api/layouts?file=${slug}`, { method: 'DELETE' }).catch(() => {})
 
 writeFileSync(join(outDir, 'findings.json'), JSON.stringify({ steps: log, findings }, null, 2))
 const failed = log.filter((l) => !l.ok).length
-console.log(`\nhunt: ${log.length} steps, ${failed} failed, ${findings.length} findings → ${join(outDir, 'findings.json')}`)
+console.log(
+  `\nhunt: ${log.length} steps, ${failed} failed, ${findings.length} findings → ${join(outDir, 'findings.json')}`,
+)
