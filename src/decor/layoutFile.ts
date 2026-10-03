@@ -1,4 +1,3 @@
-import { isDefaultPlan, plan } from '../project/plan'
 import type { DecorFile, DecorItem } from '../model/decor'
 import { DEFAULT_FINISHES, isDefaultFinishes, type Finishes } from '../model/finishes'
 
@@ -20,7 +19,6 @@ export function serialize(
   const file: DecorFile = {
     version: 1,
     ...(name ? { name } : {}),
-    ...(isDefaultPlan ? {} : { plan: plan.id }),
     ...(isDefaultFinishes(finishes) ? {} : { finishes }),
     ...(groups ? { groups } : {}),
     items,

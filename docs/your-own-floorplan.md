@@ -1,12 +1,10 @@
 # Model your own apartment
 
-The app doesn't depend on any one apartment: an apartment is a JSON file, a furnished version of it is another JSON file, and both live in a **workspace**, a folder the dev server opens. This guide covers cloning the repo, starting your own workspace, describing your place, hanging your artwork and furnishing it. The last section describes how the same pieces could become a multi-user platform.
+The app doesn't depend on any one apartment. An apartment is a plan, a furnished version of it is a layout, and both live in a **space**: your corner of the server, with your plans, their layouts and your artwork ([ADR 0010](adr/0010-spaces.md)). This guide covers drawing your place, checking it, hanging your artwork and furnishing it. The last section describes what a fuller platform would still need.
 
-The repo has two example workspaces: `examples/loft`, a made-up 6 × 4.2 m flat in Madrid that opens by default, and `examples/monoambiente`, the studio the project was built for (`FLOORPLAN_WORKSPACE=examples/monoambiente pnpm dev`).
+## 1. Run it and make a space
 
-## 1. Clone and run
-
-You need Node 20.19 or newer and [pnpm](https://pnpm.io).
+You need Node 22.18 or newer and [pnpm](https://pnpm.io).
 
 ```sh
 git clone https://github.com/juancuiule/floorplan.git
@@ -15,21 +13,13 @@ pnpm install
 pnpm dev            # http://localhost:5173
 ```
 
-Everything you change in the app (furniture, artwork, finishes, layouts) is saved as files in the open workspace by the dev server.
+The home page makes a space. Its link (`/?space=<id>`) is the only key to it: there are no accounts yet, so bookmark it, and only share it with people who may edit. The home page remembers the spaces this browser opened.
 
-Start your own workspace from the loft, and point the dev server at it in `.env.local` (git-ignored, so it stays on your machine):
-
-```sh
-cp -r examples/loft workspaces/myflat
-rm workspaces/myflat/layouts/decor.json      # start empty
-echo 'FLOORPLAN_WORKSPACE=workspaces/myflat' > .env.local
-```
-
-The workspace can live anywhere (`FLOORPLAN_WORKSPACE` is relative to the repo, or absolute). Keep it in its own git repo if you want history for your layouts, or in a fork of this one.
+A space starts empty. Its page offers two ways in: **Draw a floor plan**, or copy one of the examples (`examples/loft`, a small flat in Madrid, or `examples/monoambiente`, the studio this project was built for), furnished but without their artwork.
 
 ## 2. Measure and pick your axes
 
-Before writing anything, get a plan with dimensions: the building's floor plan, a sketch with a tape measure, or a listing's plan redrawn to scale. You'll need:
+Before drawing anything, get a plan with dimensions: the building's floor plan, a sketch with a tape measure, or a listing's plan redrawn to scale. You'll need:
 
 - every wall: where it runs, how thick it is, how tall
 - every opening: doors, windows, passages (position along the wall, width, height, sill)
@@ -46,15 +36,23 @@ Then pick axes. All numbers are in **meters**:
 
 Walls are drawn by their **centerline**, so a 20 cm wall whose inner face is at `x = 0` has its centerline at `x = -0.1`. Rooms, floors and ceilings are rectangles `[x0, z0, x1, z1]` of inner, usable space.
 
-## 3. Write the plan file
+## 3. Draw the floor plan
 
-Rename the loft's plan in your workspace, and make it the default in `workspace.json` (`"defaultPlan": "myflat"`):
+**Draw a floor plan** on your space's page opens the editor:
 
-```sh
-mv workspaces/myflat/plans/loft.plan.json workspaces/myflat/plans/myflat.plan.json
-```
+![The floor plan editor](images/floorplan-editor.jpg)
 
-Set `id` to `myflat` (it must match the file name), plus `name`, `subtitle` and `location` (`lat`, `lon`, `tz` in hours from UTC, no daylight saving). Then replace the geometry. The full type, with comments, is in `src/model/plan.ts` and `src/model/types.ts`. What each part is for:
+1. **Rooms.** With the *Room* tool, drag on the grid. Draw each room on its wall **centerlines**, edge to edge with its neighbors: a room's edges snap to other rooms' edges, and two rooms that share an edge share the wall along it. Pick each room's kind in the panel (living, bedroom, kitchen, bathroom, hall, balcony): it decides its floor finish zone, and a balcony gets railings instead of walls.
+2. **Walls** are worked out for you and drawn as you go: 20 cm outer walls, 10 cm partitions between rooms (which a layout can later take out, Room tab → *Walls*).
+3. **Doors and windows.** Pick *Door*, *Window*, *Glass door* (floor to ceiling, e.g. onto the balcony) or *Opening* (a passage without a door) and click a wall. Drag one along its wall, or change its width in the panel. Put the front door in the wall at the entry end: walk mode starts there.
+4. **Fittings.** Toilet, basin, shower, counter, sink and cooktop: pick one, click to place it, `R` to turn it.
+5. Set the **city** (for the sun) and the **ceiling height**, and **Create and open in 3D**.
+
+The panel lists what is missing or wrong (overlapping rooms, no door yet) before you save. *Edit floor plan* on the space's page opens it again; walls and floors follow the rooms when you move them. The editor draws rectangular rooms with straight walls; for anything else (angled walls, columns, a dropped ceiling), write the plan by hand.
+
+## 4. Or write the plan by hand
+
+A plan is a JSON file (type in `src/model/plan.ts` and `src/model/types.ts`); `examples/loft/plans/loft.plan.json` is a short one to start from. Set `id` (lowercase, it must match the file name), `name`, `subtitle` and `location` (`lat`, `lon`, `tz` in hours from UTC, no daylight saving). Walls are drawn by their centerline; rooms, floors and ceilings are rectangles `[x0, z0, x1, z1]` of inner, usable space. What each part is for:
 
 | Field | What goes there |
 |---|---|
@@ -80,34 +78,36 @@ A few material names are special: the Room tab controls them, so leave them unde
 - `plaster`: wall paint
 - `ceiling`, `tile` (bathroom wall tile)
 
-## 4. Open it and check it
+To bring a hand-written plan in, put it in a workspace folder shaped like `examples/loft` (`workspace.json`, `plans/`, optionally `layouts/` and `artwork/`) and import it as a new space:
 
-Open `http://localhost:5173`. The page reloads each time you save the plan file, and if something in it is wrong (an opening longer than its wall, a fixture of an unknown type, a reference to a wall that doesn't exist), the page lists the problems instead of drawing the plan. Things that help while you check it against reality:
+```sh
+pnpm space:import path/to/myflat          # prints the new space's link
+```
+
+After that, the plan file is `storage/spaces/<space>/plans/<id>.plan.json`: edit it there and reload. If something in it is wrong (an opening longer than its wall, a fixture of an unknown type, a reference to a wall that doesn't exist), the page lists the problems instead of drawing the plan.
+
+**Let Claude Code do the transcription.** Give it the plan image and your measurements and ask it to write the plan following `examples/loft/plans/loft.plan.json` and the types in `src/model/plan.ts`. Then check it in the app with the measure tool and ask for fixes.
+
+## 5. Check it
 
 - `?view=top` shows the plan from above, and `M` toggles dimensions.
 - `T` is the measure tool: click two points to take a dimension, snapping to edges.
 - `X` makes the walls translucent; the dollhouse view cuts away the walls facing the camera.
 - `W` (or double-click the floor) walks through it at eye level.
 
-A workspace can hold several plans (`?plan=<id>` switches). The default plan's main layout is `layouts/decor.json`; any other plan's is `layouts/decor.plan-<id>.json`.
+## 6. Hang your artwork
 
-**Let Claude Code do the transcription.** Give it the plan image and your measurements and ask it to write `workspaces/myflat/plans/myflat.plan.json` following `examples/loft/plans/loft.plan.json` and the types in `src/model/plan.ts`. Then check it in the app with the measure tool and ask for fixes ("the bathroom door opens the other way", "the window sill is at 90 cm").
+Upload images in the Artwork tab, or drop them anywhere on the panel. They go to your space's library, which every plan in the space shares and no other space can see. Pick an image, click a wall to hang it, then choose print size, crop, frame and height. See [features.md](features.md#decor-panel) for everything the panel does.
 
-## 5. Hang your artwork
+## 7. Furnish it
 
-Put images in your workspace's `artwork/` folder, or upload them in the Artwork tab (they're saved there). Pick an image, click a wall to hang it, then choose print size, crop, frame and height. See [features.md](features.md#decor-panel) for everything the panel does.
-
-If your workspace is public, only commit images you have the right to share.
-
-## 6. Furnish it
-
-The Furniture, Plants and Lights tabs place pieces from the built-in catalog. Every change is saved to the open layout file in your workspace's `layouts/`, so you can:
+The Furniture, Plants and Lights tabs place pieces from the catalog, which every space shares. Every change is saved to the open layout, so you can:
 
 - keep several layouts (the menu at the top of the panel) and flip between two with `B`,
 - try taking a partition out (Room tab → *Walls*) and compare it with the original,
-- edit a layout file by hand, or ask Claude Code to ("move the sofa 20 cm toward the window"), and watch the app update live.
+- edit a layout file by hand (`storage/spaces/<space>/layouts/<plan>/decor*.json`), or ask Claude Code to ("move the sofa 20 cm toward the window"), and watch the app update live.
 
-## 7. Add a piece that isn't in the catalog
+## 8. Add a piece that isn't in the catalog
 
 Furniture is parametric code, not imported 3D models. Each piece is built from boxes and simple shapes, with editable dimensions and finishes. Adding one takes four changes:
 
@@ -118,34 +118,28 @@ Furniture is parametric code, not imported 3D models. Each piece is built from b
 
 This is a good job for Claude Code: give it a product link or photo and dimensions, and point it at a similar existing piece.
 
-## 8. Share it
+## 9. Share it
 
-For now, saving, uploads and layouts only work under `pnpm dev`: they go through a small API in the dev server (`server/studioApi.ts`). `pnpm build` makes a static site that renders any plan but opens with an empty room and doesn't save. To show your apartment to someone today, share screenshots (`scripts/shoot.mjs`, see [development.md](development.md#screenshots-and-dev-tools)) or run the dev server where they can reach it.
+`pnpm build && pnpm start` runs the app and its API as one server (port 8080, data in `storage/` or `FLOORPLAN_DATA`). Run it where others can reach it and send them a space's link: whoever has it can open and edit that space, and nothing else.
 
 ## Toward a platform
 
-The app already separates the data one person owns from what everyone shares. A multi-user version keeps these boundaries and moves the data out of the repo into a backend:
+What exists now ([ADR 0010](adr/0010-spaces.md)):
 
-| Today (files in a workspace) | On a platform | Owned by |
+| | Where | Owned by |
 |---|---|---|
-| `plans/<id>.plan.json` | **Plan**: one apartment's geometry and design rules | a user (or a building, shared by its tenants) |
-| `layouts/decor*.json` | **Layout**: a furnished version of a plan; holds items, groups, finishes and removed walls, and names its plan | a user; shareable by link to view or edit |
-| `artwork/` | **Assets**: uploaded images | a user |
-| `FURNITURE`, plants, lamps (code) | **Catalog**: pieces anyone can place | shared |
-| A new catalog entry (a pull request) | **Furniture request**: a link or photo plus dimensions; someone (or Claude) builds the piece, and it joins the catalog | requested by a user, shared once built |
-| `server/studioApi.ts` routes | **API**: the same routes (`/api/decor`, `/api/layouts`, `/api/artwork`), backed by a database and object storage instead of the file system | — |
-
-Where the code already fits that shape:
-
-- **The app talks to an API, not to files.** The routes in [development.md](development.md#dev-api) are the contract. A hosted backend that answers the same routes (per user, with auth) works with the current front end with small changes, mostly in `src/decor/store.ts` and `src/decor/layouts.ts`, which build the request URLs.
-- **Plans are data.** Everything about a specific apartment comes from the plan file or is derived from it (`src/project/derived.ts`), so plans can be loaded at runtime instead of bundled from the workspace (`virtual:workspace`, read in `src/project/plan.ts`).
-- **Layouts name their plan**, and a layout without finishes renders the plan's original look, so old layouts keep working as options are added.
+| **Space** | `storage/spaces/<id>/`, reached by an unguessable link | whoever has the link |
+| **Plan** | `<space>/plans/<id>.plan.json`, drawn in the editor, copied from an example or written by hand | the space |
+| **Layout** | `<space>/layouts/<plan>/decor*.json` | the space |
+| **Artwork** | `<space>/artwork/`, served at `/api/spaces/<id>/artwork/` | the space, never shared |
+| **Catalog** | furniture, plants and lamps in code (`src/decor/`) | shared by everyone |
+| **Templates** | `examples/` | shared; copies have no artwork |
 
 What's still missing:
 
-- **A way to make plans without writing JSON**: a plan editor (draw walls on a traced image), or an import from a floor plan image with Claude doing the first pass and the user correcting it in the app.
-- **Stricter validation for uploaded plans**: plans and layouts are already checked on load (`src/model/validate.ts`, `src/decor/validateLayout.ts`: shapes, ranges, openings that fit their walls, references), but not that walls meet or rooms don't overlap.
-- **A read-only mode** for shared links, and view/edit permissions.
+- **Accounts**: an owner for each space, sign-in, and links that can only view. Today a link gives full access.
+- **A database and object storage**: the storage module (`server/storage.ts`) is the seam. Files are fine for a few people; many need concurrency control (today the last write wins) and backups.
+- **Richer drawing**: angled walls, columns and beams, dropped ceilings, tracing over an image of the floor plan, or a first pass from a photo of one.
 - **Catalog as data**: furniture specs (size, options, finishes) could live in a database, but the geometry is code; a request flow could produce a pull request, or pieces could be described in a small declarative format.
-- **Some assumptions from the original flat** still live in the code: the four floor zones in the Room tab (`src/model/finishes.ts`), the bathroom tile and shower options, and a Buenos Aires-style balcony in the sun shadows (`src/scene/SunOccluders.tsx`). A plan without a bathroom or balcony works, but those options still show.
-- **Asset rights**: user uploads need storage limits and a way to report or remove images.
+- **Some assumptions from the original flat** still live in the code: the four floor zones in the Room tab (`src/model/finishes.ts`), the bathroom tile and shower options, and a balcony in the sun shadows (`src/scene/SunOccluders.tsx`). A plan without a bathroom or balcony works, but those options still show.
+- **Asset rights and limits**: uploads need storage quotas and a way to report or remove images.

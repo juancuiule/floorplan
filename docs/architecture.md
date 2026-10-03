@@ -4,7 +4,7 @@ How the code is organized and why. For the words used here, see [GLOSSARY.md](..
 
 ## In one paragraph
 
-The dev server opens a **workspace**, a folder with one apartment's data ([ADR 0009](adr/0009-workspaces.md)). A **plan** (the apartment, a JSON file in it) is chosen when the page loads and everything about the apartment is derived from it. A **layout** (a furnished version of the plan, another JSON file) is loaded into the decor store, edited through the 3D scene and the panel, recorded in an undo history and saved back to disk through an API in the Vite dev server. The scene renders only when something changes.
+A server holds many **spaces**, each with its plans, layouts and artwork ([ADR 0010](adr/0010-spaces.md)). A **plan** (an apartment, a JSON file, drawn in the floor plan editor or by hand) is fetched when the page loads, checked and opened, and everything about the apartment is derived from it. A **layout** (a furnished version of the plan, another JSON file) is loaded into the decor store, edited through the 3D scene and the panel, recorded in an undo history and saved back through the API. The scene renders only when something changes.
 
 ## Layers
 
@@ -14,6 +14,7 @@ Dependencies point down. A module may import from its own layer or any layer bel
 flowchart TD
   ui["ui/ — panels, toolbar, inspector (React DOM)"]
   scene["scene/ — the three.js scene (React Three Fiber)"]
+  pages["main.tsx, pages/ — startup, home, space, floor plan editor"]
   app["App.tsx, store.ts — shell, keyboard, view state"]
   decor["decor/ — editing logic and the decor store"]
   plan["plan/ — walk, measure, clearances, obstacles"]
@@ -21,6 +22,8 @@ flowchart TD
   sun["sun/ — solar position, daylight"]
   geometry["geometry/ — wall math"]
   model["model/ — types and pure helpers, no three.js or React"]
+  pages --> app
+  pages --> decor
   app --> ui & scene
   ui --> plan
   scene --> plan
@@ -34,6 +37,7 @@ flowchart TD
 
 | Layer | Owns | Notes |
 |---|---|---|
+| `pages/` | The pages around the 3D app: home, a space's plans, the floor plan editor (`floorplan/`). `main.tsx` picks the page from the URL. | Pages never import the 3D app's modules statically: those read the plan when imported, and only `main.tsx` opens it. |
 | `model/` | The data types of plans, layouts, decor items and finishes, pure functions on them (defaults, normalization, validation), and layout naming shared with the dev server. | No three.js, no React, no browser APIs. Functions that depend on a plan take it as an argument. |
 | `geometry/` | Wall frames and pieces between openings. | Pure. |
 | `project/` | The launch options (`launch.ts`), the open plan (`plan.ts`), values derived from it (`derived.ts`), the active shell (`structure.ts`), paint faces, finish materials, camera sides. | Chosen once at load ([ADR 0002](adr/0002-plans-are-bundled-data.md)). |
@@ -42,7 +46,7 @@ flowchart TD
 | `decor/` | Everything about editing decor that is not drawing it: the store, placement and snapping, smart guides, arranging, carrying, selection commands, catalogs, the layouts API client. | May use three.js math and raycasting, never React components. |
 | `scene/` | Drawing: walls, floors, fixtures, lights, shadows, every decor model, pointer handling in the scene. | |
 | `ui/` | Everything in the DOM around the canvas. | |
-| `server/` | The open workspace (`workspace.ts`: `virtual:workspace`, `/artwork/`) and the dev API (`studioApi.ts`: layout files, artwork uploads, a remote image proxy). | Runs in Node; the API only under `pnpm dev` ([ADR 0001](adr/0001-dev-server-is-the-backend.md)). |
+| `server/` | The API (`api.ts`) over the spaces on disk (`storage.ts`), the dev server plugin (`devServer.ts`) and the production server (`main.ts`). | Runs in Node; imports only `model/` from `src/` ([ADR 0010](adr/0010-spaces.md)). |
 
 ## State
 
@@ -95,10 +99,10 @@ sequenceDiagram
 
 ## Startup
 
-1. `src/project/launch.ts` reads the URL parameters once into checked launch options (`?plan`, `?decor`, `?view`, `?sun`, `?cam`…), so a URL can reproduce a view exactly; the screenshot scripts rely on this.
-2. `src/project/plan.ts` opens the plan from `?plan=` (among the workspace's plans, from `virtual:workspace`) and checks it (`model/validate.ts`): a broken plan fails with every problem listed. `project/derived.ts` computes cameras, bounds and defaults from it.
+1. `src/project/launch.ts` reads the URL parameters once into checked launch options (`?space`, `?plan`, `?decor`, `?view`, `?sun`, `?cam`…), so a URL can reproduce a view exactly; the screenshot scripts rely on this.
+2. `src/main.tsx` picks the page: home without `?space`, the space's plans without `?plan`, the floor plan editor with `?edit=floorplan`. For the 3D app it fetches the plan, opens it (`project/plan.ts`, checked by `model/validate.ts`: a broken plan shows every problem listed), points the API client at the space and plan, and only then imports `App`. `project/derived.ts` computes cameras, bounds and defaults from the plan.
 3. Stores initialize from the launch options and browser storage.
-4. `App` mounts the scene and the panel and calls `useDecor.load()`, which fetches the layout and checks it against the catalogs (`decor/validateLayout.ts`). Without the dev API (a static build) the app starts empty and says saving is unavailable; with an invalid file it keeps what is on screen, pauses saving and says what is wrong.
+4. `App` mounts the scene and the panel and calls `useDecor.load()`, which fetches the layout and checks it against the catalogs (`decor/validateLayout.ts`). Without the API the app starts empty and says saving is unavailable; with an invalid file it keeps what is on screen, pauses saving and says what is wrong.
 
 ## Rendering
 
@@ -110,7 +114,7 @@ Walls come from the active shell ([ADR 0008](adr/0008-structure-as-layout-data.m
 
 | Level | Where | What it covers |
 |---|---|---|
-| Unit | `tests/unit/` (vitest, jsdom) | Pure logic: geometry, placement, guides, arranging, carry, solar math, catalogs, the store's history and saving, the dev API. |
+| Unit | `tests/unit/` (vitest, jsdom) | Pure logic: geometry, placement, guides, arranging, carry, solar math, catalogs, the store's history and saving, the API and storage, the floor plan generator. |
 | Browser | `tests/e2e/` (Playwright Test) | The app in Chrome against a dev server on the monoambiente example, on scratch layouts that never touch real ones. |
 | Visual | `scripts/` | Screenshots, sun studies, performance numbers and an exploratory bug hunt, checked by eye. |
 

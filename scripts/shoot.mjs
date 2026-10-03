@@ -1,6 +1,7 @@
 // Renders the app in headless Chromium and saves screenshots of each view.
 // Usage: node scripts/shoot.mjs [outDir] [baseUrl] [view:mode:light ...]
 // Env: DECOR=<name> (?decor=), QUERY='sun=09:00&date=2026-06-21&facing=W' (extra params), TAG (file name suffix)
+import { appUrl } from '../tests/e2e/space.mjs'
 import { chromium } from 'playwright'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
@@ -35,7 +36,7 @@ for (const spec of shots) {
   const [view, mode = 'dollhouse', light = 'day'] = spec.split(':')
   const camera = view.startsWith('cam=') ? `cam=${view.slice(4)}` : `view=${view}`
   await page.goto(
-    `${base}/?${camera}&mode=${mode}&light=${light}&dims=0${process.env.DECOR ? `&decor=${process.env.DECOR}` : ''}${process.env.QUERY ? `&${process.env.QUERY}` : ''}`,
+    `${appUrl(base)}&${camera}&mode=${mode}&light=${light}&dims=0${process.env.DECOR ? `&decor=${process.env.DECOR}` : ''}${process.env.QUERY ? `&${process.env.QUERY}` : ''}`,
   )
   await page.waitForFunction(() => (window.__frames ?? 0) > 40, null, { timeout: 60000 })
   await page.waitForTimeout(1200) // let textures and decor load

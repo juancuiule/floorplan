@@ -9,6 +9,7 @@ import { ShortcutsPopover } from './ShortcutsPopover'
 import { SunControl } from './SunControl'
 import { SpaceTools } from './SpaceTools'
 import { useUi } from './uiStore'
+import { launch, links } from '../project/launch'
 
 const MODES: { id: ViewMode; label: string; icon: IconName; tip: string }[] = [
   { id: 'dollhouse', label: 'Dollhouse', icon: 'dollhouse', tip: 'Cut away the walls facing you (X)' },
@@ -65,10 +66,17 @@ export function Toolbar() {
 
   return (
     <div className="toolbar">
-      <div className="title">
-        <h1>{plan.name}</h1>
+      <a
+        className="title"
+        href={launch.space ? links.space(launch.space) : links.home()}
+        title="All plans in this space"
+      >
+        <h1>
+          <span aria-hidden="true">‹ </span>
+          {plan.name}
+        </h1>
         {plan.subtitle && <span>{plan.subtitle}</span>}
-      </div>
+      </a>
 
       <div className="tb-main">
         <div

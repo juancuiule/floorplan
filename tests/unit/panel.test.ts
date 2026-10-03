@@ -4,6 +4,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { parseNumber } from '../../src/ui/controlUtils'
 import type { FurnitureItem } from '../../src/model/decor'
+import { openTestPlan } from './plans'
 
 // Panel pieces rendered in jsdom: the number field parser, the inspector and
 // the Room tab's plan diagram.
@@ -40,6 +41,7 @@ afterEach(() => {
 async function load(search: string) {
   window.history.replaceState(null, '', `/${search}`)
   vi.resetModules()
+  await openTestPlan()
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => new Response('{"version":1,"items":[]}')),

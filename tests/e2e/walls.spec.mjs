@@ -1,13 +1,14 @@
 // "What if without this wall": take the hall–main partition out through the
 // Room tab, check the saved layout, walk through where it stood, put it back.
 // Needs a running dev server: BASE_URL=http://localhost:5194 node tests/e2e/walls.mjs
+import { appUrl, planApi } from './space.mjs'
 import { test } from '@playwright/test'
 import assert from 'node:assert/strict'
 import { api, BASE_URL, eventually, shot, waitForScene, watchErrors } from './lib.mjs'
 
 test('walls (what if)', async ({ page }) => {
   const DECOR = 'e2e-walls'
-  const url = (params = '') => `${BASE_URL}/?decor=${DECOR}&dims=0${params ? `&${params}` : ''}`
+  const url = (params = '') => `${appUrl(BASE_URL)}&decor=${DECOR}&dims=0${params ? `&${params}` : ''}`
 
   // A print on the main-room face of the partition, clear of the stretch that stays behind the shower.
   const seed = {
@@ -16,7 +17,7 @@ test('walls (what if)', async ({ page }) => {
       {
         kind: 'artwork',
         id: 'artwork-on-partition',
-        image: '/artwork/image%2010.png',
+        image: '/api/spaces/e2e/artwork/image%2010.png',
         at: [2.2, 1.5, 2.8],
         facing: 'x+',
         host: 'entry-main',
@@ -26,7 +27,7 @@ test('walls (what if)', async ({ page }) => {
       },
     ],
   }
-  const put = await fetch(`${BASE_URL}/api/decor?file=${DECOR}`, {
+  const put = await fetch(`${planApi(BASE_URL)}/decor?file=${DECOR}`, {
     method: 'PUT',
     body: JSON.stringify(seed),
     headers: { 'Content-Type': 'application/json' },

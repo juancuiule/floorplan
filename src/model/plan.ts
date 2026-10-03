@@ -1,4 +1,5 @@
 import type { MaterialDef, MaterialId, Rect, SceneObject, Shell, Vec2, Vec3 } from './types'
+import type { Sketch } from './sketch'
 
 // A plan is one apartment as data: its shell, fixed fittings, materials, where
 // it is (for the sun) and the design rules the app needs about it (which walls
@@ -61,4 +62,6 @@ export interface Plan {
   hexBlend?: { rect: Rect; focus: Vec2; halfSpan: number }
   /** Camera presets; missing ones are derived from the plan's bounds. */
   cameras?: Partial<Record<CameraId, CameraDef>>
+  /** Drawn in the floor plan editor: what was drawn, to edit it again (src/model/sketch.ts). */
+  sketch?: Sketch
 }

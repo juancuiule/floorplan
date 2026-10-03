@@ -5,7 +5,7 @@
   "description": "A real-time 3D model of an apartment for planning the interior",
   "repository": "github:juancuiule/floorplan",
   "engines": {
-    "node": ">=20.19"
+    "node": ">=22.18"
   },
   "type": "module",
   "scripts": {
@@ -19,7 +19,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test"
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
+    "start": "node server/main.ts",
+    "space:import": "node scripts/import-workspace.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

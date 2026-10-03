@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test'
 import { SHOTS, BASE_URL } from './lib.mjs'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { layoutFile } from './workspace.mjs'
+import { appUrl, layoutFile } from './space.mjs'
 
 test('renders on demand, and animations still get their frames', async ({ page }) => {
   const base = BASE_URL
@@ -14,14 +14,14 @@ test('renders on demand, and animations still get their frames', async ({ page }
   mkdirSync(outDir, { recursive: true })
   // A desk and a wardrobe in the main room of the monoambiente example, in a scratch layout.
   const DECOR = 'test-render'
-  const file = await layoutFile(base, DECOR)
+  const file = layoutFile(DECOR)
   const original = readFileSync('tests/e2e/fixtures/desk-and-wardrobe.json', 'utf8')
   writeFileSync(file, original)
 
   const frames = () => page.evaluate(() => window.__frames)
   const shot = (n) => page.screenshot({ path: join(outDir, `${n}.png`) })
 
-  await page.goto(`${base}/?view=iso-balcony&decor=${DECOR}&dims=0`)
+  await page.goto(`${appUrl(base)}&view=iso-balcony&decor=${DECOR}&dims=0`)
   await page.waitForFunction(() => (window.__frames ?? 0) > 40, null, { timeout: 60000 })
   await page.waitForTimeout(1500)
   let f = await frames()

@@ -5,20 +5,21 @@
 //
 // Writes only the scratch layout e2e-smoke (git-ignored) through the dev API, and
 // screenshots to test-results/e2e/ (git-ignored).
+import { appUrl, planApi } from './space.mjs'
 import { test } from '@playwright/test'
 import assert from 'node:assert/strict'
 import { api, BASE_URL, eventually, hover, idle, shot, waitForScene, watchErrors } from './lib.mjs'
 
 test('e2e smoke', async ({ page }) => {
   const DECOR = 'e2e-smoke'
-  const url = (params = '') => `${BASE_URL}/?decor=${DECOR}&dims=0${params ? `&${params}` : ''}`
+  const url = (params = '') => `${appUrl(BASE_URL)}&decor=${DECOR}&dims=0${params ? `&${params}` : ''}`
 
   console.log(`e2e smoke against ${BASE_URL}`)
 
   await api.resetDecor(DECOR)
   // Layouts a previous run saved from this file.
   const LAYOUT_B = 'e2e-layout-b'
-  const dropLayout = (slug) => fetch(`${BASE_URL}/api/layouts?file=${slug}`, { method: 'DELETE' })
+  const dropLayout = (slug) => fetch(`${planApi(BASE_URL)}/layouts?file=${slug}`, { method: 'DELETE' })
   await dropLayout(LAYOUT_B)
 
   const errors = watchErrors(page)
@@ -195,7 +196,8 @@ test('e2e smoke', async ({ page }) => {
     assert.ok(art.at[2] > 2.7 && art.at[2] <= 3.01, `on the wall surface, z=${art.at[2]}`)
     assert.ok(art.at[1] > 0.2 && art.at[1] < 2.6, `at a sensible height, y=${art.at[1]}`)
     assert.equal(art.host, 'side-kitchen')
-    assert.match(art.image, /^\/artwork\//)
+    // From this space's own library, not shared with other spaces.
+    assert.match(art.image, /^\/api\/spaces\/e2e\/artwork\//)
     await shot(page, '06-artwork')
     await deselect()
   })
@@ -407,16 +409,16 @@ test('e2e smoke', async ({ page }) => {
     assert.equal(renamed.name, 'E2E smoke renamed')
     assert.equal(renamed.finishes.floors.main, 'walnut')
     // Put it back under its test name, then delete layout B through the API the menu uses.
-    const back = await fetch(`${BASE_URL}/api/layouts?file=e2e-smoke-renamed`, {
+    const back = await fetch(`${planApi(BASE_URL)}/layouts?file=e2e-smoke-renamed`, {
       method: 'PATCH',
       body: JSON.stringify({ name: 'e2e smoke' }),
     })
     assert.equal((await back.json()).slug, DECOR)
     assert.equal((await dropLayout(LAYOUT_B)).status, 200)
-    const all = await (await fetch(`${BASE_URL}/api/layouts?all=1`)).json()
+    const all = await (await fetch(`${planApi(BASE_URL)}/layouts?all=1`)).json()
     assert.ok(!all.some((l) => l.slug === LAYOUT_B), 'B deleted')
     assert.ok(
-      !(await (await fetch(`${BASE_URL}/api/layouts`)).json()).some((l) => /^e2e/.test(l.slug ?? '')),
+      !(await (await fetch(`${planApi(BASE_URL)}/layouts`)).json()).some((l) => /^e2e/.test(l.slug ?? '')),
       'test layouts hidden from the list',
     )
     await page.keyboard.press('Escape')

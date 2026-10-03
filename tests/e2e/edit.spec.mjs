@@ -6,14 +6,14 @@ import { expect, test } from '@playwright/test'
 import { BASE_URL, SHOTS, watchErrors } from './lib.mjs'
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { layoutFile } from './workspace.mjs'
+import { appUrl, layoutFile } from './space.mjs'
 
 test('place, drag, undo and redo, nudge, rotate, copy and paste, delete', async ({ page }) => {
   const base = BASE_URL
   const outDir = join(SHOTS, 'edit')
   mkdirSync(outDir, { recursive: true })
-  const FILE = await layoutFile(base, 'test-edit')
-  const SEED = await layoutFile(base, 'test-furn')
+  const FILE = layoutFile('test-edit')
+  const SEED = layoutFile('test-furn')
   if (existsSync(SEED)) copyFileSync(SEED, FILE)
   else writeFileSync(FILE, JSON.stringify({ version: 1, items: [] }, null, 2) + '\n')
 
@@ -41,7 +41,7 @@ test('place, drag, undo and redo, nudge, rotate, copy and paste, delete', async 
     }
   }
 
-  await page.goto(`${base}/?view=iso-balcony&decor=test-edit&dims=0`)
+  await page.goto(`${appUrl(base)}&view=iso-balcony&decor=test-edit&dims=0`)
   await page.waitForFunction(() => (window.__frames ?? 0) > 30 && window.__edit, null, { timeout: 60000 })
   await page.waitForTimeout(1200)
   const before = saved().length

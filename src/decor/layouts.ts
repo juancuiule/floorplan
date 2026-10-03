@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { createLayout, deleteLayout, listLayouts, renameLayout, type LayoutInfo } from './api'
 import { serialize } from './layoutFile'
+import { launch } from '../project/launch'
+import { plan } from '../project/plan'
 import { committedItems, flushSave, MAIN_SLUG, useDecor } from './store'
 
 // Client side of the layouts API (server/layouts.ts): the list for the menu
@@ -57,8 +59,7 @@ export const useLayouts = create<LayoutsState>((set, get) => ({
     try {
       const d = useDecor.getState()
       if (slug === d.layout) {
-        // Leave it first so no pending save writes it back. Another plan's main
-        // layout is layouts/decor.plan-<id>.json, never layouts/decor.json.
+        // Leave it first so no pending save writes it back.
         if (slug === MAIN_SLUG) throw new Error('The current layout cannot be deleted')
         await d.switchLayout(MAIN_SLUG)
       }
@@ -73,5 +74,7 @@ export const useLayouts = create<LayoutsState>((set, get) => ({
 
 // Another tab (or Claude) added, removed or wrote a layout: keep the list fresh.
 if (import.meta.hot) {
-  import.meta.hot.on('layouts:changed', () => void useLayouts.getState().refresh())
+  import.meta.hot.on('layouts:changed', (data: { space: string; plan: string }) => {
+    if (data.space === launch.space && data.plan === plan.id) void useLayouts.getState().refresh()
+  })
 }

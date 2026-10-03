@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { newId } from '../../src/decor/clone'
 import type { DecorItem, LampItem, PlantItem } from '../../src/model/decor'
+import { openTestPlan, planUrl, TEST_SPACE } from './plans'
 
 // The store reads ?decor= at import time and persists through fetch, so each test
 // sets the URL, stubs fetch and imports a fresh copy of the module.
@@ -23,9 +24,9 @@ function stubFetch() {
     vi.fn(async (input: string, init?: RequestInit) => {
       const method = init?.method ?? 'GET'
       calls.push({ url: String(input), method, body: init?.body as string | undefined })
-      if (String(input).startsWith('/api/decor') && method === 'GET') return new Response(JSON.stringify(fileOnDisk))
-      if (String(input).startsWith('/api/decor') && method === 'PUT') return new Response('{"ok":true}')
-      if (String(input) === '/api/artwork')
+      if (String(input).includes('/decor') && method === 'GET') return new Response(JSON.stringify(fileOnDisk))
+      if (String(input).includes('/decor') && method === 'PUT') return new Response('{"ok":true}')
+      if (String(input).endsWith('/artwork'))
         return new Response(JSON.stringify([{ name: 'a.png', url: '/artwork/a.png' }]))
       return new Response('{}', { status: 404 })
     }),
@@ -35,6 +36,7 @@ function stubFetch() {
 async function freshStore(search = '?decor=unit'): Promise<Store> {
   window.history.replaceState(null, '', `/${search}`)
   vi.resetModules()
+  await openTestPlan()
   return import('../../src/decor/store')
 }
 
@@ -78,7 +80,7 @@ describe('load', () => {
   it('reads the ?decor= file and marks the store loaded', async () => {
     const { useDecor } = await freshStore('?decor=unit')
     await useDecor.getState().load()
-    expect(calls[0]).toMatchObject({ url: '/api/decor?file=unit', method: 'GET' })
+    expect(calls[0]).toMatchObject({ url: planUrl('decor?file=unit'), method: 'GET' })
     expect(useDecor.getState().loaded).toBe(true)
     expect(useDecor.getState().items.map((i) => i.id)).toEqual(['p1', 'l1'])
   })
@@ -86,7 +88,7 @@ describe('load', () => {
   it('uses the default decor file without ?decor=', async () => {
     const { useDecor } = await freshStore('')
     await useDecor.getState().load()
-    expect(calls[0].url).toBe('/api/decor')
+    expect(calls[0].url).toBe(planUrl('decor'))
   })
 
   it('does not write back what it just loaded', async () => {
@@ -284,7 +286,7 @@ describe('persistence', () => {
     expect(puts()).toHaveLength(0)
     await vi.advanceTimersByTimeAsync(400)
     expect(puts()).toHaveLength(1)
-    expect(puts()[0].url).toBe('/api/decor?file=unit')
+    expect(puts()[0].url).toBe(planUrl('decor?file=unit'))
     expect(JSON.parse(puts()[0].body!)).toMatchObject({ version: 1 })
     expect(lastSavedItems()!.map((i) => i.id)).toEqual(['p1', 'l1', 'new'])
   })
@@ -331,7 +333,7 @@ describe('library', () => {
     const img = await useDecor.getState().upload(file)
     await useDecor.getState().upload(file)
     expect(img).toEqual({ name: 'my pic.png', url: '/artwork/my%20pic.png' })
-    expect(vi.mocked(fetch).mock.calls[0][0]).toBe('/api/artwork?name=my%20pic.png')
+    expect(vi.mocked(fetch).mock.calls[0][0]).toBe(`/api/spaces/${TEST_SPACE}/artwork?name=my%20pic.png`)
     expect(useDecor.getState().library.filter((x) => x.name === 'my pic.png')).toHaveLength(1)
   })
 
@@ -445,7 +447,7 @@ describe('a broken layout file', () => {
       'fetch',
       vi.fn(async (url: string, init?: RequestInit) => {
         calls.push({ url: String(url), method: init?.method ?? 'GET', body: init?.body as string | undefined })
-        if (String(url).startsWith('/api/artwork')) return new Response('{"name":"a.png","url":"/artwork/a.png"}')
+        if (String(url).includes('/artwork')) return new Response('{"name":"a.png","url":"/artwork/a.png"}')
         return init?.method === 'PUT' ? new Response('{"ok":true}') : new Response('{ "items": [')
       }),
     )

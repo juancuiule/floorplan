@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { shell } from '../project'
 import { launch, showLayoutInUrl } from '../project/launch'
 import { migrateAccent, paintFaces } from '../project/paintFaces'
-import { isDefaultPlan, plan } from '../project/plan'
+import { plan } from '../project/plan'
 import { isPlaced, type DecorFile, type DecorItem, type DecorKind } from '../model/decor'
 import { DEFAULT_FINISHES, normalizeFinishes, type Finishes } from '../model/finishes'
 import type { Vec3 } from '../model/types'
@@ -18,7 +18,6 @@ import { createSaver } from './persistence'
 import { mountOf, placeAt, slidesOnFloor } from './placement'
 import { settleMoved } from './rest'
 import { validateLayout } from './validateLayout'
-import { planMainSlug } from '../model/layoutNames'
 
 // The open layout: its decor items, finishes and groups, the selection, and the
 // item following the pointer. Everything here is saved to the layout file and
@@ -140,10 +139,9 @@ interface DecorState {
   renamed: (slug: string | null, name: string) => void
 }
 
-/** The open plan's main layout ("Current"): layouts/decor.json for the default plan. */
-export const MAIN_SLUG: string | null = isDefaultPlan ? null : planMainSlug(plan.id)
+/** The open plan's main layout ("Current"), decor.json in the plan's layouts folder. */
+export const MAIN_SLUG: string | null = null
 
-// Another plan's main layout lives in layouts/decor.plan-<id>.json, so it never opens the default plan's layouts.
 let decorFile = launch.layout ?? MAIN_SLUG
 
 /** What is saved: a new item still following the pointer is left out; a relocated one keeps its old spot. */
@@ -635,8 +633,8 @@ useDecor.subscribe((s) => {
 // Someone (another tab, an editor, Claude) changed the file on disk: reload it
 // unless it is what this tab just wrote.
 if (import.meta.hot) {
-  import.meta.hot.on('decor:changed', async (data: { file: string | null }) => {
-    if ((data.file ?? null) !== (decorFile ?? null)) return
+  import.meta.hot.on('decor:changed', async (data: { space: string; plan: string; file: string | null }) => {
+    if (data.space !== launch.space || data.plan !== plan.id || (data.file ?? null) !== (decorFile ?? null)) return
     const text = await readLayoutText(decorFile)
     // While saving is paused any good version is news, even the one last loaded.
     const paused = useDecor.getState().saveStatus !== 'ok'

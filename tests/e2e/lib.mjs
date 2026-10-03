@@ -1,4 +1,5 @@
 // Shared helpers for the browser tests (run with `pnpm test:e2e`, see playwright.config.ts).
+import { planApi } from './space.mjs'
 import assert from 'node:assert/strict'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
@@ -72,12 +73,12 @@ export async function shot(page, name) {
 
 export const api = {
   async readDecor(name) {
-    const res = await fetch(`${BASE_URL}/api/decor?file=${name}`)
+    const res = await fetch(`${planApi(BASE_URL)}/decor?file=${name}`)
     assert.equal(res.status, 200, `GET decor ${name}`)
     return res.json()
   },
   async resetDecor(name) {
-    const res = await fetch(`${BASE_URL}/api/decor?file=${name}`, {
+    const res = await fetch(`${planApi(BASE_URL)}/decor?file=${name}`, {
       method: 'PUT',
       body: JSON.stringify({ version: 1, items: [] }),
       headers: { 'Content-Type': 'application/json' },

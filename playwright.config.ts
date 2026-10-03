@@ -1,16 +1,20 @@
 import { defineConfig } from '@playwright/test'
 
 // Browser tests (tests/e2e). They are written for the monoambiente example, so the
-// config starts its own dev server on that workspace, on a port of its own; set
-// BASE_URL to run them against a server you started instead. CHROME_PATH points
+// config seeds a throwaway data folder with it as space e2e (tests/e2e/space.mjs)
+// and starts its own dev server on it, on a port of its own; set BASE_URL to run
+// them against a server you started instead (with that space in it). CHROME_PATH points
 // Playwright at an installed Chrome instead of its own Chromium.
 
 const PORT = 5199
 /** A server someone already started, or none: the config starts one. */
 const external = process.env.BASE_URL
 const BASE_URL = external ?? `http://localhost:${PORT}`
-// The tests' helpers (tests/e2e/lib.mjs) read it from the environment.
+// Not under test-results/: Vite's file watcher ignores that folder, and the tests need live reload.
+const DATA = 'tests/e2e/.data'
+// The tests' helpers (tests/e2e/lib.mjs, space.mjs) read these from the environment.
 process.env.BASE_URL = BASE_URL
+process.env.FLOORPLAN_DATA ??= DATA
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -39,9 +43,10 @@ export default defineConfig({
   webServer: external
     ? undefined
     : {
-        command: `vite --port ${PORT} --strictPort`,
+        // A fresh copy of the example each run, in place before the server watches it.
+        command: `rm -rf ${DATA} && node scripts/import-workspace.ts examples/monoambiente --id e2e && vite --port ${PORT} --strictPort`,
         url: BASE_URL,
-        env: { FLOORPLAN_WORKSPACE: 'examples/monoambiente' },
+        env: { FLOORPLAN_DATA: DATA },
         reuseExistingServer: !process.env.CI,
         timeout: 60_000,
       },

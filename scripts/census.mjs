@@ -1,5 +1,6 @@
 // Dev aid: counts visible meshes/lines per owner (decor item, wall, or scene) for a view.
 // Usage: node scripts/census.mjs baseUrl "view=iso-balcony&decor=furn"
+import { appUrl } from '../tests/e2e/space.mjs'
 import { chromium } from 'playwright'
 const [base = 'http://localhost:5173', query = ''] = process.argv.slice(2)
 const browser = await chromium.launch({
@@ -7,7 +8,7 @@ const browser = await chromium.launch({
   args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--enable-gpu'],
 })
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
-await page.goto(`${base}/?dims=0&${query}`)
+await page.goto(`${appUrl(base)}&dims=0&${query}`)
 await page.waitForFunction(() => (window.__frames ?? 0) > 40, null, { timeout: 60000 })
 await page.waitForTimeout(2000)
 const rows = await page.evaluate(() => {

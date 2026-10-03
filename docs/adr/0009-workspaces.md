@@ -1,6 +1,6 @@
 # One apartment's data lives in a workspace, outside the code
 
-Status: accepted. Amends [0001](0001-dev-server-is-the-backend.md) and [0002](0002-plans-are-bundled-data.md).
+Status: amended by [0010](0010-spaces.md): workspaces are the format of examples and imports; the server holds spaces. Amends [0001](0001-dev-server-is-the-backend.md) and [0002](0002-plans-are-bundled-data.md).
 
 The repo started as one person's apartment: its plan in `src/plans/`, its layouts in `data/` and its artwork in `public/artwork/`, mixed with the code that anyone cloning it would use. A workspace is a directory with one apartment's data (`workspace.json`, `plans/`, `layouts/`, `artwork/`), and the dev server opens the one named by `FLOORPLAN_WORKSPACE` (environment or `.env.local`). The code ships with two example workspaces: `examples/loft`, a small neutral flat that opens by default, and `examples/monoambiente`, the apartment the project was built for.
 

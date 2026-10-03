@@ -3,7 +3,7 @@
 import { chromium } from 'playwright'
 import { mkdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { layoutFile } from '../tests/e2e/workspace.mjs'
+import { appUrl, layoutFile } from '../tests/e2e/space.mjs'
 
 const [outDir = 'test-results/decor-panel', base = 'http://localhost:5173'] = process.argv.slice(2)
 mkdirSync(outDir, { recursive: true })
@@ -15,7 +15,7 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
 page.on('pageerror', (e) => console.log('[pageerror]', e.message))
 page.on('console', (m) => m.type() === 'error' && !m.text().includes('unmount') && console.log('[console]', m.text()))
 
-await page.goto(`${base}/?view=iso-balcony&decor=e2e`)
+await page.goto(`${appUrl(base)}&view=iso-balcony&decor=e2e`)
 await page.waitForFunction(() => (window.__frames ?? 0) > 30)
 
 async function hover(x, y) {
@@ -51,7 +51,7 @@ await page.mouse.click(763, 470)
 await page.waitForTimeout(800)
 await page.screenshot({ path: join(outDir, '3-all-placed.png') })
 
-const saved = JSON.parse(readFileSync(await layoutFile(base, 'e2e'), 'utf8'))
+const saved = JSON.parse(readFileSync(layoutFile('e2e'), 'utf8'))
 console.log(
   'saved items:',
   saved.items.map((i) => `${i.kind}@${i.at.map((v) => v.toFixed(2)).join(',')}${i.facing ? ' ' + i.facing : ''}`),

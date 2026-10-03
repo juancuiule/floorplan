@@ -39,3 +39,9 @@ test-results
 
 # Agent worktrees
 .claude/worktrees/
+
+# Everyone's spaces: plans, layouts and artwork (FLOORPLAN_DATA)
+storage
+
+# The browser tests' throwaway data folder
+tests/e2e/.data

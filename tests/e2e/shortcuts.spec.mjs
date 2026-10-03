@@ -4,14 +4,14 @@ import { test } from '@playwright/test'
 import assert from 'node:assert/strict'
 import { copyFileSync } from 'node:fs'
 import { BASE_URL, watchErrors } from './lib.mjs'
-import { layoutFile } from './workspace.mjs'
+import { appUrl, layoutFile } from './space.mjs'
 
 test('shortcuts', async ({ page }) => {
   const FILE = 'test-shortcuts'
-  copyFileSync('tests/e2e/fixtures/shortcuts.json', await layoutFile(BASE_URL, FILE))
+  copyFileSync('tests/e2e/fixtures/shortcuts.json', layoutFile(FILE))
 
   const errors = watchErrors(page)
-  await page.goto(`${BASE_URL}/?decor=${FILE}&view=top&dims=0`)
+  await page.goto(`${appUrl(BASE_URL)}&decor=${FILE}&view=top&dims=0`)
   await page.waitForFunction(() => window.__decor?.getState().loaded)
   await page.waitForTimeout(1200)
 
