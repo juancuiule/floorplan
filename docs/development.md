@@ -4,36 +4,52 @@
 
 | Path | What it is |
 |---|---|
-| `examples/<name>/` | Example workspaces: `workspace.json`, `plans/<id>.plan.json` (type in `src/model/plan.ts`), `layouts/decor*.json`, `artwork/`. The dev server opens the one in `FLOORPLAN_WORKSPACE` (default `examples/loft`). |
+| `src/main.tsx` | Startup: which page the URL is, and for the 3D app, fetching and opening its plan before the app loads. |
+| `src/pages/` | The pages around the 3D app: home, a space's plans, and the floor plan editor (`floorplan/`). |
+| `examples/<name>/` | Example workspaces, offered as templates and importable as spaces: `workspace.json`, `plans/<id>.plan.json` (type in `src/model/plan.ts`), `layouts/decor*.json`, `artwork/`. |
+| `storage/` | Everyone's spaces (`FLOORPLAN_DATA`, git-ignored): `spaces/<id>/` with `space.json`, `plans/`, `layouts/<plan>/`, `artwork/`. |
 | `src/project/` | The launch options read from the URL (`launch.ts`), the open plan (`plan.ts`), and everything derived from it: the active shell after walls are removed (`structure.ts`), finishes applied to materials, camera sides, defaults for what the plan leaves out (`derived.ts`). |
-| `src/model/` | Data types: plan geometry (`types.ts`, `plan.ts`), decor items (`decor.ts`), finishes and structure choices. |
+| `src/model/` | Data types: plan geometry (`types.ts`, `plan.ts`), decor items (`decor.ts`), finishes and structure choices, the floor plan sketch and `planFromSketch` (`sketch.ts`), validation. |
 | `src/decor/` | Decor logic without React: the store and the modules behind it (API client, undo history, saving, the layout file format), placement and wall snapping, smart guides, selection, arranging, the catalogs of plants and lamps (`catalog.ts`) and furniture (`furnitureCatalog.ts`, with one file per group in `furniture/`). |
 | `src/scene/` | The three.js scene (React Three Fiber): walls, floors, fixtures, lights and shadows, and every decor model under `scene/decor/`. |
 | `src/ui/` | Panels, toolbar, inspector, edit bar. |
 | `src/sun/` | Solar position and daylight. |
 | `src/plan/` | Walk mode, the measure tool, clearances and obstacles. |
-| `server/` | Vite plugins: the open workspace (`workspace.ts`: its plans as `virtual:workspace`, its artwork at `/artwork/`) and the dev API for saving layouts and uploading images (`studioApi.ts`, only under `pnpm dev`). |
-| `scripts/` | Screenshot and performance tools. |
+| `server/` | The API (`api.ts`) over the spaces on disk (`storage.ts`); mounted on the dev server (`devServer.ts`) and, with the built app, by the production server (`main.ts`, `pnpm start`). |
+| `scripts/` | Importing a workspace as a space (`import-workspace.ts`), screenshot and performance tools. |
 | `tests/unit/`, `tests/e2e/` | Unit tests (vitest) and browser tests (Playwright). |
 
 Coordinates are meters: `x` and `z` on the floor, `y` up. Each plan sets its own origin; see [your-own-floorplan.md](your-own-floorplan.md#2-measure-and-pick-your-axes).
 
-## Dev API
+## Running
 
-`server/studioApi.ts` adds these routes to the Vite dev server so the browser can write back into the open workspace (`<layouts>` and `<artwork>` are its folders):
+```sh
+pnpm dev                                   # dev server with the API, http://localhost:5173
+pnpm build && pnpm start                   # production: the built app and the API, http://localhost:8080 (PORT)
+pnpm space:import examples/monoambiente    # a workspace folder as a new space; prints its link
+```
+
+Both servers keep spaces in `FLOORPLAN_DATA` (default `storage/`).
+
+## API
+
+`server/api.ts` ([ADR 0010](adr/0010-spaces.md)). `<s>` is a space, `<p>` one of its plans; everything under a space belongs to it.
 
 | Route | Does |
 |---|---|
-| `GET /api/workspace` | `{ name, defaultPlan, layouts }`, for scripts and browser tests that seed layout files. |
-| `GET /api/decor` · `PUT /api/decor` | Read or replace `<layouts>/decor.json`. `?file=<slug>` uses `<layouts>/decor.<slug>.json` instead. |
-| `GET /api/layouts` | List layouts (main first; `?all=1` includes `e2e*`/`test*` files). |
-| `POST /api/layouts` | `{ name, data? \| from? }` saves a new layout, returns `{ slug, name }`. |
-| `PATCH /api/layouts?file=<slug>` | `{ name }` renames (no `?file=` renames the main one). |
-| `DELETE /api/layouts?file=<slug>` | Deletes a named layout. |
-| `GET /api/artwork` · `POST /api/artwork?name=…` | List `<artwork>` · upload one image (raw body). |
-| `GET /api/image?url=<link>` | Fetches a remote image for the TV screen (public http(s) only, 15 MB). |
+| `GET /api/templates` | The examples a new plan can start from. |
+| `POST /api/spaces` | `{ name }` makes a space, returns `{ id }`. |
+| `GET /api/spaces/<s>` · `PATCH` | `{ id, name, plans }` · `{ name }` renames. |
+| `POST /api/spaces/<s>/plans` | `{ name, template \| plan }`: a copy of an example (without artwork), or a plan from the editor. Returns `{ id }`. |
+| `GET` · `PUT` · `DELETE /api/spaces/<s>/plans/<p>` | The plan, verbatim · replace it (checked, same id) · delete it with its layouts. |
+| `GET` · `PUT /api/spaces/<s>/plans/<p>/decor` | Read (verbatim) or replace the main layout; `?file=<slug>` another one. |
+| `GET /api/spaces/<s>/plans/<p>/layouts` | List layouts (main first; `?all=1` includes `e2e*`/`test*` files). |
+| `POST` · `PATCH` · `DELETE …/layouts[?file=<slug>]` | Save a new layout (`{ name, data? \| from? }`) · rename · delete a named one. |
+| `GET` · `POST /api/spaces/<s>/artwork[?name=…]` | List the space's images · upload one (raw body). |
+| `GET /api/spaces/<s>/artwork/<name>` | One image. |
+| `GET /api/image?url=<link>` | A remote image for the TV screen (public http(s) only, 15 MB). |
 
-Changes to decor files on disk are pushed to open tabs (`decor:changed`, `layouts:changed`), so editing a layout by hand updates the app live. A production build (`pnpm build`) has no API: the app opens with an empty room and doesn't save.
+Under `pnpm dev`, changes to layout files on disk are pushed to open tabs (`decor:changed`, `layouts:changed`, with the space and plan), so editing a layout by hand updates the app live.
 
 ## Checks
 
@@ -52,13 +68,14 @@ CI (`.github/workflows/ci.yml`) runs `pnpm check` and `pnpm build` on every push
 
 | Level | Run | Where |
 |---|---|---|
-| Unit | `pnpm test` (also in `pnpm check` and CI) | `tests/unit/`: vitest + jsdom. They run against the `examples/monoambiente` workspace plus the loft plan (`vitest.config.ts`), because they are written for that apartment's walls and partitions. |
-| Browser | `pnpm test:e2e` | `tests/e2e/*.spec.mjs`: Playwright Test (`playwright.config.ts`). It starts its own dev server on the monoambiente workspace (port 5199), or uses `BASE_URL` if you set it. `CHROME_PATH` runs an installed Chrome instead of Playwright's Chromium (`npx playwright install chromium`). |
+| Unit | `pnpm test` (also in `pnpm check` and CI) | `tests/unit/`: vitest + jsdom. They open the `examples/monoambiente` plan (and the loft where a test asks for it, `tests/unit/plans.ts`), because they are written for that apartment's walls and partitions. |
+| Browser | `pnpm test:e2e` | `tests/e2e/*.spec.mjs`: Playwright Test (`playwright.config.ts`). It imports the monoambiente example as space `e2e` into a throwaway data folder (`tests/e2e/.data`) and starts its own dev server on it (port 5199), or uses `BASE_URL` if you set it. `CHROME_PATH` runs an installed Chrome instead of Playwright's Chromium (`npx playwright install chromium`). |
 
-The browser tests run one at a time (the scene is GPU-heavy and they time animations), take about four minutes and are not in CI yet: they need WebGL, which Linux runners only have in software. Each one uses `?decor=<name>` with a scratch name (`e2e-…`, `test-…`), which reads and writes a git-ignored `<layouts>/decor.<name>.json` instead of a real layout; they ask the dev server where `<layouts>` is (`GET /api/workspace`). Screenshots go to `test-results/` (git-ignored), and a failing test leaves its trace and screenshot in `test-results/e2e-output/`.
+The browser tests run one at a time (the scene is GPU-heavy and they time animations), take about four minutes and are not in CI yet: they need WebGL, which Linux runners only have in software. Each one uses `?decor=<name>` with a scratch name (`e2e-…`, `test-…`), which reads and writes a git-ignored `<layouts>/decor.<name>.json` instead of a real layout; `tests/e2e/space.mjs` knows where. Screenshots go to `test-results/` (git-ignored), and a failing test leaves its trace and screenshot in `test-results/e2e-output/`.
 
 | Test | What it checks |
 |---|---|
+| `spaces` | Makes a space from the home page, draws a plan in the editor, opens it in 3D, copies an example, and checks another space sees none of it. |
 | `smoke` | Switches views, opens each panel tab and places an artwork, a plant, lamps and a desk through the UI, then checks the saved layout through the dev API; layouts menu, A/B, finishes. |
 | `walk-measure` | Walks through the flat (entry, passage, balcony, walls), measures on the floor and checks the clearance overlay. |
 | `walls` | Takes the hall ↔ main room wall out in the Room tab, checks the saved layout, walks through where it stood and puts it back. |

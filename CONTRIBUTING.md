@@ -3,7 +3,7 @@
 ## Before you start
 
 - Read [docs/architecture.md](docs/architecture.md) for where things go, and [GLOSSARY.md](GLOSSARY.md) for what things are called. Use the glossary's terms in code, comments, commits and docs; if a concept has no term yet, add one.
-- `pnpm install`, then `pnpm dev` (the loft example), or `FLOORPLAN_WORKSPACE=examples/monoambiente pnpm dev` for the apartment the tests are written against.
+- `pnpm install`, then `pnpm dev`. To work on the apartment the tests are written against, `pnpm space:import examples/monoambiente` and open the link it prints.
 
 ## Before you commit
 

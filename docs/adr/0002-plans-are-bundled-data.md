@@ -1,6 +1,6 @@
 # Plans are data files, bundled and chosen once per page load
 
-Status: accepted, amended by [0009](0009-workspaces.md) (plans come from the open workspace)
+Status: accepted, amended by [0009](0009-workspaces.md) and [0010](0010-spaces.md) (plans are fetched at startup, not bundled)
 
 Everything specific to an apartment lives in a plan file (`src/plans/<id>.plan.json`, typed by `src/model/plan.ts`); what a plan does not spell out is derived from its geometry (`src/project/derived.ts`). The code knows no apartment by name. All plans are bundled with `import.meta.glob`, and `src/project/plan.ts` picks one from `?plan=` when the module loads and exports it as a constant, so switching plans is a page reload.
 

@@ -4,9 +4,20 @@ A 3D model of an apartment for planning its interior: the apartment as it is bui
 
 ## The apartment
 
+**Space**:
+One person's or household's corner of the app: their plans, the layouts of each, and their artwork. Its link is its key.
+_Avoid_: account, tenant, project
+
 **Workspace**:
-A folder with one apartment's data: its plans, layouts and artwork. The app opens one at a time.
-_Avoid_: project, data folder
+A folder with one apartment's data (plans, layouts, artwork), the shape of the examples and of what can be imported as a space.
+_Avoid_: data folder
+
+**Template**:
+An example plan a new plan can start as a copy of, furnished but without artwork.
+
+**Sketch**:
+A floor plan as drawn in the editor: rooms on wall centerlines, openings and fittings by position. The plan is worked out from it.
+_Avoid_: drawing, draft (a draft is a decor item being placed)
 
 **Plan**:
 One apartment as data: its shell, fixtures, materials, location and the design rules that apply to it (which partitions can come out, which walls take an accent color).
