@@ -1,8 +1,10 @@
 import { useEffect, useMemo } from 'react'
 import type { FurnitureItem, PlantSpecies } from '../../../model/decor'
-import { MATS, potMaterial } from '../Plant'
+import { MATS, potMaterial } from '../plantMaterials'
 import { buildPlant, POT_SIZES, seeded } from '../plantGeometry'
-import { B, cushionGeometry, mat, Pillow, Rod } from './common'
+import { B, Pillow, Rod } from './common'
+import { mat } from './furnitureMaterials'
+import { cushionGeometry } from './softGeometry'
 
 const PILLOWS = ['#b3664b', '#d8b24a', '#9aab8e', '#e8e2d3']
 

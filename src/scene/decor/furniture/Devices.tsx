@@ -1,13 +1,15 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { screenImageSrc } from '../../../decor/screenImage'
 import { embedUrl, parseYouTube } from '../../../decor/youtube'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 import { CONDENSER_H, SPEAKER_W, TV_BEZEL, TV_LIFT, tvPanel } from '../../../decor/furnitureCatalog'
 import type { FurnitureItem } from '../../../model/decor'
 import type { Vec3 } from '../../../model/types'
 import { sharedEdgeMaterial } from '../../materials'
-import { B, mat, Rod } from './common'
+import { B, Rod } from './common'
+import { mat } from './furnitureMaterials'
 
 // Appliances and electronics: specific products the owner has, at their real
 // sizes. Surface pieces: origin at the footprint center on the supporting
@@ -605,15 +607,6 @@ function tvScreenMaterial(on: boolean): THREE.MeshStandardMaterial {
   map.colorSpace = THREE.SRGBColorSpace
   tvOn = new THREE.MeshStandardMaterial({ color: '#000000', roughness: 0.2, emissive: '#ffffff', emissiveMap: map, emissiveIntensity: 0.9 })
   return tvOn
-}
-
-/** Where the page loads a picture from: local paths as they are, other links through the dev server (no CORS). */
-export function screenImageSrc(link: string): string | null {
-  const s = link.trim()
-  if (!s) return null
-  if (s.startsWith('/')) return s
-  if (/^https?:\/\//i.test(s)) return `/api/image?url=${encodeURIComponent(s)}`
-  return null
 }
 
 /**

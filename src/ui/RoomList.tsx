@@ -4,10 +4,12 @@ import { useDecor } from '../decor/store'
 import type { DecorKind } from '../model/decor'
 import { structureOf } from '../model/finishes'
 import { lostWallOf, WALL_LABELS, type HungItem } from '../project/structure'
-import { isPlaced, itemLabel, TABS } from './format'
-import { Icon, itemIcon, type IconName } from './icons'
+import { itemLabel, TABS } from './format'
+import { Icon, type IconName } from './icons'
+import { itemIcon } from './itemIcons'
 import './selection.css'
 import { useUi } from './uiStore'
+import { isPlaced } from '../model/decor'
 
 // Everything placed in the room: groups first (collapsible), then the rest by
 // kind. Docked at the bottom of the panel and collapsible; it scrolls on its
@@ -41,11 +43,6 @@ const rowsSignature = (s: ReturnType<typeof useDecor.getState>) =>
     .filter(isPlaced)
     .map((i) => [i.id, i.kind, itemLabel(i), itemIcon(i), i.kind === 'artwork' ? i.image : '', lostWallOf(i as HungItem, structureOf(s.finishes)) ?? '', i.groupId ?? ''].join(SEP))
     .join('\n')
-
-export function useRoomCounts() {
-  const sig = useDecor((s) => TABS.map((t) => s.items.filter((i) => i.kind === t.kind && isPlaced(i)).length).join(','))
-  return useMemo(() => sig.split(',').map(Number), [sig])
-}
 
 export function RoomList() {
   const open = useUi((s) => s.roomListOpen)

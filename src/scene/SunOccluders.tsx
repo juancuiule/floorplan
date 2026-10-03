@@ -72,7 +72,7 @@ function buildGeometry(): THREE.BufferGeometry {
 
 export function SunOccluders() {
   const ref = useRef<THREE.Mesh>(null)
-  const geometry = useMemo(buildGeometry, [])
+  const geometry = useMemo(() => buildGeometry(), [])
   const material = useMemo(() => new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, side: THREE.DoubleSide }), [])
   useEffect(() => {
     const mesh = ref.current!

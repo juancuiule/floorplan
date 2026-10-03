@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { plan } from '../project/plan'
 import { isFlippable } from '../project/cameraSides'
-import { PRESETS, viewSide } from '../scene/CameraRig'
+import { PRESETS, viewSide } from '../scene/cameraPresets'
 import { useView, type ViewMode, type ViewPreset } from '../store'
 import { onRadioKeys } from './controlUtils'
 import { Icon, type IconName } from './icons'

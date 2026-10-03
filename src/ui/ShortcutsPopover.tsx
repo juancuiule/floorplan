@@ -1,8 +1,6 @@
 import { useEffect, useRef, type RefObject } from 'react'
 import { Icon } from './icons'
-
-const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
-export const MOD = isMac ? '⌘' : 'Ctrl'
+import { MOD } from './format'
 
 const GROUPS: { title: string; items: [keys: string[][], what: string][] }[] = [
   {
@@ -73,17 +71,18 @@ export function ShortcutsPopover({ onClose, triggerRef }: { onClose: () => void;
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    ref.current?.focus()
+    const panel = ref.current
+    panel?.focus()
     const trigger = triggerRef.current
     const onDown = (e: PointerEvent) => {
       const t = e.target as Node
-      if (!ref.current?.contains(t) && !trigger?.contains(t)) onClose()
+      if (!panel?.contains(t) && !trigger?.contains(t)) onClose()
     }
     document.addEventListener('pointerdown', onDown)
     return () => {
       document.removeEventListener('pointerdown', onDown)
       // Return focus only if it would otherwise be lost.
-      if (!document.activeElement || document.activeElement === document.body || ref.current?.contains(document.activeElement)) trigger?.focus()
+      if (!document.activeElement || document.activeElement === document.body || panel?.contains(document.activeElement)) trigger?.focus()
     }
   }, [onClose, triggerRef])
 

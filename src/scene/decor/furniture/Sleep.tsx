@@ -1,5 +1,6 @@
 import type { FurnitureItem } from '../../../model/decor'
-import { B, Books, FingerHole, mat, T } from './common'
+import { B, Books, FingerHole, T } from './common'
+import { mat } from './furnitureMaterials'
 
 const MATTRESS = '#f5f4f0'
 const PILLOW = '#fbfaf7'

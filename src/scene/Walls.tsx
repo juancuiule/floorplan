@@ -11,14 +11,12 @@ import { Box } from './Box'
 import { Merged } from './Merged'
 import { applyFade, faceDims, makeEdgeMaterial, makeMaterial } from './materials'
 import { requestShadowUpdate } from './shadows'
+import { cutWalls } from './cutWalls'
 
 /** Height of the wall stub left standing when dollhouse mode cuts a wall away. */
 export const STUB_HEIGHT = 0.3
 const XRAY_ALPHA = 0.14
 const FADE_SPEED = 9
-
-/** Walls currently cut away by dollhouse mode; decor hosted on them hides too. */
-export const cutWalls = new Set<string>()
 
 /** Longest step a fade takes in one frame: after an idle spell (on-demand rendering) dt can be seconds. */
 const MAX_DT = 1 / 30

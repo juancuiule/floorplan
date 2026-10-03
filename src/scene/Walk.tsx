@@ -1,6 +1,6 @@
 import type { CameraControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { useDecor } from '../decor/store'
 import type { Vec2 } from '../model/types'
@@ -83,14 +83,17 @@ export function Walk() {
     }
   }, [])
 
-  const apply = (transition: boolean) => {
+  const apply = useCallback(
+    (transition: boolean) => {
     if (!controls) return
     const p = pose.current
     const c = Math.cos(p.pitch)
     void controls.setLookAt(p.x, p.eye, p.z, p.x + Math.cos(p.yaw) * c, p.eye + Math.sin(p.pitch), p.z + Math.sin(p.yaw) * c, transition)
     // Write the camera now rather than on the next frame's controls update.
     if (!transition) controls.update(0)
-  }
+    },
+    [controls],
+  )
 
   // Enter and leave.
   useEffect(() => {
@@ -119,8 +122,9 @@ export function Walk() {
     invalidate()
     const cursor = gl.domElement.style.cursor
     gl.domElement.style.cursor = 'grab'
+    const held = keys.current
     return () => {
-      keys.current.clear()
+      held.clear()
       controls.enabled = true
       gl.domElement.style.cursor = cursor
       // A camera preset picked while walking takes over; otherwise go back to the orbit view.
@@ -130,7 +134,7 @@ export function Walk() {
       } else fovTarget.current = null
       invalidate()
     }
-  }, [walking, controls, camera, gl, invalidate])
+  }, [walking, controls, camera, gl, invalidate, apply])
 
   // Keys: held movement keys drive the loop; the loop only runs while something changes.
   useEffect(() => {

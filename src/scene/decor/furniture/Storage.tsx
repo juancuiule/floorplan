@@ -1,5 +1,6 @@
 import type { FurnitureItem } from '../../../model/decor'
-import { B, Books, FingerHole, mat, Rod, T } from './common'
+import { B, Books, FingerHole, Rod, T } from './common'
+import { mat } from './furnitureMaterials'
 
 export function Bookshelf({ item }: { item: FurnitureItem }) {
   const [w, h, d] = item.size

@@ -3,7 +3,9 @@ import * as THREE from 'three'
 import type { FurnitureItem } from '../../../model/decor'
 import type { Vec3 } from '../../../model/types'
 import { seeded } from '../plantGeometry'
-import { B, Books, cushionGeometry, FingerHole, mat, Pillow, Rod, T } from './common'
+import { B, Books, FingerHole, Pillow, Rod, T } from './common'
+import { mat } from './furnitureMaterials'
+import { cushionGeometry } from './softGeometry'
 
 // ---------- ergonomic office chair ----------
 

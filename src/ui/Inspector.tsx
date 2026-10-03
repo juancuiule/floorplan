@@ -9,12 +9,15 @@ import type { ArtworkItem, DecorItem, FurnitureItem, LampItem, PlantItem, PlantS
 import { structureOf } from '../model/finishes'
 import type { Vec3 } from '../model/types'
 import { lostWallOf, WALL_LABELS, type HungItem } from '../project/structure'
-import { artworkOuterSize } from '../scene/decor/Artwork'
-import { screenImageSrc } from '../scene/decor/furniture/Devices'
-import { Chips, Field, NumberInput, Section, Slider, Swatches, Switch, useFieldControlId } from './controls'
+import { artworkOuterSize } from '../decor/extent'
+import { screenImageSrc } from '../decor/screenImage'
+import { Chips, Field, NumberInput, Section, Slider, Swatches, Switch } from './controls'
+import { useFieldControlId } from './fieldIds'
 import { colorName } from './controlUtils'
-import { cm, isPlaced, itemKindLine, itemLabel } from './format'
-import { Icon, itemIcon } from './icons'
+import { cm, itemKindLine, itemLabel } from './format'
+import { Icon } from './icons'
+import { itemIcon } from './itemIcons'
+import { isPlaced } from '../model/decor'
 
 // Settings for the selected item. Subscribes to that one item only, so dragging
 // it re-renders the inspector but not the rest of the panel.

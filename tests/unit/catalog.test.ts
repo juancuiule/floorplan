@@ -69,7 +69,7 @@ describe('furniture catalog', () => {
   })
 
   it('every furniture type and lamp has a line icon', async () => {
-    const { FURNITURE_ICON, LAMP_ICON } = await import('../../src/ui/icons')
+    const { FURNITURE_ICON, LAMP_ICON } = await import('../../src/ui/itemIcons')
     for (const t of TYPES) expect(FURNITURE_ICON[t], t).toBeTruthy()
     for (const t of Object.keys(LAMPS)) expect(LAMP_ICON[t as keyof typeof LAMP_ICON], t).toBeTruthy()
   })

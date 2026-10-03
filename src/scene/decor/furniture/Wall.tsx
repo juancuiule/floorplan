@@ -3,10 +3,12 @@ import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { FurnitureItem } from '../../../model/decor'
 import { useView } from '../../../store'
-import { MATS, potMaterial } from '../Plant'
+import { MATS, potMaterial } from '../plantMaterials'
 import { buildPlant, seeded } from '../plantGeometry'
-import { B, mat, Rod } from './common'
-import { GLAZES, glazeMaterial, Mug } from './Decor'
+import { B, Rod } from './common'
+import { mat } from './furnitureMaterials'
+import { Mug } from './Decor'
+import { GLAZES, glazeMaterial } from './glaze'
 
 // Wall pieces: origin on the wall surface, y = bottom edge, +z out of the wall.
 
@@ -50,7 +52,7 @@ export function GridShelf({ item }: { item: FurnitureItem }) {
   )
 }
 
-export function reededTexture(kind: string) {
+function reededTexture(kind: string) {
   const c = document.createElement('canvas')
   c.width = c.height = 256
   const g = c.getContext('2d')!

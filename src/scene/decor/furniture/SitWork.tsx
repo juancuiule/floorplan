@@ -4,7 +4,8 @@ import * as THREE from 'three'
 import type { FurnitureItem } from '../../../model/decor'
 import { requestShadowUpdate } from '../../shadows'
 import { Merged } from '../../Merged'
-import { B, mat, Rod } from './common'
+import { B, Rod } from './common'
+import { mat } from './furnitureMaterials'
 
 export function Sofa({ item }: { item: FurnitureItem }) {
   const [w, h, d] = item.size

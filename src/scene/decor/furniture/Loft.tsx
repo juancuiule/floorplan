@@ -1,5 +1,6 @@
 import type { FurnitureItem } from '../../../model/decor'
-import { B, Books, FingerHole, mat, T } from './common'
+import { B, Books, FingerHole, T } from './common'
+import { mat } from './furnitureMaterials'
 import { Bedding } from './Sleep'
 
 /**

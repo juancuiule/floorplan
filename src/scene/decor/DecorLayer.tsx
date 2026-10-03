@@ -11,54 +11,19 @@ import { buildGuideCtx, guideMove, worldGuides, type GuideCtx } from '../../deco
 import { facingOf, facingRotation, facingVector, mountOf, placeAt, readIntersection, slidesOnFloor, type SnapFace, type SurfaceHit } from '../../decor/placement'
 import { settleMoved } from '../../decor/rest'
 import { useDecor } from '../../decor/store'
-import type { DecorItem } from '../../model/decor'
+import { UNPLACED_Y, type DecorItem } from '../../model/decor'
 import { useView } from '../../store'
+import { decorIdOf, firstSolid, hidden } from '../pick'
 import { requestShadowUpdate } from '../shadows'
-import { cutWalls } from '../Walls'
+import { cutWalls } from '../cutWalls'
 import { Artwork } from './Artwork'
 import { Furniture } from './furniture/Furniture'
 import { EditOverlays } from './Gizmo'
 import { Lamp } from './Lamp'
 import { Plant } from './Plant'
 
-/** Below this y a draft has not been dropped on a valid surface yet. */
-const UNPLACED_Y = -50
 /** Pixels the pointer must travel before a press on an item becomes a drag. */
 const DRAG_THRESHOLD = 4
-
-export const unplacedAt = (): [number, number, number] => [0, UNPLACED_Y - 1, 0]
-
-/** The decor item an object belongs to, if any. */
-export function decorIdOf(o: THREE.Object3D | null): string | null {
-  for (; o; o = o.parent) if (o.userData.decorId) return o.userData.decorId as string
-  return null
-}
-
-/** Not drawn at all: a hidden object or parent, or only invisible materials (a faded-out wall). */
-function hidden(o: THREE.Object3D): boolean {
-  for (let p: THREE.Object3D | null = o; p; p = p.parent) if (!p.visible) return true
-  const m = (o as THREE.Mesh).material
-  const mats = Array.isArray(m) ? m : m ? [m] : []
-  return mats.length > 0 && mats.every((x) => !x.visible)
-}
-
-/**
- * Whether the pointer sees through this hit when picking items: hidden or
- * editor-helper objects, and architecture faded by x-ray or dollhouse mode.
- */
-function seeThrough(o: THREE.Object3D): boolean {
-  // Edge lines and points are picked from far away (raycaster line threshold): never let them block.
-  if (!(o as THREE.Mesh).isMesh || o.userData.editHelper || hidden(o)) return true
-  if (decorIdOf(o)) return false
-  const m = (o as THREE.Mesh).material
-  const mats = Array.isArray(m) ? m : m ? [m] : []
-  return mats.length > 0 && mats.every((x) => !x.visible || (x.transparent && x.opacity < 0.5))
-}
-
-/** First hit the eye actually sees. */
-export function firstSolid(list: THREE.Intersection[]) {
-  return list.find((i) => !seeThrough(i.object))
-}
 
 /** First hit that is a usable surface, ignoring decor if asked (floor pieces slide on the floor). */
 function surfaceUnder(list: THREE.Intersection[], opts: { skipIds?: Set<string>; skipDecor?: boolean }) {
@@ -98,7 +63,7 @@ let guideCtxFor: string | null = null
 let lastPress: { id: string; t: number } | null = null
 const DOUBLE_MS = 400
 
-export function clearGuides() {
+function clearGuides() {
   guideCtx = null
   guideCtxFor = null
   if (useEdit.getState().guides) useEdit.getState().set({ guides: null })

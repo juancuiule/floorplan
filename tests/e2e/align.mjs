@@ -142,7 +142,7 @@ check('undo: whole group back', undone.every((a, i) => a.at.every((v, k) => Math
 
 // 8. Smart guides: Alt+press one piece (just it), drag it level with its neighbor.
 await page.keyboard.press('Escape')
-const [left, mid] = [...undone].sort((p, q) => q.at[0] - p.at[0])
+const [, mid] = [...undone].sort((p, q) => q.at[0] - p.at[0])
 const pm = await center(mid)
 await page.mouse.move(pm[0], pm[1])
 await page.keyboard.down('Alt')

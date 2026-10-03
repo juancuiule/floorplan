@@ -217,9 +217,11 @@ function RotateRing({ item, rotating }: { item: DecorItem & { rotation: number }
   const [radius, setRadius] = useState(0.4)
   const gesture = useRef<{ a0: number; rot0: number; original: DecorItem } | null>(null)
 
-  // Radius: just outside the item's plan extent.
+  // Radius: just outside the item's plan extent. Other kinds are measured from
+  // their rendered mesh, which only exists after commit, hence the effect.
   useEffect(() => {
     if (item.kind === 'furniture') {
+      // oxlint-disable-next-line react/set-state-in-effect -- reads the scene graph, see above
       setRadius(Math.hypot(item.size[0], item.size[2]) / 2 + 0.12)
       return
     }
@@ -230,6 +232,7 @@ function RotateRing({ item, rotating }: { item: DecorItem & { rotation: number }
     if (!node) return
     const box = new THREE.Box3().setFromObject(node)
     const s = box.getSize(new THREE.Vector3())
+    // oxlint-disable-next-line react/set-state-in-effect -- reads the scene graph, see above
     setRadius(Math.max(0.18, Math.hypot(s.x, s.z) / 2 + 0.08))
   }, [item, scene])
 

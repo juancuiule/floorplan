@@ -177,6 +177,17 @@ export interface FurnitureItem extends Groupable {
 export type DecorItem = ArtworkItem | PlantItem | LampItem | FurnitureItem
 export type DecorKind = DecorItem['kind']
 
+/**
+ * Below this height an item has not been dropped anywhere yet: a new item
+ * waiting for its first click is parked under the floor, out of sight.
+ */
+export const UNPLACED_Y = -50
+
+/** Where a new item waits until it is placed. */
+export const unplacedAt = (): Vec3 => [0, UNPLACED_Y - 1, 0]
+
+export const isPlaced = (item: DecorItem) => item.at[1] > UNPLACED_Y
+
 /** One layout variant: data/decor.json ("Current") or data/decor.<slug>.json. */
 export interface DecorFile {
   version: 1

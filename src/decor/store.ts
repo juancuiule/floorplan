@@ -3,7 +3,7 @@ import { shell } from '../project'
 import { migrateAccent, paintFaces } from '../project/paintFaces'
 import { carry } from './carry'
 import { isDefaultPlan, plan } from '../project/plan'
-import type { DecorFile, DecorItem, DecorKind } from '../model/decor'
+import { isPlaced, type DecorFile, type DecorItem, type DecorKind } from '../model/decor'
 import { DEFAULT_FINISHES, isDefaultFinishes, normalizeFinishes, type Finishes } from '../model/finishes'
 import type { Vec3 } from '../model/types'
 import { copyOffset, followLead, rotateAround, sameWall, type Patches } from './arrange'
@@ -115,7 +115,6 @@ interface DecorState {
 const NO_API = 'Saving is only available while running the dev server.'
 const BROKEN_FILE = 'Saving paused: the layout file on disk is not valid JSON. Fix it and this tab reloads it.'
 
-/** Which decor file this tab edits: data/decor.json, or data/decor.<name>.json with ?decor=<name>. */
 /** The main layout file of a plan other than the default one. */
 export const planMainSlug = (id: string) => `plan-${id}`
 /** The open plan's main layout ("Current"): data/decor.json for the default plan. */
@@ -371,7 +370,7 @@ export const useDecor = create<DecorState>((rawSet, get) => {
   selectAllLike: (kind) => {
     const s = get()
     const prim = s.items.find((i) => i.id === s.selectedId)
-    const placed = s.items.filter((i) => i.at[1] > -50)
+    const placed = s.items.filter(isPlaced)
     let ids: string[]
     if (prim && isWallItem(prim)) ids = placed.filter((i) => i.id === prim.id || sameWall(i, prim)).map((i) => i.id)
     else if (prim) ids = placed.filter((i) => i.kind === prim.kind && !isWallItem(i)).map((i) => i.id)

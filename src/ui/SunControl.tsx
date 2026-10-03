@@ -174,11 +174,12 @@ function SunPopover({ onClose, triggerRef }: { onClose: () => void; triggerRef: 
   const night = lighting === 'evening'
 
   useEffect(() => {
-    ref.current?.focus({ preventScroll: true })
+    const panel = ref.current
+    panel?.focus({ preventScroll: true })
     const trigger = triggerRef.current
     const onDown = (e: PointerEvent) => {
       const t = e.target as Node
-      if (!ref.current?.contains(t) && !trigger?.contains(t)) onClose()
+      if (!panel?.contains(t) && !trigger?.contains(t)) onClose()
     }
     // Esc closes from anywhere (the canvas has focus after a click in the scene), before the editor's Esc.
     const onKey = (e: KeyboardEvent) => {
@@ -192,7 +193,7 @@ function SunPopover({ onClose, triggerRef }: { onClose: () => void; triggerRef: 
     return () => {
       document.removeEventListener('pointerdown', onDown)
       window.removeEventListener('keydown', onKey, true)
-      if (!document.activeElement || document.activeElement === document.body || ref.current?.contains(document.activeElement)) trigger?.focus()
+      if (!document.activeElement || document.activeElement === document.body || panel?.contains(document.activeElement)) trigger?.focus()
     }
   }, [onClose, triggerRef])
 

@@ -1,20 +1,11 @@
-import { createContext, useContext, useId, useState, type CSSProperties, type ReactNode } from 'react'
+import { useId, useState, type CSSProperties, type ReactNode } from 'react'
 import { onRadioKeys, parseNumber } from './controlUtils'
+import { FieldIds, useFieldIds } from './fieldIds'
 import { Icon } from './icons'
 import { useUi } from './uiStore'
 
 // Inspector building blocks. Every control is keyboard-first: radio groups move
 // with the arrow keys, number fields step with +/- buttons or the arrow keys.
-
-const FieldIds = createContext<{ labelId: string; controlId: string } | null>(null)
-
-function useFieldIds() {
-  const fallback = useId()
-  return useContext(FieldIds) ?? { labelId: `${fallback}-l`, controlId: `${fallback}-c` }
-}
-
-/** Id for a native control inside a Field, so the Field's label points at it. */
-export const useFieldControlId = () => useFieldIds().controlId
 
 /** A collapsible group of fields, e.g. "Size" or "Finish". Remembers if the viewer closed it. */
 export function Section({ title, children, aside }: { title: string; children: ReactNode; aside?: ReactNode }) {

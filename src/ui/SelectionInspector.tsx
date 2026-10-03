@@ -5,8 +5,9 @@ import { useDecor } from '../decor/store'
 import type { DecorItem } from '../model/decor'
 import { Chips, Field, NumberInput, Section } from './controls'
 import { cm, itemLabel } from './format'
-import { Icon, itemIcon } from './icons'
-import { MOD } from './ShortcutsPopover'
+import { Icon } from './icons'
+import { itemIcon } from './itemIcons'
+import { MOD } from './format'
 import './selection.css'
 
 // The panel for a multi-selection: what is selected, its group, and the

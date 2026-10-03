@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { FURNITURE, FURNITURE_GROUPS, FURNITURE_KEYWORDS, TV_BEZEL, TV_INCHES, tvPanel } from '../../src/decor/furnitureCatalog'
 import { placeAt } from '../../src/decor/placement'
 import type { FurnitureItem, FurnitureType } from '../../src/model/decor'
-import { FURNITURE_ICON } from '../../src/ui/icons'
+import { FURNITURE_ICON } from '../../src/ui/itemIcons'
 
 const DEVICES: FurnitureType[] = ['speakers', 'standMixer', 'espressoMachine', 'turntable', 'acIndoor', 'acOutdoor', 'tv', 'tvWall']
 
