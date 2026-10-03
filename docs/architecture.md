@@ -27,16 +27,16 @@ flowchart TD
   ui & scene --> sun
   plan --> decor
   decor --> project
-  project --> geometry
+  project --> geometry & sun
   geometry --> model
   sun --> model
 ```
 
 | Layer | Owns | Notes |
 |---|---|---|
-| `model/` | The data types of plans, layouts, decor items and finishes, and pure functions on them (defaults, normalization). | No three.js, no React, no browser APIs. |
+| `model/` | The data types of plans, layouts, decor items and finishes, pure functions on them (defaults, normalization, validation), and layout naming shared with the dev server. | No three.js, no React, no browser APIs. Functions that depend on a plan take it as an argument. |
 | `geometry/` | Wall frames and pieces between openings. | Pure. |
-| `project/` | The open plan (`plan.ts`), values derived from it (`derived.ts`), the active shell (`structure.ts`), paint faces, finish materials, camera sides. | Reads `?plan=` once at load ([ADR 0002](adr/0002-plans-are-bundled-data.md)). |
+| `project/` | The launch options (`launch.ts`), the open plan (`plan.ts`), values derived from it (`derived.ts`), the active shell (`structure.ts`), paint faces, finish materials, camera sides. | Chosen once at load ([ADR 0002](adr/0002-plans-are-bundled-data.md)). |
 | `sun/` | Where the sun is and what the light looks like. | Pure. |
 | `plan/` | The apartment as obstacles: walk collision, clearances, the measure tool and its store. | Uses decor placement to know furniture footprints. |
 | `decor/` | Everything about editing decor that is not drawing it: the store, placement and snapping, smart guides, arranging, carrying, selection commands, catalogs, the layouts API client. | May use three.js math and raycasting, never React components. |
@@ -95,9 +95,10 @@ sequenceDiagram
 
 ## Startup
 
-1. `src/project/plan.ts` picks the plan from `?plan=`; `project/derived.ts` computes cameras, bounds and defaults from it.
-2. Stores initialize from the URL and browser storage: `?view`, `?sun`, `?decor` and friends, so a URL can reproduce a view exactly (the screenshot scripts rely on this).
-3. `App` mounts the scene and the panel and calls `useDecor.load()`, which fetches the layout. Without the dev API (a static build) the app starts empty and says saving is unavailable.
+1. `src/project/launch.ts` reads the URL parameters once into checked launch options (`?plan`, `?decor`, `?view`, `?sun`, `?cam`…), so a URL can reproduce a view exactly; the screenshot scripts rely on this.
+2. `src/project/plan.ts` opens the plan from `?plan=` and checks it (`model/validate.ts`): a broken plan fails with every problem listed. `project/derived.ts` computes cameras, bounds and defaults from it.
+3. Stores initialize from the launch options and browser storage.
+4. `App` mounts the scene and the panel and calls `useDecor.load()`, which fetches the layout and checks it against the catalogs (`decor/validateLayout.ts`). Without the dev API (a static build) the app starts empty and says saving is unavailable; with an invalid file it keeps what is on screen, pauses saving and says what is wrong.
 
 ## Rendering
 
@@ -119,9 +120,4 @@ Walls come from the active shell ([ADR 0008](adr/0008-structure-as-layout-data.m
 
 Tracked here until they are fixed:
 
-- Plan and layout files are cast to their types without validation.
-- `model/finishes.ts` and `model/structure.ts` read the open plan (accent walls, removable partitions), so the model layer is not independent of `project/`.
-- `scene/decor/DecorLayer.tsx` reads the paint brush from the UI store; the brush is editing state and belongs with `useEdit`.
-- URL parameters are read in several modules at import.
-- Layout file naming rules exist on both the client and the server.
 - Browser tests are plain scripts rather than a test runner, and only the smoke test runs from `pnpm test:e2e`.
