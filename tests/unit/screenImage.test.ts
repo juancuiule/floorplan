@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { checkImageUrl } from '../../server/studioApi'
-import { screenImageSrc } from '../../src/decor/screenImage'
+import { screenImageSrc } from '../../src/decor/api'
 
 describe('TV picture links', () => {
   it('loads library paths directly and other links through the dev server', () => {

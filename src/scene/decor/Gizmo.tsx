@@ -1,5 +1,4 @@
 import type { CameraControls } from '@react-three/drei'
-import { carry } from '../../decor/carry'
 import { Html, Line } from '@react-three/drei'
 import { useThree, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -390,15 +389,8 @@ function RotateRing({ item, rotating }: { item: DecorItem & { rotation: number }
       if (ev.key !== 'Escape' || !gesture.current) return
       ev.stopImmediatePropagation()
       ev.preventDefault()
-      // Put back the very same object so history sees no change at all.
-      const original = gesture.current.original
-      // Riders turned with it go back too.
-      useDecor.setState((s) => ({
-        items: carry(
-          s.items,
-          s.items.map((i) => (i.id === original.id ? original : i)),
-        ),
-      }))
+      // Put back the very same object so history sees no change at all; riders turned with it go back too.
+      useDecor.getState().restore([gesture.current.original])
       end()
     }
     window.addEventListener('pointermove', move)

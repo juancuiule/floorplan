@@ -9,7 +9,7 @@ import {
   PLANTS,
 } from '../decor/catalog'
 import { FURNITURE, FURNITURE_GROUPS, FURNITURE_KEYWORDS } from '../decor/furnitureCatalog'
-import { newId } from '../decor/store'
+import { newId } from '../decor/clone'
 import { unplacedAt, type DecorItem, type FurnitureType, type LampType, type PlantSpecies } from '../model/decor'
 import type { Vec3 } from '../model/types'
 import { cm } from './format'

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { newId } from '../../src/decor/clone'
 import type { DecorItem, LampItem, PlantItem } from '../../src/model/decor'
 
 // The store reads ?decor= at import time and persists through fetch, so each test
@@ -112,7 +113,7 @@ describe('load', () => {
     )
     const { useDecor } = await freshStore()
     await useDecor.getState().load()
-    expect(useDecor.getState().error).toMatch(/dev server/)
+    expect(useDecor.getState().saveStatus).toBe('no-api')
     useDecor.getState().startPlacing(plant('x'))
     useDecor.getState().stopMoving()
     await vi.advanceTimersByTimeAsync(1000)
@@ -255,7 +256,7 @@ describe('update, remove, duplicate', () => {
   })
 
   it('newId prefixes the kind and is unique', () => {
-    const ids = new Set(Array.from({ length: 200 }, () => store.newId('artwork')))
+    const ids = new Set(Array.from({ length: 200 }, () => newId('artwork')))
     expect(ids.size).toBe(200)
     for (const id of ids) expect(id).toMatch(/^artwork-[a-z0-9]+$/)
   })
@@ -342,7 +343,7 @@ describe('library', () => {
     )
     const img = await useDecor.getState().upload(new File([], 'x.txt'))
     expect(img).toBeNull()
-    expect(useDecor.getState().error).toBe('Only png')
+    expect(useDecor.getState().uploadError).toBe('Only png')
   })
 })
 
@@ -414,7 +415,7 @@ describe('a broken layout file', () => {
       }),
     )
     await useDecor.getState().load()
-    expect(useDecor.getState().error).toMatch(/^Saving paused/)
+    expect(useDecor.getState().saveStatus).toBe('broken-file')
     // What was on screen stays, and is not written over the file being fixed.
     expect(useDecor.getState().items.map((i) => i.id)).toEqual(['p1', 'l1'])
     useDecor.getState().update<PlantItem>('p1', { scale: 1.3 })
@@ -423,10 +424,29 @@ describe('a broken layout file', () => {
 
     text = JSON.stringify({ version: 1, items: [plant('p1')] })
     await useDecor.getState().load()
-    expect(useDecor.getState().error).toBeNull()
+    expect(useDecor.getState().saveStatus).toBe('ok')
     useDecor.getState().update<PlantItem>('p1', { scale: 1.4 })
     await vi.advanceTimersByTimeAsync(1000)
     expect(lastSavedItems()?.[0]).toMatchObject({ id: 'p1', scale: 1.4 })
+  })
+
+  it('stays paused after an upload succeeds', async () => {
+    const { useDecor } = await freshStore()
+    await useDecor.getState().load()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        calls.push({ url: String(url), method: init?.method ?? 'GET', body: init?.body as string | undefined })
+        if (String(url).startsWith('/api/artwork')) return new Response('{"name":"a.png","url":"/artwork/a.png"}')
+        return init?.method === 'PUT' ? new Response('{"ok":true}') : new Response('{ "items": [')
+      }),
+    )
+    await useDecor.getState().load()
+    expect(await useDecor.getState().upload(new File([], 'a.png'))).not.toBeNull()
+    useDecor.getState().update<PlantItem>('p1', { scale: 1.3 })
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(useDecor.getState().saveStatus).toBe('broken-file')
+    expect(puts()).toHaveLength(0)
   })
 
   it('treats a file without an items array as broken', async () => {
@@ -436,7 +456,7 @@ describe('a broken layout file', () => {
       vi.fn(async () => new Response('{"version":1,"items":{}}')),
     )
     await useDecor.getState().load()
-    expect(useDecor.getState().error).toMatch(/^Saving paused/)
+    expect(useDecor.getState().saveStatus).toBe('broken-file')
   })
 })
 
