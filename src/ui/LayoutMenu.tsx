@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { MAIN_NAME, useLayouts, type LayoutInfo } from '../decor/layouts'
+import { useLayouts, type LayoutInfo } from '../decor/layouts'
+import { MAIN_NAME } from '../model/layoutNames'
 import { plan } from '../project/plan'
 import { MAIN_SLUG, useDecor } from '../decor/store'
 import { Icon } from './icons'
 import './layoutMenu.css'
 
 // Layout variants: the menu at the top of the panel lists every saved
-// arrangement of the apartment (data/decor.json is "Current"), switches between
+// arrangement of the apartment (layouts/decor.json is "Current"), switches between
 // them, saves the current one under a new name, renames and deletes. The A/B
 // button (or B) flips between this layout and the one to compare with.
 
-/** A main layout (data/decor.json, or another plan's data/decor.plan-<id>.json) is "Current" until renamed. */
-const displayName = (slug: string | null, name: string) => name || (slug === null || slug === MAIN_SLUG ? MAIN_NAME : slug)
+/** A main layout (layouts/decor.json, or another plan's layouts/decor.plan-<id>.json) is "Current" until renamed. */
+const displayName = (slug: string | null, name: string) =>
+  name || (slug === null || slug === MAIN_SLUG ? MAIN_NAME : slug)
 
 function ago(iso: string) {
   const s = (Date.now() - new Date(iso).getTime()) / 1000
@@ -122,7 +124,8 @@ function LayoutsPopover({ onClose }: { onClose: () => void }) {
 
   // Only this plan's layouts. The open layout shows even when the list hides it (test files).
   const rows: LayoutInfo[] = list.filter((l) => l.plan === plan.id)
-  if (!rows.some((l) => l.slug === layout)) rows.push({ slug: layout, name: displayName(layout, layoutName), items: itemCount, updated: '', plan: plan.id })
+  if (!rows.some((l) => l.slug === layout))
+    rows.push({ slug: layout, name: displayName(layout, layoutName), items: itemCount, updated: '', plan: plan.id })
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true)
@@ -186,13 +189,19 @@ function LayoutsPopover({ onClose }: { onClose: () => void }) {
                   <button type="button" className="btn" autoFocus onClick={() => setMode({ kind: 'idle' })}>
                     Cancel
                   </button>
-                  <button type="button" className="btn solid-danger" onClick={() => run(() => useLayouts.getState().remove(l.slug))}>
+                  <button
+                    type="button"
+                    className="btn solid-danger"
+                    onClick={() => run(() => useLayouts.getState().remove(l.slug))}
+                  >
                     Delete
                   </button>
                 </div>
               </li>
             )
-          const meta = [`${items} ${items === 1 ? 'item' : 'items'}`, !isCurrent && ago(l.updated)].filter(Boolean).join(' · ')
+          const meta = [`${items} ${items === 1 ? 'item' : 'items'}`, !isCurrent && ago(l.updated)]
+            .filter(Boolean)
+            .join(' · ')
           return (
             <li key={String(l.slug)} className={`layout-row${isCurrent ? ' current' : ''}`}>
               <button
@@ -226,11 +235,23 @@ function LayoutsPopover({ onClose }: { onClose: () => void }) {
                     <Icon name="compare" size={15} />
                   </button>
                 )}
-                <button type="button" className="icon-btn" aria-label={`Rename ${name}`} title="Rename" onClick={() => setMode({ kind: 'rename', slug: l.slug })}>
+                <button
+                  type="button"
+                  className="icon-btn"
+                  aria-label={`Rename ${name}`}
+                  title="Rename"
+                  onClick={() => setMode({ kind: 'rename', slug: l.slug })}
+                >
                   <Icon name="pencil" size={15} />
                 </button>
                 {l.slug !== null && l.slug !== MAIN_SLUG && (
-                  <button type="button" className="icon-btn danger" aria-label={`Delete ${name}`} title="Delete" onClick={() => setMode({ kind: 'delete', slug: l.slug })}>
+                  <button
+                    type="button"
+                    className="icon-btn danger"
+                    aria-label={`Delete ${name}`}
+                    title="Delete"
+                    onClick={() => setMode({ kind: 'delete', slug: l.slug })}
+                  >
                     <Icon name="trash" size={15} />
                   </button>
                 )}
@@ -245,10 +266,12 @@ function LayoutsPopover({ onClose }: { onClose: () => void }) {
           placeholder="Name, e.g. Desk by the window"
           submit="Save as new"
           initial=""
-          onSubmit={(n) => run(async () => {
-            await useLayouts.getState().saveAs(n)
-            onClose()
-          })}
+          onSubmit={(n) =>
+            run(async () => {
+              await useLayouts.getState().saveAs(n)
+              onClose()
+            })
+          }
         />
       </div>
     </div>

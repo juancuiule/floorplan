@@ -1,24 +1,20 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
-import { DEFAULT_PLAN_ID } from '../src/plans/default.ts'
+import {
+  isHiddenSlug,
+  isMainSlug,
+  isPlanMainSlug,
+  LAYOUT_SLUG,
+  type LayoutInfo,
+  layoutFileName,
+  MAIN_NAME,
+  slugify,
+  slugOfFileName,
+} from '../src/model/layoutNames.ts'
 
-// Layout variants on disk: data/decor.json is the main layout ("Current"),
-// data/decor.<slug>.json are named ones. A file may carry its display name
+// Layout variants on disk, in the workspace's layouts/ folder: decor.json is the
+// default plan's main layout ("Current"), decor.<slug>.json are the others. A file may carry its display name
 // ({ version, name, finishes, items }); the slug is the file identity.
-
-export interface LayoutInfo {
-  /** null for data/decor.json. */
-  slug: string | null
-  name: string
-  items: number
-  /** ISO time of the last write. */
-  updated: string
-  /** The plan the layout furnishes; missing in the file means the default plan. */
-  plan: string
-}
-
-/** The plan a layout belongs to when its file doesn't say (the owner's flat). */
-export const DEFAULT_PLAN = DEFAULT_PLAN_ID
 
 export class LayoutError extends Error {
   status: number
@@ -28,35 +24,11 @@ export class LayoutError extends Error {
   }
 }
 
-export const SLUG = /^[a-z0-9-]{1,40}$/
-export const MAIN_NAME = 'Current'
-
-/** data/decor.plan-<id>.json is the main layout of plan <id>: it keeps its file like data/decor.json. */
-export const isPlanMainSlug = (slug: string | null) => slug !== null && slug.startsWith('plan-')
-/** Is this layout some plan's main one ("Current")? */
-export const isMainSlug = (slug: string | null) => slug === null || isPlanMainSlug(slug)
-
-/** Scratch files written by test runs never show up in the menu. */
-export const isHiddenSlug = (slug: string) => /^(e2e|test)/.test(slug)
-
 export function assertSlug(slug: string) {
-  if (!SLUG.test(slug)) throw new LayoutError('Bad layout name')
+  if (!LAYOUT_SLUG.test(slug)) throw new LayoutError('Bad layout name')
 }
 
-/** "Sofa by the window!" → "sofa-by-the-window". */
-export function slugify(name: string): string {
-  const slug = name
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 40)
-    .replace(/-+$/g, '')
-  return slug || 'layout'
-}
-
-export const layoutFile = (dataDir: string, slug: string | null) => path.join(dataDir, slug ? `decor.${slug}.json` : 'decor.json')
+export const layoutFile = (dataDir: string, slug: string | null) => path.join(dataDir, layoutFileName(slug))
 
 const cleanName = (name: unknown) => {
   if (typeof name !== 'string' || !name.trim()) throw new LayoutError('A layout needs a name')
@@ -95,14 +67,13 @@ async function freeSlug(dataDir: string, wanted: string) {
 }
 
 /** Every layout: the main one first, then named ones by name. Test files are left out unless `all`. */
-export async function listLayouts(dataDir: string, all = false): Promise<LayoutInfo[]> {
+export async function listLayouts(dataDir: string, defaultPlan: string, all = false): Promise<LayoutInfo[]> {
   await fs.mkdir(dataDir, { recursive: true })
   const files = await fs.readdir(dataDir)
   const out: LayoutInfo[] = []
   for (const f of files) {
-    const m = f.match(/^decor(?:\.([a-z0-9-]{1,40}))?\.json$/)
-    if (!m) continue
-    const slug = m[1] ?? null
+    const slug = slugOfFileName(f)
+    if (slug === undefined) continue
     if (slug && !all && isHiddenSlug(slug)) continue
     const file = path.join(dataDir, f)
     const [data, stat] = await Promise.all([readJson(file), fs.stat(file)])
@@ -111,11 +82,14 @@ export async function listLayouts(dataDir: string, all = false): Promise<LayoutI
       name: typeof data.name === 'string' && data.name ? data.name : isMainSlug(slug) ? MAIN_NAME : slug!,
       items: Array.isArray(data.items) ? data.items.length : 0,
       updated: stat.mtime.toISOString(),
-      plan: typeof data.plan === 'string' && data.plan ? data.plan : DEFAULT_PLAN,
+      plan: typeof data.plan === 'string' && data.plan ? data.plan : defaultPlan,
     })
   }
-  if (!out.some((l) => l.slug === null)) out.push({ slug: null, name: MAIN_NAME, items: 0, updated: new Date(0).toISOString(), plan: DEFAULT_PLAN })
-  return out.sort((a, b) => (a.slug === null ? -1 : b.slug === null ? 1 : a.name.localeCompare(b.name, undefined, { numeric: true })))
+  if (!out.some((l) => l.slug === null))
+    out.push({ slug: null, name: MAIN_NAME, items: 0, updated: new Date(0).toISOString(), plan: defaultPlan })
+  return out.sort((a, b) =>
+    a.slug === null ? -1 : b.slug === null ? 1 : a.name.localeCompare(b.name, undefined, { numeric: true }),
+  )
 }
 
 /**

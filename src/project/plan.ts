@@ -1,20 +1,24 @@
+import { defaultPlan, plans } from 'virtual:workspace'
 import type { Plan } from '../model/plan'
-import { DEFAULT_PLAN_ID } from '../plans/default'
+import { checkedPlan } from '../model/validate'
+import { launch } from './launch'
 
-// Every plan in src/plans is bundled; ?plan=<id> picks one, the default is set in src/plans/default.ts.
+// The open workspace's plans are bundled (docs/adr/0002, 0009); ?plan=<id> picks
+// one, and the workspace names the default. The plan that opens is checked, so a
+// mistake in a hand-written plan shows up as a list of problems rather than as a
+// broken scene.
 
-const modules = import.meta.glob<Plan>('../plans/*.plan.json', { eager: true, import: 'default' })
+/** The plan that opens without ?plan=, and whose main layout is layouts/decor.json. */
+export const DEFAULT_PLAN_ID = defaultPlan
 
-export const PLANS: Plan[] = Object.values(modules).sort((a, b) => a.name.localeCompare(b.name))
-export { DEFAULT_PLAN_ID }
-
-function pick(): Plan {
-  const wanted = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('plan')
-  const found = PLANS.find((p) => p.id === wanted) ?? PLANS.find((p) => p.id === DEFAULT_PLAN_ID)
-  if (!found) throw new Error(`No plan "${wanted ?? DEFAULT_PLAN_ID}" in src/plans`)
+function open(): Plan {
+  const id = launch.plan && launch.plan in plans ? launch.plan : DEFAULT_PLAN_ID
+  if (!(id in plans)) throw new Error(`No plan "${id}" in the workspace's plans/ folder`)
+  const found = checkedPlan(plans[id], `plans/${id}.plan.json`)
+  if (found.id !== id) throw new Error(`plans/${id}.plan.json has id "${found.id}"; the id must match the file name`)
   return found
 }
 
 /** The open plan. */
-export const plan: Plan = pick()
+export const plan: Plan = open()
 export const isDefaultPlan = plan.id === DEFAULT_PLAN_ID

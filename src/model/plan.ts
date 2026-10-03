@@ -3,7 +3,7 @@ import type { MaterialDef, MaterialId, Rect, SceneObject, Shell, Vec2, Vec3 } fr
 // A plan is one apartment as data: its shell, fixed fittings, materials, where
 // it is (for the sun) and the design rules the app needs about it (which walls
 // can come out, which can take an accent color, the cameras worth having).
-// Plans live in src/plans/<id>.plan.json; everything the app knows about a
+// Plans live in a workspace's plans/<id>.plan.json; everything the app knows about a
 // specific flat comes from here or is derived from it (src/project/derived.ts).
 
 export interface Place {

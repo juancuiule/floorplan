@@ -4,10 +4,24 @@
 import { chromium } from 'playwright'
 
 const [base = 'http://localhost:5173', ...rest] = process.argv.slice(2)
-const queries = rest.length ? rest : ['view=iso-balcony&decor=furn', 'view=iso-balcony&decor=furn&light=evening', 'view=iso-balcony&decor=empty']
+const queries = rest.length
+  ? rest
+  : ['view=iso-balcony&decor=furn', 'view=iso-balcony&decor=furn&light=evening', 'view=iso-balcony&decor=empty']
 
-const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--enable-gpu', '--disable-gpu-vsync', '--disable-frame-rate-limit'] })
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: Number(process.env.DSF ?? 1) })
+const browser = await chromium.launch({
+  executablePath: process.env.CHROME_PATH || undefined,
+  args: [
+    '--use-angle=metal',
+    '--ignore-gpu-blocklist',
+    '--enable-gpu',
+    '--disable-gpu-vsync',
+    '--disable-frame-rate-limit',
+  ],
+})
+const page = await browser.newPage({
+  viewport: { width: 1440, height: 900 },
+  deviceScaleFactor: Number(process.env.DSF ?? 1),
+})
 page.on('pageerror', (e) => console.log('[pageerror]', e.message))
 
 for (const q of queries) {

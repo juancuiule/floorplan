@@ -2,14 +2,26 @@ import { promises as fs } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import path from 'node:path'
 import type { Plugin } from 'vite'
-import { createLayout, deleteLayout, LayoutError, listLayouts, renameLayout } from './layouts.ts'
+import { slugOfFileName } from '../src/model/layoutNames.ts'
+import type { Workspace } from './workspace.ts'
+import {
+  assertSlug,
+  createLayout,
+  deleteLayout,
+  LayoutError,
+  layoutFile,
+  listLayouts,
+  renameLayout,
+} from './layouts.ts'
 
-// Dev-only API so the browser can write back into the project:
-//   GET  /api/artwork          list images in public/artwork
+// Dev-only API so the browser can write back into the open workspace
+// (server/workspace.ts); <layouts> and <artwork> are its folders:
+//   GET  /api/workspace        { name, defaultPlan, layouts } for scripts and tests
+//   GET  /api/artwork          list images in <artwork>
 //   POST /api/artwork?name=..  upload one image (raw body), returns { url, name }
-//   GET  /api/decor            read data/decor.json
-//   PUT  /api/decor            replace data/decor.json
-// /api/decor takes ?file=<name> to use data/decor.<name>.json instead (tests use this).
+//   GET  /api/decor            read <layouts>/decor.json
+//   PUT  /api/decor            replace <layouts>/decor.json
+// /api/decor takes ?file=<slug> to use <layouts>/decor.<slug>.json instead.
 //   GET    /api/layouts             list layouts (main first; ?all=1 includes e2e*/test* files)
 //   POST   /api/layouts             { name, data? | from? } save a new layout, returns { slug, name }
 //   PATCH  /api/layouts?file=<slug> { name } rename (no ?file= renames the main one), returns { slug, name }
@@ -47,7 +59,11 @@ const artUrl = (name: string) => `/artwork/${encodeURIComponent(name)}`
 
 async function uniqueName(dir: string, wanted: string) {
   const ext = path.extname(wanted).toLowerCase()
-  const stem = path.basename(wanted, path.extname(wanted)).replace(/[^\w.\- ]+/g, '-').slice(0, 80) || 'artwork'
+  const stem =
+    path
+      .basename(wanted, path.extname(wanted))
+      .replace(/[^\w.\- ]+/g, '-')
+      .slice(0, 80) || 'artwork'
   let name = `${stem}${ext}`
   for (let i = 2; ; i++) {
     try {
@@ -77,7 +93,12 @@ export function checkImageUrl(raw: string): URL {
   }
   if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new ImageError('Only http and https links')
   const h = u.hostname.toLowerCase()
-  if (h === 'localhost' || h.endsWith('.local') || /^(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.|\[?::1\]?$|\[?f[cd])/.test(h)) throw new ImageError('Not a public address')
+  if (
+    h === 'localhost' ||
+    h.endsWith('.local') ||
+    /^(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.|\[?::1\]?$|\[?f[cd])/.test(h)
+  )
+    throw new ImageError('Not a public address')
   return u
 }
 
@@ -90,7 +111,8 @@ async function fetchImage(raw: string): Promise<{ type: string; body: Buffer }> 
     signal: AbortSignal.timeout(15000),
     redirect: 'follow',
     headers: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36',
+      'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36',
       Accept: 'image/webp,image/jpeg,image/png,image/avif,image/*;q=0.8',
       'Accept-Language': 'en,es;q=0.9',
     },
@@ -107,41 +129,55 @@ async function fetchImage(raw: string): Promise<{ type: string; body: Buffer }> 
   return out
 }
 
-export function studioApi(): Plugin {
+/** Where the API reads and writes: the open workspace's folders (server/workspace.ts). */
+export type ApiDirs = Pick<Workspace, 'layoutsDir' | 'artworkDir' | 'defaultPlan' | 'name'>
+
+export function studioApi(ws: ApiDirs): Plugin {
   return {
     name: 'studio-api',
     apply: 'serve',
     configureServer(server) {
       const root = server.config.root
-      const artDir = path.join(root, 'public', 'artwork')
-      const dataDir = path.join(root, 'data')
-      const decorFileFor = (name: string | null) => {
-        if (!name) return path.join(dataDir, 'decor.json')
-        if (!/^[a-z0-9-]{1,40}$/.test(name)) throw new Error('Bad decor file name')
-        return path.join(dataDir, `decor.${name}.json`)
+      const artDir = ws.artworkDir
+      const dataDir = ws.layoutsDir
+      const decorFileFor = (slug: string | null) => {
+        if (slug) assertSlug(slug)
+        return layoutFile(dataDir, slug)
       }
 
       server.watcher.add(path.join(dataDir, 'decor*.json'))
-      const layoutOf = (file: string) => (path.dirname(file) === dataDir ? path.basename(file).match(/^decor(?:\.([a-z0-9-]+))?\.json$/) : null)
+      /** The slug of a layout file (null for decor.json), undefined for any other file. */
+      const layoutOf = (file: string) =>
+        path.dirname(file) === dataDir ? slugOfFileName(path.basename(file)) : undefined
       server.watcher.on('change', (file) => {
-        const m = layoutOf(file)
-        if (!m) return
-        server.ws.send({ type: 'custom', event: 'decor:changed', data: { file: m[1] ?? null } })
+        const slug = layoutOf(file)
+        if (slug === undefined) return
+        server.ws.send({ type: 'custom', event: 'decor:changed', data: { file: slug } })
         server.ws.send({ type: 'custom', event: 'layouts:changed', data: {} })
       })
       for (const ev of ['add', 'unlink'] as const)
         server.watcher.on(ev, (file) => {
-          if (layoutOf(file)) server.ws.send({ type: 'custom', event: 'layouts:changed', data: {} })
+          if (layoutOf(file) !== undefined) server.ws.send({ type: 'custom', event: 'layouts:changed', data: {} })
         })
 
       server.middlewares.use(async (req, res, next) => {
         const url = new URL(req.url ?? '/', 'http://localhost')
         if (!url.pathname.startsWith('/api/')) return next()
         try {
+          if (url.pathname === '/api/workspace' && req.method === 'GET') {
+            // For scripts and browser tests that seed layout files on disk.
+            return send(res, 200, { name: ws.name, defaultPlan: ws.defaultPlan, layouts: path.relative(root, dataDir) })
+          }
           if (url.pathname === '/api/artwork' && req.method === 'GET') {
             await fs.mkdir(artDir, { recursive: true })
-            const files = (await fs.readdir(artDir)).filter((f) => IMAGE_EXT.test(f)).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
-            return send(res, 200, files.map((name) => ({ name, url: artUrl(name) })))
+            const files = (await fs.readdir(artDir))
+              .filter((f) => IMAGE_EXT.test(f))
+              .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+            return send(
+              res,
+              200,
+              files.map((name) => ({ name, url: artUrl(name) })),
+            )
           }
           if (url.pathname === '/api/artwork' && req.method === 'POST') {
             const wanted = url.searchParams.get('name') ?? 'artwork.png'
@@ -161,7 +197,8 @@ export function studioApi(): Plugin {
           }
           if (url.pathname === '/api/layouts') {
             const file = url.searchParams.get('file')
-            if (req.method === 'GET') return send(res, 200, await listLayouts(dataDir, url.searchParams.get('all') === '1'))
+            if (req.method === 'GET')
+              return send(res, 200, await listLayouts(dataDir, ws.defaultPlan, url.searchParams.get('all') === '1'))
             if (req.method === 'POST') {
               const body = JSON.parse((await readBody(req, 5 * 1024 * 1024)).toString('utf8') || '{}')
               return send(res, 201, await createLayout(dataDir, body))
@@ -192,7 +229,12 @@ export function studioApi(): Plugin {
           send(res, 404, { error: 'Not found' })
         } catch (e) {
           if (e instanceof LayoutError || e instanceof ImageError) return send(res, e.status, { error: e.message })
-          if (e instanceof Error && (e.name === 'TimeoutError' || e.name === 'TypeError') && url.pathname === '/api/image') return send(res, 502, { error: 'Could not reach that image' })
+          if (
+            e instanceof Error &&
+            (e.name === 'TimeoutError' || e.name === 'TypeError') &&
+            url.pathname === '/api/image'
+          )
+            return send(res, 502, { error: 'Could not reach that image' })
           if (e instanceof SyntaxError) return send(res, 400, { error: 'Malformed JSON' })
           send(res, 500, { error: e instanceof Error ? e.message : String(e) })
         }

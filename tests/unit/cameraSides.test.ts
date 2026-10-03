@@ -1,11 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { isFlippable, mirrorCamera, sideNames, sideOf } from '../../src/project/cameraSides'
 import { CAMERAS, CENTER_Z, FLOOR_BOUNDS, SIDE_NAMES } from '../../src/project/derived'
-import loft from '../../src/plans/loft.plan.json'
+import loft from '../../examples/loft/plans/loft.plan.json'
 
 describe('iso views from either side', () => {
   it('mirrors position and target across the center z, keeping x, height and label', () => {
-    const cam = { label: 'Iso', position: [11.2, 7.6, -4.6] as [number, number, number], target: [4, 0.4, 1.4] as [number, number, number] }
+    const cam = {
+      label: 'Iso',
+      position: [11.2, 7.6, -4.6] as [number, number, number],
+      target: [4, 0.4, 1.4] as [number, number, number],
+    }
     const m = mirrorCamera(cam, 1.5)
     expect(m.label).toBe('Iso')
     expect(m.position[0]).toBe(11.2)

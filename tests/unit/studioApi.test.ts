@@ -32,7 +32,12 @@ beforeAll(async () => {
     ws: { send: (msg: unknown) => wsSent.push(msg) },
     middlewares: { use: (fn: Handler) => (handler = fn) },
   }
-  const plugin = studioApi()
+  const plugin = studioApi({
+    layoutsDir: path.join(root, 'data'),
+    artworkDir: path.join(root, 'public', 'artwork'),
+    defaultPlan: 'monoambiente',
+    name: 'Test',
+  })
   expect(plugin.apply).toBe('serve')
   ;(plugin.configureServer as (s: unknown) => void)(fakeServer)
   expect(handler).toBeDefined()
@@ -58,7 +63,8 @@ beforeEach(async () => {
 })
 
 const artDir = () => path.join(root, 'public', 'artwork')
-const upload = (name: string, body: string | Uint8Array<ArrayBuffer> = 'img') => fetch(`${base}/api/artwork?name=${encodeURIComponent(name)}`, { method: 'POST', body })
+const upload = (name: string, body: string | Uint8Array<ArrayBuffer> = 'img') =>
+  fetch(`${base}/api/artwork?name=${encodeURIComponent(name)}`, { method: 'POST', body })
 
 describe('routing', () => {
   it('passes non-API requests to the next middleware', async () => {
@@ -76,7 +82,8 @@ describe('/api/artwork', () => {
   it('lists only images, in natural order, creating the folder if needed', async () => {
     expect(await (await fetch(`${base}/api/artwork`)).json()).toEqual([])
     await fs.mkdir(artDir(), { recursive: true })
-    for (const f of ['img 10.png', 'img 2.jpg', 'notes.txt', 'b.WEBP', '.DS_Store']) await fs.writeFile(path.join(artDir(), f), 'x')
+    for (const f of ['img 10.png', 'img 2.jpg', 'notes.txt', 'b.WEBP', '.DS_Store'])
+      await fs.writeFile(path.join(artDir(), f), 'x')
     const list = (await (await fetch(`${base}/api/artwork`)).json()) as { name: string; url: string }[]
     expect(list.map((x) => x.name)).toEqual(['b.WEBP', 'img 2.jpg', 'img 10.png'])
     expect(list[2].url).toBe('/artwork/img%2010.png')
@@ -92,7 +99,8 @@ describe('/api/artwork', () => {
 
   it('never overwrites: repeated names get -2, -3…', async () => {
     const names = []
-    for (let i = 0; i < 3; i++) names.push(((await (await upload('same.png', `v${i}`)).json()) as { name: string }).name)
+    for (let i = 0; i < 3; i++)
+      names.push(((await (await upload('same.png', `v${i}`)).json()) as { name: string }).name)
     expect(names).toEqual(['same.png', 'same-2.png', 'same-3.png'])
     expect(await fs.readFile(path.join(artDir(), 'same.png'), 'utf8')).toBe('v0')
   })
@@ -105,7 +113,7 @@ describe('/api/artwork', () => {
     await expect(fs.readdir(artDir())).rejects.toThrow()
   })
 
-  it('keeps uploads inside public/artwork and sanitizes odd characters', async () => {
+  it('keeps uploads inside the artwork folder and sanitizes odd characters', async () => {
     const a = (await (await upload('../../../escape.png')).json()) as { name: string }
     expect(a.name).toBe('escape.png')
     const b = (await (await upload('we?ird<>:name.JPG')).json()) as { name: string }
@@ -141,7 +149,7 @@ describe('/api/decor', () => {
     await expect(fs.access(path.join(root, 'data', 'decor.json'))).rejects.toThrow()
   })
 
-  it('uses data/decor.json without ?file=', async () => {
+  it('uses decor.json without ?file=', async () => {
     await fetch(`${base}/api/decor`, { method: 'PUT', body: JSON.stringify(doc) })
     expect(JSON.parse(await fs.readFile(path.join(root, 'data', 'decor.json'), 'utf8'))).toEqual(doc)
   })

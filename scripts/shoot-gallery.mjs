@@ -1,14 +1,15 @@
 // Screenshots of the gallery-wall tools: a selection with the align tools in the
 // edit bar, a finished gallery wall over a sofa, and smart guides on the floor.
-// Uses data/decor.test-gallery.json (git-ignored), never your real layout.
+// Uses the scratch layout test-gallery (git-ignored), never your real layout.
 // Usage: node scripts/shoot-gallery.mjs <outDir> [baseUrl]
 import { chromium } from 'playwright'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { layoutFile } from '../tests/e2e/workspace.mjs'
 
 const [outDir = 'test-results/gallery', base = 'http://localhost:5173'] = process.argv.slice(2)
 mkdirSync(outDir, { recursive: true })
-writeFileSync('data/decor.test-gallery.json', JSON.stringify({ version: 1, items: [] }, null, 2) + '\n')
+writeFileSync(await layoutFile(base, 'test-gallery'), JSON.stringify({ version: 1, items: [] }, null, 2) + '\n')
 
 const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || undefined,
@@ -24,7 +25,16 @@ await page.waitForTimeout(800)
 // A sofa against the kitchen-side wall, six prints hung anyhow above it, a chair in the room.
 await page.evaluate(async () => {
   const { FURNITURE } = await import('/src/decor/furnitureCatalog.ts')
-  const furniture = (id, type, at, rotation, size) => ({ kind: 'furniture', id, type, at, rotation, size: size ?? [...FURNITURE[type].size], finish: { ...FURNITURE[type].finish }, options: { ...FURNITURE[type].options } })
+  const furniture = (id, type, at, rotation, size) => ({
+    kind: 'furniture',
+    id,
+    type,
+    at,
+    rotation,
+    size: size ?? [...FURNITURE[type].size],
+    finish: { ...FURNITURE[type].finish },
+    options: { ...FURNITURE[type].options },
+  })
   const art = (id, image, x, y, w, h, style = 'thin', color = '#1f1e1c', mat = 0) => ({
     kind: 'artwork',
     id,
