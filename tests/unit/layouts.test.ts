@@ -5,7 +5,7 @@ import type { AddressInfo } from 'node:net'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { slugify } from '../../server/layouts'
+import { slugify } from '../../src/model/layoutNames'
 import { studioApi } from '../../server/studioApi'
 
 // /api/layouts on a real http server over a temp project root.

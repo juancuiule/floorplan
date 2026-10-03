@@ -1,4 +1,7 @@
 import type { DecorFile } from '../model/decor'
+import type { LayoutInfo } from '../model/layoutNames'
+
+export type { LayoutInfo }
 
 // The client of the dev API (server/studioApi.ts, docs/adr/0001). The only
 // module that knows the routes: a hosted backend answering the same contract
@@ -7,17 +10,6 @@ import type { DecorFile } from '../model/decor'
 export interface LibraryImage {
   name: string
   url: string
-}
-
-export interface LayoutInfo {
-  /** null for the default plan's main layout (data/decor.json). */
-  slug: string | null
-  name: string
-  items: number
-  /** ISO time of the last write. */
-  updated: string
-  /** The plan it furnishes. */
-  plan: string
 }
 
 /** A request the server answered with an error, or did not answer. */

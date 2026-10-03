@@ -2,7 +2,16 @@ import { promises as fs } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import path from 'node:path'
 import type { Plugin } from 'vite'
-import { createLayout, deleteLayout, LayoutError, listLayouts, renameLayout } from './layouts.ts'
+import { slugOfFileName } from '../src/model/layoutNames.ts'
+import {
+  assertSlug,
+  createLayout,
+  deleteLayout,
+  LayoutError,
+  layoutFile,
+  listLayouts,
+  renameLayout,
+} from './layouts.ts'
 
 // Dev-only API so the browser can write back into the project:
 //   GET  /api/artwork          list images in public/artwork
@@ -125,24 +134,24 @@ export function studioApi(): Plugin {
       const root = server.config.root
       const artDir = path.join(root, 'public', 'artwork')
       const dataDir = path.join(root, 'data')
-      const decorFileFor = (name: string | null) => {
-        if (!name) return path.join(dataDir, 'decor.json')
-        if (!/^[a-z0-9-]{1,40}$/.test(name)) throw new Error('Bad decor file name')
-        return path.join(dataDir, `decor.${name}.json`)
+      const decorFileFor = (slug: string | null) => {
+        if (slug) assertSlug(slug)
+        return layoutFile(dataDir, slug)
       }
 
       server.watcher.add(path.join(dataDir, 'decor*.json'))
+      /** The slug of a layout file in data/ (null for decor.json), undefined for any other file. */
       const layoutOf = (file: string) =>
-        path.dirname(file) === dataDir ? path.basename(file).match(/^decor(?:\.([a-z0-9-]+))?\.json$/) : null
+        path.dirname(file) === dataDir ? slugOfFileName(path.basename(file)) : undefined
       server.watcher.on('change', (file) => {
-        const m = layoutOf(file)
-        if (!m) return
-        server.ws.send({ type: 'custom', event: 'decor:changed', data: { file: m[1] ?? null } })
+        const slug = layoutOf(file)
+        if (slug === undefined) return
+        server.ws.send({ type: 'custom', event: 'decor:changed', data: { file: slug } })
         server.ws.send({ type: 'custom', event: 'layouts:changed', data: {} })
       })
       for (const ev of ['add', 'unlink'] as const)
         server.watcher.on(ev, (file) => {
-          if (layoutOf(file)) server.ws.send({ type: 'custom', event: 'layouts:changed', data: {} })
+          if (layoutOf(file) !== undefined) server.ws.send({ type: 'custom', event: 'layouts:changed', data: {} })
         })
 
       server.middlewares.use(async (req, res, next) => {

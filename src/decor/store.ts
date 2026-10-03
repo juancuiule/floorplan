@@ -16,6 +16,7 @@ import { namesOf, serialize } from './layoutFile'
 import { createSaver } from './persistence'
 import { mountOf, placeAt, slidesOnFloor } from './placement'
 import { settleMoved } from './rest'
+import { planMainSlug } from '../model/layoutNames'
 
 // The open layout: its decor items, finishes and groups, the selection, and the
 // item following the pointer. Everything here is saved to the layout file and
@@ -135,8 +136,6 @@ interface DecorState {
   renamed: (slug: string | null, name: string) => void
 }
 
-/** The main layout file of a plan other than the default one. */
-export const planMainSlug = (id: string) => `plan-${id}`
 /** The open plan's main layout ("Current"): data/decor.json for the default plan. */
 export const MAIN_SLUG: string | null = isDefaultPlan ? null : planMainSlug(plan.id)
 
